@@ -1,21 +1,21 @@
 # This is the same as the FileContentJson type in TypeScript.
-FILE_CONTENT_JSON_CLASS <- "file_content_json"
-file_content_json <- function(name, content, type = c("text", "binary")) {
+FILE_CONTENT_CLASS <- "shinylive_file_content"
+file_content_obj <- function(name, content, type = c("text", "binary")) {
   structure(
     list(
       name = name,
       content = content,
       type = match.arg(type)
     ),
-    class = c(FILE_CONTENT_JSON_CLASS, "list")
+    class = c(FILE_CONTENT_CLASS, "list")
   )
 }
 
-APP_INFO_CLASS <- "app_info"
+APP_INFO_CLASS <- "shinylive_app_info"
 app_info_obj <- function(appdir, subdir, files) {
   stopifnot(inherits(files, "list"))
   lapply(files, function(file) {
-    stopifnot(inherits(file, FILE_CONTENT_JSON_CLASS))
+    stopifnot(inherits(file, FILE_CONTENT_CLASS))
   })
   structure(
     list(
@@ -57,7 +57,7 @@ read_app_files <- function(
   # Add an app file entry from anywhere in `read_app_files` to avoid handling data from the bottom up
   add_file <- function(name, content, type) {
     app_files[[length(app_files) + 1]] <<-
-      file_content_json(
+      file_content_obj(
         name = name,
         content = content,
         type = type

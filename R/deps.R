@@ -1,5 +1,5 @@
-HTML_DEP_ITEM_CLASS <- "html_dep_item"
-html_dep_item <- function(
+HTML_DEP_ITEM_CLASS <- "shinylive_html_dep"
+html_dep_obj <- function(
     ...,
     name,
     path,
@@ -18,8 +18,8 @@ html_dep_item <- function(
   )
 }
 
-HTML_DEP_SERVICEWORKER_ITEM_CLASS <- "html_dep_serviceworker_item"
-html_dep_serviceworker_item <- function(
+HTML_DEP_SERVICEWORKER_CLASS <- "shinylive_html_dep_serviceworker"
+html_dep_serviceworker_obj <- function(
     ...,
     source,
     destination) {
@@ -31,12 +31,12 @@ html_dep_serviceworker_item <- function(
       source = source,
       destination = destination
     ),
-    class = c(HTML_DEP_SERVICEWORKER_ITEM_CLASS, "list")
+    class = c(HTML_DEP_SERVICEWORKER_CLASS, "list")
   )
 }
 
-QUARTO_HTML_DEPENDENCY_CLASS <- "quarto_html_dependency"
-quarto_html_dependency <- function(
+QUARTO_HTML_DEPENDENCY_CLASS <- "shinylive_quarto_html_dependency"
+quarto_html_dependency_obj <- function(
     ...,
     name,
     version = NULL,
@@ -53,7 +53,7 @@ quarto_html_dependency <- function(
   is.null(resources) || assert_list_items(resources, HTML_DEP_ITEM_CLASS)
   is.null(meta) || assert_list(meta)
   is.null(serviceworkers) ||
-    assert_list_items(serviceworkers, HTML_DEP_SERVICEWORKER_ITEM_CLASS)
+    assert_list_items(serviceworkers, HTML_DEP_SERVICEWORKER_CLASS)
 
   structure(
     list(
@@ -77,19 +77,19 @@ shinylive_base_deps_htmldep <- function(sw_dir = NULL) {
 }
 
 serviceworker_dep <- function(sw_dir) {
-  quarto_html_dependency(
+  quarto_html_dependency_obj(
     name = "shinylive-serviceworker",
     version = SHINYLIVE_ASSETS_VERSION,
     serviceworkers = list(
-      html_dep_serviceworker_item(
+      html_dep_serviceworker_obj(
         source = file.path(shinylive_assets_dir(), "shinylive-sw.js"),
         destination = "/shinylive-sw.js"
       ),
-      html_dep_serviceworker_item(
+      html_dep_serviceworker_obj(
         source = file.path(shinylive_assets_dir(), "shinylive", "webr", "webr-serviceworker.js"),
         destination = "/webr-serviceworker.js"
       ),
-      html_dep_serviceworker_item(
+      html_dep_serviceworker_obj(
         source = file.path(shinylive_assets_dir(), "shinylive", "webr", "webr-worker.js"),
         destination = "/webr-worker.js"
       )
@@ -123,7 +123,7 @@ shinylive_common_dep_htmldep <- function() {
       name,
       path,
       attribs = NULL) {
-    dep_item <- html_dep_item(name = name, path = path, attribs = attribs)
+    dep_item <- html_dep_obj(name = name, path = path, attribs = attribs)
     switch(match.arg(type),
       "script" = {
         scripts[[length(scripts) + 1]] <<- dep_item
@@ -184,7 +184,7 @@ shinylive_common_dep_htmldep <- function() {
     scripts[scripts_names == "run-python-blocks.js"]
   )
 
-  quarto_html_dependency(
+  quarto_html_dependency_obj(
     name = "shinylive",
     version = SHINYLIVE_ASSETS_VERSION,
     scripts = scripts,
