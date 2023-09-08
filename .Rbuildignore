@@ -1,0 +1,9 @@
+^LICENSE\.md$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^barret
+^local$
+^\.luarc\.json$
+^.github$
+^shinylive\.Rproj$

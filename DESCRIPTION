@@ -1,0 +1,27 @@
+Package: shinylive
+Title: Run Shiny applications in the browser
+Version: 0.0.0.9000
+Authors@R:
+    c(
+        person("Barret", "Schloerke", , "barret@posit.co", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0001-9986-114X")),
+        person("Winston", "Chang", role = c("aut"), email = "winston@posit.co", comment = c(ORCID = "0000-0002-1576-2126")),
+        person("George", "Stagg", role = "ctb", email = "george.stagg@posit.co"),
+        person("Posit Software, PBC", role = c("cph", "fnd"))
+    )
+Description: Run Shiny applications in the browser using 'webR' package.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Config/Needs/website: tidyverse/tidytemplate
+Imports:
+    archive,
+    brio,
+    fs,
+    jsonlite,
+    progress,
+    rappdirs,
+    tools
+Suggests:
+    httr

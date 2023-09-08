@@ -1,0 +1,14 @@
+url: https://posit-dev.github.io/r-shinylive/
+template:
+  package: tidytemplate
+  bootstrap: 5
+
+  bslib:
+    # TODO-barret; Double check colors
+    primary: "#007BC2"
+    # navbar-background: "#007BC2"
+    # navbar-color: "#FFFFFF"
+    navbar-background: "#dff3ff"
+    # primary: "#2380c2"
+    # navbar-background: "#e7f3fb"
+  trailing_slash_redirect: true
