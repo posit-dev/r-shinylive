@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://posit-dev.github.io/r-shinylive/404.html</loc>
+  </url>
+  <url>
+    <loc>https://posit-dev.github.io/r-shinylive/LICENSE-text.html</loc>
+  </url>
+  <url>
+    <loc>https://posit-dev.github.io/r-shinylive/LICENSE.html</loc>
+  </url>
+  <url>
+    <loc>https://posit-dev.github.io/r-shinylive/authors.html</loc>
+  </url>
+  <url>
+    <loc>https://posit-dev.github.io/r-shinylive/index.html</loc>
+  </url>
+  <url>
+    <loc>https://posit-dev.github.io/r-shinylive/reference/assets.html</loc>
+  </url>
+  <url>
+    <loc>https://posit-dev.github.io/r-shinylive/reference/export.html</loc>
+  </url>
+  <url>
+    <loc>https://posit-dev.github.io/r-shinylive/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>https://posit-dev.github.io/r-shinylive/reference/install.html</loc>
+  </url>
+  <url>
+    <loc>https://posit-dev.github.io/r-shinylive/reference/quarto_ext.html</loc>
+  </url>
+</urlset>
