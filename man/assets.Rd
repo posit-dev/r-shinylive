@@ -6,7 +6,7 @@
 \alias{assets_cleanup}
 \alias{assets_info}
 \alias{assets_version}
-\title{shinylive assets}
+\title{Manage shinylive assets}
 \usage{
 assets_download(
   version = SHINYLIVE_ASSETS_VERSION,

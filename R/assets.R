@@ -1,5 +1,5 @@
 
-#' shinylive assets
+#' Manage shinylive assets
 #'
 #' Helper methods for managing shinylive assets.
 #'
