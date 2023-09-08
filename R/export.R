@@ -1,14 +1,27 @@
-# from __future__ import annotations
-
-# import os
-# import sys
-# from pathlib import Path
-
-# from . import _deps, _utils
-# from ._app_json import AppInfo, read_app_files, write_app_json
-# from ._assets import shinylive_assets_dir
-
-
+#' Export a Shiny app to a directory
+#'
+#' This function exports a Shiny app to a directory, which can then be served
+#' using `httpuv::runStaticServer()`.
+#'
+#' @param appdir Directory containing the application.
+#' @param destdir Destination directory.
+#' @param subdir Subdirectory of `destdir` to write the app to.
+#' @param verbose Print verbose output.
+#' @param ... Ignored
+#' @export
+#' @examples
+#' \dontrun{
+#' app_dir <- system.file("examples", "01_hello", package="shiny")
+#' out_dir <- tempfile("shinylive-export")
+#'
+#' # Export the app to a directory
+#' export(app_dir, out_dir)
+#' #> Run the following in an R session to serve the app:
+#' #>   httpuv::runStaticServer(<OUT_DIR>, port=8008)
+#'
+#' # Serve the exported directory
+#' httpuv::runStaticServer(out_dir, port=8008)
+#' }
 export <- function(
     appdir,
     destdir,
@@ -38,14 +51,14 @@ export <- function(
 
   copy_fn = create_copy_fn(overwrite=FALSE, verbose_print=verbose_print)
 
-  assets_dir = shinylive_assets_dir()
+  assets_path = assets_dir()
 
   # =========================================================================
   # Copy the base dependencies for shinylive/ distribution. This does not
   # include the R package files.
   # =========================================================================
   message(
-    "Copying base Shinylive files from ", assets_dir, "/ to ", destdir, "/"
+    "Copying base Shinylive files from ", assets_path, "/ to ", destdir, "/"
   )
   base_files <- shinylive_common_files()
   p <- progress::progress_bar$new(
@@ -55,7 +68,7 @@ export <- function(
     # show_after = 0
   )
   lapply(base_files, function(base_file) {
-    src_path <- fs::path(assets_dir, base_file)
+    src_path <- fs::path(assets_path, base_file)
     dest_path <- fs::path(destdir, base_file)
     p$tick()
 
@@ -75,7 +88,7 @@ export <- function(
   # # Copy dependencies from shinylive/pyodide/
   # # =========================================================================
   # if full_shinylive:
-  #     package_files = _utils.listdir_recursive(assets_dir / "shinylive" / "pyodide")
+  #     package_files = _utils.listdir_recursive(assets_path / "shinylive" / "pyodide")
   #     # Some of the files in this dir are base files; don't copy them.
   #     package_files = [
   #         file
@@ -89,13 +102,13 @@ export <- function(
   #     package_files: list[str] = [dep["file_name"] for dep in deps]
 
   #     print(
-  #         f"Copying imported packages from {assets_dir}/shinylive/pyodide/ to {destdir}/shinylive/pyodide/",
+  #         f"Copying imported packages from {assets_path}/shinylive/pyodide/ to {destdir}/shinylive/pyodide/",
   #         file=sys.stderr,
   #     )
   #     verbose_print(" ", ", ".join(package_files))
 
   # for filename in package_files:
-  #     src_path = assets_dir / "shinylive" / "pyodide" / filename
+  #     src_path = assets_path / "shinylive" / "pyodide" / filename
   #     dest_path = destdir / "shinylive" / "pyodide" / filename
   #     if not dest_path.parent.exists():
   #         os.makedirs(dest_path.parent)
@@ -109,7 +122,7 @@ export <- function(
   write_app_json(
     app_info,
     destdir,
-    html_source_dir = fs::path(assets_dir, "export_template")
+    html_source_dir = fs::path(assets_path, "export_template")
   )
 
   message(

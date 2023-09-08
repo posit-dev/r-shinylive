@@ -23,7 +23,9 @@ end
 -- about installing shinylive R package.
 function callRShinylive(args, input)
   args = { "-e",
-    "pkgload::load_all('/Users/barret/Documents/git/rstudio/r-shinylive/r-shinylive.nosync/', quiet = TRUE); shinylive:::quarto_ext_call()",
+    -- TODO-barret; Remove load_all()
+    -- "shinylive::quarto_ext()",
+    "pkgload::load_all('../../', quiet = TRUE); shinylive::quarto_ext()",
     table.unpack(args) }
   local res
   local status, err = pcall(

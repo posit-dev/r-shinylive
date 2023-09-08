@@ -18,13 +18,21 @@ pak::pak("posit-dev/r-shinylive")
 
 ## Example
 
-TODO-barret; document
-
-This is a basic example which shows you how to solve a common problem:
+This is a basic example that will export a shiny app to a directory which can be hosted locally:
 
 ``` r
 library(shinylive)
-## basic example code
+
+app_dir <- system.file("examples", "01_hello", package="shiny")
+out_dir <- tempfile("shinylive-export")
+
+# Export the app to a directory
+export(app_dir, out_dir)
+#> Run the following in an R session to serve the app:
+#>   httpuv::runStaticServer(<OUT_DIR>, port=8008)
+
+# Serve the exported directory
+httpuv::runStaticServer(out_dir, port=8008)
 ```
 
 
@@ -51,3 +59,14 @@ export("local/shiny-apps/simple-r", "local/shiny-apps-out")
 # Host the local directory
 httpuv::runStaticServer("local/shiny-apps-out", port=8008)
 ```
+
+
+## TODO-barret
+
+* TODO-barret; document readme
+* TODO-barret; test
+  * quarto_ext_call(c("base-deps", "--sw-dir", "asdfasfd"))
+  * quarto_ext_call(c("package-deps"))
+  * quarto_ext_call(c("codeblock-to-json-path"))
+* TOOD-barret; Move quarto extensions changes to `quarto-ext/shinylive`
+  * Remove pkgload::load_all() call

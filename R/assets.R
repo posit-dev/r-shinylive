@@ -1,18 +1,27 @@
-# TODO-barret; Rename methods for discoverability. Ex: `FOO_shinylive_assets` -> `assets_FOO`; Ex: Follow the python CLI pattern of `shinylive assets FOO` -> `assets_FOO`, `asset_download`
-# TODO-barret; document
-# TODO-barret; test
-# * quarto_ext_call(c("base-deps", "--sw-dir", "asdfasfd"))
-# * quarto_ext_call(c("package-deps"))
-# * quarto_ext_call(c("codeblock-to-json-path"))
-# TODO-barret; Update readme with local testing
-# TOOD-barret; Move quarto extensions changes to `quarto-ext/shinylive`
 
-download_shinylive <- function(
-    # Note that this is the cache directory, which is the parent of the assets
-    # directory. The tarball will have the assets directory as the top-level subdir.
-    destdir = shinylive_cache_dir(),
-    version = SHINYLIVE_ASSETS_VERSION,
-    url = shinylive_bundle_url(version)) {
+#' shinylive assets
+#'
+#' Helper methods for managing shinylive assets.
+#'
+#' @describeIn assets Downloads the shinylive assets bundle from
+#' GitHub and extracts it to the specified directory. The bundle will always be
+#' downloaded from GitHub, even if it already exists in the cache directory
+#' (`dir=`).
+#' @param version The version of the assets to download.
+#' @param ... Ignored.
+#' @param dir The asset cache directory. Unless testing, the default behavior
+#'    should be used.
+#' @param url The URL to download the assets from. Unless testing, the default
+#'    behavior should be used.
+#' @export
+assets_download <- function(
+  version = SHINYLIVE_ASSETS_VERSION,
+  ...,
+  # Note that this is the cache directory, which is the parent of the assets
+  # directory. The tarball will have the assets directory as the top-level subdir.
+  dir = assets_cache_dir(),
+  url = assets_bundle_url(version)
+) {
   tmp_targz <- tempfile(paste0("shinylive-", gsub(".", "_", version, fixed = TRUE), "-"), fileext = ".tar.gz")
 
   on.exit(
@@ -28,14 +37,14 @@ download_shinylive <- function(
   message("Downloading shinylive v", version, "...")
   utils::download.file(url, destfile = tmp_targz, method = "auto")
 
-  message("Unzipping to ", destdir, "/")
-  fs::dir_create(destdir)
-  archive::archive_extract(tmp_targz, destdir)
+  message("Unzipping to ", dir, "/")
+  fs::dir_create(dir)
+  archive::archive_extract(tmp_targz, dir)
 }
 
 
 # Returns the URL for the Shinylive assets bundle.
-shinylive_bundle_url <- function(version = SHINYLIVE_ASSETS_VERSION) {
+assets_bundle_url <- function(version = SHINYLIVE_ASSETS_VERSION) {
   paste0(
     "https://github.com/rstudio/shinylive/releases/download/",
     paste0("v", version),
@@ -45,44 +54,46 @@ shinylive_bundle_url <- function(version = SHINYLIVE_ASSETS_VERSION) {
 }
 
 
-shinylive_cache_dir <- function() {
+assets_cache_dir <- function() {
   # Must be normalized a `~` does not work with quarto
   normalizePath(rappdirs::user_cache_dir("shinylive"))
 }
 
 # Returns the directory used for caching Shinylive assets. This directory can
 # contain multiple versions of Shinylive assets.
-shinylive_cache_dir_exists <- function() {
-  fs::dir_exists(shinylive_cache_dir())
+assets_cache_dir_exists <- function() {
+  fs::dir_exists(assets_cache_dir())
 }
 
 
 # Returns the directory containing cached Shinylive assets, for a particular
 # version of Shinylive.
-shinylive_assets_dir <- function(version = SHINYLIVE_ASSETS_VERSION, ..., cache_dir = shinylive_cache_dir()) {
-  shinylive_assets_dir_(cache_dir = shinylive_cache_dir(), version = version)
+assets_dir <- function(version = SHINYLIVE_ASSETS_VERSION, ..., dir = assets_cache_dir()) {
+  assets_dir_impl(dir = assets_cache_dir(), version = version)
 }
 shinylive_prefix <- "shinylive-"
-shinylive_assets_dir_ <- function(
+assets_dir_impl <- function(
     ...,
-    cache_dir = shinylive_cache_dir(),
+    dir = assets_cache_dir(),
     version = SHINYLIVE_ASSETS_VERSION) {
   stopifnot(length(list(...)) == 0)
-  fs::path(cache_dir, paste0(shinylive_prefix, version))
+  fs::path(dir, paste0(shinylive_prefix, version))
 }
 
 
 install_local_helper <- function(
+    ...,
     install_fn = fs::file_copy,
     assets_repo_dir,
-    destdir = shinylive_cache_dir(),
+    dir = assets_cache_dir(),
     version = package_json_version(assets_repo_dir)) {
+  stopifnot(length(list(...)) == 0)
   stopifnot(fs::dir_exists(assets_repo_dir))
   repo_build_dir <- fs::path(assets_repo_dir, "build")
   if (!fs::dir_exists(repo_build_dir)) {
     stop("Assets repo build dir does not exist (`", repo_build_dir, "`).\nHave you called `make all` yet?")
   }
-  target_dir <- shinylive_assets_dir_(cache_dir = destdir, version = version)
+  target_dir <- assets_dir_impl(dir = dir, version = version)
 
   unlink_path(target_dir)
   install_fn(repo_build_dir, target_dir)
@@ -96,26 +107,46 @@ install_local_helper <- function(
   }
 }
 
-copy_shinylive_local <- function(
+#' Install shinylive assets from from a local directory
+#'
+#' Helper methods for testing updates to shinylive assets.
+#'
+#' @describeIn install Copyies all shinylive assets from a local
+#'    directory. This must be repeated for any change in the assets.
+#' @param assets_repo_dir The local repository directory for shinylive assets
+#'    (e.g. `posit-dev/shinylive`)
+#' @param version The version of the assets being installed.
+#' @inheritParams assets_download
+#' @seealso [`assets_download()`], [`assets_ensure()`], [`assets_cleanup()`]
+#' @export
+assets_install_copy <- function(
     assets_repo_dir,
-    destdir = shinylive_cache_dir(),
+    ...,
+    dir = assets_cache_dir(),
     version = package_json_version(assets_repo_dir)) {
   install_local_helper(
+    ...,
     install_fn = function(from, to) {
       fs::dir_create(to)
       fs::dir_copy(from, to, overwrite = TRUE)
     },
     assets_repo_dir = assets_repo_dir,
-    destdir = destdir,
+    dir = dir,
     version = version
   )
 }
 
-link_shinylive_local <- function(
+#' @describeIn install Creates a symlink of the local shinylive assets to
+#'    the cached assets directory. After the first installation, the assets will
+#'    the same as the source due to the symlink.
+#' @export
+assets_install_link <- function(
     assets_repo_dir,
-    destdir = shinylive_cache_dir(),
+    ...,
+    dir = assets_cache_dir(),
     version = package_json_version(assets_repo_dir)) {
   install_local_helper(
+    ...,
     install_fn = function(from, to) {
       # Make sure parent folder exists
       fs::dir_create(fs::path_dir(to))
@@ -123,30 +154,37 @@ link_shinylive_local <- function(
       fs::link_create(from, to)
     },
     assets_repo_dir = assets_repo_dir,
-    destdir = destdir,
+    dir = dir,
     version = version
   )
 }
 
 
 
-# Ensure that there is a local copy of shinylive.
-ensure_shinylive_assets <- function(
-    destdir = shinylive_cache_dir(),
-    version = SHINYLIVE_ASSETS_VERSION,
-    url = shinylive_bundle_url(version)) {
-  if (!fs::dir_exists(destdir)) {
-    message("Creating directory ", destdir)
-    fs::dir_create(destdir)
+#' @describeIn assets Ensures a local copy of shinylive is installed.
+#' If a local copy of shinylive is not installed, it will be downloaded and
+#' installed. If a local copy of shinylive is installed, its path will be
+#' returned.
+#' @export
+assets_ensure <- function(
+  version = SHINYLIVE_ASSETS_VERSION,
+  ...,
+  dir = assets_cache_dir(),
+  url = assets_bundle_url(version)
+) {
+  stopifnot(length(list(...)) == 0)
+  if (!fs::dir_exists(dir)) {
+    message("Creating directory ", dir)
+    fs::dir_create(dir)
   }
 
-  shinylive_bundle_dir <- shinylive_assets_dir(version)
-  if (!fs::dir_exists(shinylive_bundle_dir)) {
-    message(shinylive_bundle_dir, " does not exist")
-    download_shinylive(url = url, version = version, destdir = destdir)
+  assets_path <- assets_dir(version)
+  if (!fs::dir_exists(assets_path)) {
+    message(assets_path, " does not exist")
+    assets_download(url = url, version = version, dir = dir)
   }
 
-  shinylive_bundle_dir
+  assets_path
 }
 
 
@@ -156,15 +194,20 @@ ensure_shinylive_assets <- function(
 
 # Parameters
 # ----------
-# shinylive_dir
+# dir
 #     The directory where shinylive is stored. If None, the default directory will
 #     be used.
 # """
-cleanup_shinylive_assets <- function(
-    shinylive_dir = shinylive_cache_dir()) {
-  # TODO-barret: Future - Sort descending by version numbers
+
+
+#' @describeIn assets Removes local copies of shinylive web assets,
+#' except for the one used by the current version of \pkg{shinylive}.
+#' @export
+assets_cleanup <- function(
+  dir = assets_cache_dir()
+) {
   versions <- vapply(
-    installed_shinylive_versions(shinylive_dir),
+    assets_versions(dir),
     function(ver_path) {
       sub(shinylive_prefix, "", basename(ver_path))
     },
@@ -175,7 +218,7 @@ cleanup_shinylive_assets <- function(
     versions <- setdiff(versions, SHINYLIVE_ASSETS_VERSION)
   }
 
-  remove_shinylive_assets(shinylive_dir, versions)
+  remove_assets(dir, versions)
 }
 
 
@@ -192,13 +235,13 @@ cleanup_shinylive_assets <- function(
 #     If a version is specified, only that version will be removed.
 #     If None, all local versions except the version specified by SHINYLIVE_ASSETS_VERSION will be removed.
 # """
-remove_shinylive_assets <- function(
-    shinylive_dir,
+remove_assets <- function(
+    dir,
     versions) {
   stopifnot(length(versions) > 0 && is.character(versions))
 
   lapply(versions, function(version) {
-    target_dir <- shinylive_assets_dir_(cache_dir = shinylive_dir, version = version)
+    target_dir <- assets_dir_impl(dir = dir, version = version)
     if (fs::dir_exists(target_dir)) {
       message("Removing ", target_dir)
       unlink_path(target_dir)
@@ -212,23 +255,39 @@ remove_shinylive_assets <- function(
 
 
 
-installed_shinylive_versions <- function(
-    shinylive_dir = shinylive_cache_dir()) {
+assets_versions <- function(
+    dir = assets_cache_dir()) {
+
+
   # fs::dir_ls(shinylive_dir, type = "directory", regexp = "^shinylive-")
-  fs::path(
-    shinylive_dir,
+
+  path_basenames <-
     # Using `dir()` to avoid the path expansion that `fs::dir_ls()` does.
     # `dir()` is 10x faster than `fs::dir_ls()`
-    dir(shinylive_dir, full.names = FALSE, pattern = "^shinylive-")
+    base::dir(
+      dir,
+      full.names = FALSE,
+      pattern = paste0("^", shinylive_prefix)
+    )
+
+  # Sort descending by version numbers
+  path_versions_str <- sub(shinylive_prefix, "", path_basenames)
+  path_versions <- as.character(
+    sort(numeric_version(path_versions_str), decreasing = TRUE)
   )
+
+  # Return full path to the versions
+  fs::path(dir, path_versions)
 }
 
 
 
 
-
-print_shinylive_local_info <- function() {
-  installed_versions <- installed_shinylive_versions()
+#' @describeIn assets Prints information about the local shinylive
+#'    assets that have been installed.
+#' @export
+assets_info <- function() {
+  installed_versions <- assets_versions()
   if (length(installed_versions) == 0) {
     installed_versions <- "(None)"
   }
@@ -238,9 +297,9 @@ print_shinylive_local_info <- function() {
       "Shinylive local info:",
       "",
       "    Local cached shinylive asset dir:",
-      collapse("    ", shinylive_cache_dir()),
+      collapse("    ", assets_cache_dir()),
       "",
-      if (shinylive_cache_dir_exists()) {
+      if (assets_cache_dir_exists()) {
         collapse(c(
           "    Installed versions:",
           collapse("    ", installed_versions)
@@ -254,16 +313,24 @@ print_shinylive_local_info <- function() {
 }
 
 
+
+#' @describeIn assets Returns the version of the currently supported Shinylive
+#'    assets version.
+#' @export
+assets_version <- function() {
+  SHINYLIVE_ASSETS_VERSION
+}
+
 # """Checks if the URL for the Shinylive assets bundle is valid.
 
 # Returns True if the URL is valid (with a 200 status code), False otherwise.
 
 # The reason it has both the `version` and `url` parameters is so that it behaves the
-# same as `download_shinylive()` and `ensure_shinylive_assets()`.
+# same as `assets_download()` and `assets_ensure()`.
 # """
 check_assets_url <- function(
     version = SHINYLIVE_ASSETS_VERSION,
-    url = shinylive_bundle_url(version)) {
+    url = assets_bundle_url(version)) {
   req <- httr::HEAD(url)
   req$status_code == 200
 }

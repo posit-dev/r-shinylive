@@ -42,6 +42,18 @@ files_are_equal <- function(x_file_path, y_file_path) {
   tools::md5sum(x_file_path) == tools::md5sum(y_file_path)
 }
 
+drop_nulls_rec <- function(x) {
+  if (is.list(x)) {
+    # Recurse
+    x <- lapply(x, drop_nulls_rec)
+    is_null <- vapply(x, is.null, logical(1))
+    x[!is_null]
+  } else {
+    # Return as is. Let parent list handle it
+    x
+  }
+}
+
 
 
 # """Returns a function that can be used as a copy_function for shutil.copytree.

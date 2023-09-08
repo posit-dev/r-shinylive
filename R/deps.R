@@ -82,15 +82,15 @@ serviceworker_dep <- function(sw_dir) {
     version = SHINYLIVE_ASSETS_VERSION,
     serviceworkers = list(
       html_dep_serviceworker_obj(
-        source = file.path(shinylive_assets_dir(), "shinylive-sw.js"),
+        source = file.path(assets_dir(), "shinylive-sw.js"),
         destination = "/shinylive-sw.js"
       ),
       html_dep_serviceworker_obj(
-        source = file.path(shinylive_assets_dir(), "shinylive", "webr", "webr-serviceworker.js"),
+        source = file.path(assets_dir(), "shinylive", "webr", "webr-serviceworker.js"),
         destination = "/webr-serviceworker.js"
       ),
       html_dep_serviceworker_obj(
-        source = file.path(shinylive_assets_dir(), "shinylive", "webr", "webr-worker.js"),
+        source = file.path(assets_dir(), "shinylive", "webr", "webr-worker.js"),
         destination = "/webr-worker.js"
       )
     ),
@@ -111,7 +111,7 @@ serviceworker_dep <- function(sw_dir) {
 # Shinylive deployment.
 # """
 shinylive_common_dep_htmldep <- function() {
-  asset_dir <- shinylive_assets_dir()
+  assets_path <- assets_dir()
   base_files <- shinylive_common_files()
 
   scripts <- list()
@@ -149,20 +149,20 @@ shinylive_common_dep_htmldep <- function() {
       add_item(
         type = "script",
         name = base_file,
-        path = file.path(asset_dir, base_file),
+        path = file.path(assets_path, base_file),
         attribs = list(type = "module")
       )
     } else if (base_file_basename == "shinylive.css") {
       add_item(
         type = "stylesheet",
         name = base_file,
-        path = file.path(asset_dir, base_file)
+        path = file.path(assets_path, base_file)
       )
     } else {
       add_item(
         type = "resource",
         name = base_file,
-        path = file.path(asset_dir, base_file)
+        path = file.path(assets_path, base_file)
       )
     }
   })
@@ -199,9 +199,9 @@ shinylive_common_dep_htmldep <- function() {
 # that are always included in a Shinylive deployment.
 # """
 shinylive_common_files <- function() {
-  ensure_shinylive_assets()
+  assets_ensure()
 
-  assets_dir <- shinylive_assets_dir()
+  assets_dir <- assets_dir()
   # `dir()` is 10x faster than `fs::dir_ls()`
   common_files <- dir(assets_dir, recursive = TRUE)
 

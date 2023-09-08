@@ -1,4 +1,15 @@
-quarto_ext_call <- function(args = commandArgs(trailingOnly = TRUE)) {
+#' Quarto extension for shinylive
+#'
+#' @param args Command line arguments passed by the extension. The first
+#'    argument can be one of:
+#'
+#'    - `codeblock-to-json-path`: Prints the path to the `codeblock-to-json.js` script.
+#'    - `base-deps`: Prints the base dependencies as a JSON array.
+#'    - `package-deps`: Prints the package dependencies as a JSON array. Currently, this returns an empty array as `webr` is handling the package dependencies.
+#' @return JSON string that should be printed to be ingested by the extension.
+#' @export
+quarto_ext <- function(args = commandArgs(trailingOnly = TRUE)) {
+  # This method should not print anything to stdout. Instead, it should return a JSON string that will be printed by the extension.
   stopifnot(length(args) >= 1)
 
   ret <- switch(args[1],
@@ -23,25 +34,14 @@ quarto_ext_call <- function(args = commandArgs(trailingOnly = TRUE)) {
       stop("unknown command: ", args[1])
     }
   )
-  ret_null_free <- drop_nulls(ret)
+  ret_null_free <- drop_nulls_rec(ret)
   ret_json <- jsonlite::toJSON(ret_null_free, pretty = TRUE, auto_unbox = TRUE)
-  print(ret_json)
+  ret_json
 }
 
-drop_nulls <- function(x) {
-  if (is.list(x)) {
-    # Recurse
-    x <- lapply(x, drop_nulls)
-    is_null <- vapply(x, is.null, logical(1))
-    x[!is_null]
-  } else {
-    # Return as is. Let parent list handle it
-    x
-  }
-}
 
 quarto_codeblock_to_json_path <- function() {
-  file.path(shinylive_assets_dir(), "scripts", "codeblock-to-json.js")
+  file.path(assets_dir(), "scripts", "codeblock-to-json.js")
 }
 
 # def package_deps(json_file: Optional[str]) -> None:
