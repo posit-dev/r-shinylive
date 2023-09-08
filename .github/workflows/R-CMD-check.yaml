@@ -19,3 +19,18 @@ jobs:
     uses: rstudio/shiny-workflows/.github/workflows/routine.yaml@v1
   R-CMD-check:
     uses: rstudio/shiny-workflows/.github/workflows/R-CMD-check.yaml@v1
+
+  quarto:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Render Quarto Project
+        uses: quarto-dev/quarto-actions/render@v2
+        with:
+          path: local/quarto/r.qmd
+      # TODO-barret-future; Test the output of the render
