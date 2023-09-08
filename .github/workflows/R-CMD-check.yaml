@@ -20,17 +20,23 @@ jobs:
   R-CMD-check:
     uses: rstudio/shiny-workflows/.github/workflows/R-CMD-check.yaml@v1
 
-  quarto:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v3
+  # quarto:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Check out repository
+  #       uses: actions/checkout@v3
 
-      - name: Set up Quarto
-        uses: quarto-dev/quarto-actions/setup@v2
+  #     # TODO-barret: document this process in the readme:
+  #     # TODO-barret-future; Install R, r-shinylive
+  #     # TODO-barret-future; Install posit-dev/shinylive; Run `make submodules all`; Then `make build-prod-r`;
+  #     # TODO-barret-future; r-shinylive: link local copy
+  #     # TODO-barret-future; Render quarto project
 
-      - name: Render Quarto Project
-        uses: quarto-dev/quarto-actions/render@v2
-        with:
-          path: local/quarto/r.qmd
-      # TODO-barret-future; Test the output of the render
+  #     - name: Set up Quarto
+  #       uses: quarto-dev/quarto-actions/setup@v2
+
+  #     - name: Render Quarto Project
+  #       uses: quarto-dev/quarto-actions/render@v2
+  #       with:
+  #         path: local/quarto/r.qmd
+  #     # TODO-barret-future; Test the output of the render
