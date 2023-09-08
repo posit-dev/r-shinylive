@@ -9,14 +9,14 @@
 \title{Manage shinylive assets}
 \usage{
 assets_download(
-  version = SHINYLIVE_ASSETS_VERSION,
+  version = assets_version(),
   ...,
   dir = assets_cache_dir(),
   url = assets_bundle_url(version)
 )
 
 assets_ensure(
-  version = SHINYLIVE_ASSETS_VERSION,
+  version = assets_version(),
   ...,
   dir = assets_cache_dir(),
   url = assets_bundle_url(version)

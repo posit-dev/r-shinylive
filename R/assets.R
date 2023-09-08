@@ -15,7 +15,7 @@
 #'    behavior should be used.
 #' @export
 assets_download <- function(
-  version = SHINYLIVE_ASSETS_VERSION,
+  version = assets_version(),
   ...,
   # Note that this is the cache directory, which is the parent of the assets
   # directory. The tarball will have the assets directory as the top-level subdir.
@@ -44,7 +44,7 @@ assets_download <- function(
 
 
 # Returns the URL for the Shinylive assets bundle.
-assets_bundle_url <- function(version = SHINYLIVE_ASSETS_VERSION) {
+assets_bundle_url <- function(version = assets_version()) {
   paste0(
     "https://github.com/rstudio/shinylive/releases/download/",
     paste0("v", version),
@@ -68,14 +68,14 @@ assets_cache_dir_exists <- function() {
 
 # Returns the directory containing cached Shinylive assets, for a particular
 # version of Shinylive.
-assets_dir <- function(version = SHINYLIVE_ASSETS_VERSION, ..., dir = assets_cache_dir()) {
+assets_dir <- function(version = assets_version(), ..., dir = assets_cache_dir()) {
   assets_dir_impl(dir = assets_cache_dir(), version = version)
 }
 shinylive_prefix <- "shinylive-"
 assets_dir_impl <- function(
     ...,
     dir = assets_cache_dir(),
-    version = SHINYLIVE_ASSETS_VERSION) {
+    version = assets_version()) {
   stopifnot(length(list(...)) == 0)
   fs::path(dir, paste0(shinylive_prefix, version))
 }
@@ -98,7 +98,7 @@ install_local_helper <- function(
   unlink_path(target_dir)
   install_fn(repo_build_dir, target_dir)
 
-  if (version != SHINYLIVE_ASSETS_VERSION) {
+  if (version != assets_version()) {
     message(
       "Warning: You are installing a local copy of shinylive that is not the same as the version used by the shinylive R package.",
       "\nWarning: Unexpected behavior may occur!",
@@ -167,7 +167,7 @@ assets_install_link <- function(
 #' returned.
 #' @export
 assets_ensure <- function(
-  version = SHINYLIVE_ASSETS_VERSION,
+  version = assets_version(),
   ...,
   dir = assets_cache_dir(),
   url = assets_bundle_url(version)
@@ -213,9 +213,9 @@ assets_cleanup <- function(
     },
     character(1)
   )
-  if (SHINYLIVE_ASSETS_VERSION %in% versions) {
-    message("Keeping version ", SHINYLIVE_ASSETS_VERSION)
-    versions <- setdiff(versions, SHINYLIVE_ASSETS_VERSION)
+  if (assets_version() %in% versions) {
+    message("Keeping version ", assets_version())
+    versions <- setdiff(versions, assets_version())
   }
 
   remove_assets(dir, versions)
@@ -329,7 +329,7 @@ assets_version <- function() {
 # same as `assets_download()` and `assets_ensure()`.
 # """
 check_assets_url <- function(
-    version = SHINYLIVE_ASSETS_VERSION,
+    version = assets_version(),
     url = assets_bundle_url(version)) {
   req <- httr::HEAD(url)
   req$status_code == 200
