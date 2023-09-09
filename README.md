@@ -40,7 +40,7 @@ httpuv::runStaticServer(out_dir, port=8008)
 
 ### Testing
 
-Works with latest GitHub version of [`posit-dev/shinylive@r-shinylive-support`](https://github.com/posit-dev/shinylive/tree/r-shinylive-support).
+Works with latest GitHub version of [`posit-dev/shinylive`](https://github.com/posit-dev/shinylive/) (>= v`0.1.6.9000`).
 
 ```r
 shinylive::link_shinylive_local("PATH/TO/posit-dev/shinylive")
