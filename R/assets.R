@@ -280,7 +280,7 @@ assets_versions <- function(
   )
 
   # Return full path to the versions
-  fs::path(dir, path_versions)
+  fs::path(dir, paste0(shinylive_prefix, path_versions))
 }
 
 
@@ -308,7 +308,8 @@ assets_info <- function() {
         collapse("    ", installed_versions)
       } else {
         "    (Cache dir does not exist)"
-      }
+      },
+      ""
     )),
     sep = ""
   )
