@@ -67,9 +67,12 @@ jobs:
           # Assert the assets were linked
           testthat::expect_gt(length(shinylive:::assets_versions()), 0)
 
+          # Print installed info
+          shinylive::assets_info()
+
       - name: Run shinylive R package tests
         env:
-          TEST_ASSETS: 1
+          TEST_ASSETS: "TRUE"
         shell: Rscript {0}
         run: |
           testthat::test_local()
