@@ -56,7 +56,16 @@ jobs:
       - name: Link shinylive assets
         shell: Rscript {0}
         run: |
+          # Link the assets
+
+          # Assert no assets exist
+          testthat::expect_equal(length(assets_versions()), 0)
+
+          # Link the assets
           shinylive::assets_install_link("shinylive_assets")
+
+          # Assert the assets were linked
+          testthat::expect_gt(length(assets_versions()), 0)
 
       - name: Run shinylive R package tests
         env:
