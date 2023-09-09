@@ -75,6 +75,10 @@ jobs:
           TEST_ASSETS: "TRUE"
         shell: Rscript {0}
         run: |
+          shinylive::assets_info()
+          shinylive::assets_install_link("shinylive_assets")
+          shinylive::assets_info()
+
           testthat::test_local()
       # If this (^^) completes, it is a big success!
       # Run quarto test after testthat test
