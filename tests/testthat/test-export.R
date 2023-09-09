@@ -1,7 +1,7 @@
 
 
 test_that("export", {
-  skip_on_cran()
+  maybe_skip_test()
 
   assets_ensure()
 

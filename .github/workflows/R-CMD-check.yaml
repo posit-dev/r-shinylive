@@ -20,23 +20,55 @@ jobs:
   R-CMD-check:
     uses: rstudio/shiny-workflows/.github/workflows/R-CMD-check.yaml@v1
 
-  # quarto:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Check out repository
-  #       uses: actions/checkout@v3
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
 
-  #     # TODO-barret: document this process in the readme:
-  #     # TODO-barret-future; Install R, r-shinylive
-  #     # TODO-barret-future; Install posit-dev/shinylive; Run `make submodules all`; Then `make build-prod-r`;
-  #     # TODO-barret-future; r-shinylive: link local copy
-  #     # TODO-barret-future; Render quarto project
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
 
-  #     - name: Set up Quarto
-  #       uses: quarto-dev/quarto-actions/setup@v2
+      - name: Install quarto-ext/shinylive
+        shell: bash
+        run: |
+          cd local/quarto
+          quarto add schloerke/quarto-ext-shinylive@r-shinylive
 
-  #     - name: Render Quarto Project
-  #       uses: quarto-dev/quarto-actions/render@v2
-  #       with:
-  #         path: local/quarto/r.qmd
-  #     # TODO-barret-future; Test the output of the render
+      - name: Install R, system dependencies, and package dependencies
+        uses: rstudio/shiny-workflows/setup-r-package@v1
+        with:
+          needs: quarto
+
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          repository: posit-dev/shinylive
+          path: shinylive_assets
+
+      - name: Build shinylive assets
+        shell: bash
+        run: |
+          cd shinylive_assets
+          make submodules
+          make all
+
+      - name: Link shinylive assets
+        shell: Rscript {0}
+        run: |
+          shinylive:::link_shinylive_assets("shinylive_assets")
+
+      - name: Run shinylive R package tests
+        env:
+          TEST_ASSETS: 1
+        shell: Rscript {0}
+        run: |
+          testthat::test_package(".")
+      # If this (^^) completes, it is a big success!
+      # Run quarto test after testthat test
+      - name: Test shinylive quarto extension can build
+        uses: quarto-dev/quarto-actions/render@v2
+        with:
+          path: local/quarto/
+
+      # TODO-barret-future; Test the output of the render using pyright / py-shiny e2e controls?

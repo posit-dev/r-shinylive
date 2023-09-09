@@ -1,7 +1,7 @@
 
 
 test_that("quarto_ext handles codeblock-to-json-path", {
-  skip_on_cran()
+  maybe_skip_test()
 
   assets_ensure()
 
@@ -13,7 +13,7 @@ test_that("quarto_ext handles codeblock-to-json-path", {
 
 
 test_that("quarto_ext handles base-deps", {
-  skip_on_cran()
+  maybe_skip_test()
 
   assets_ensure()
 
@@ -32,7 +32,7 @@ test_that("quarto_ext handles base-deps", {
 
 
 test_that("quarto_ext handles package-deps", {
-  skip_on_cran()
+  maybe_skip_test()
 
   assets_ensure()
 
