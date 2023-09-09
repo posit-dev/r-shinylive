@@ -32,6 +32,7 @@ export <- function(
 ) {
   verbose_print <- if (verbose) message else list
 
+  stopifnot(fs::is_dir(appdir))
   if (!fs::file_exists(fs::path(appdir, "app.R"))) {
     stop("Directory ", appdir, " does not contain an app.R file.")
   }
@@ -44,12 +45,14 @@ export <- function(
   }
 
   if (!fs::dir_exists(destdir)) {
-    message("Creating ", destdir, "/")
+    verbose_print("Creating ", destdir, "/")
     fs::dir_create(destdir)
   }
 
 
-  copy_fn = create_copy_fn(overwrite=FALSE, verbose_print=verbose_print)
+  cp_funcs = create_copy_fn(overwrite=FALSE, verbose_print=verbose_print)
+  mark_file = cp_funcs$mark_file
+  copy_files = cp_funcs$copy_files
 
   assets_path = assets_dir()
 
@@ -57,23 +60,40 @@ export <- function(
   # Copy the base dependencies for shinylive/ distribution. This does not
   # include the R package files.
   # =========================================================================
-  message(
+  verbose_print(
     "Copying base Shinylive files from ", assets_path, "/ to ", destdir, "/"
   )
   base_files <- shinylive_common_files()
-  p <- progress::progress_bar$new(
-    format = "[:bar] :percent",
-    total = length(base_files),
-    clear = TRUE,
-    # show_after = 0
+  if (verbose) {
+    p <- progress::progress_bar$new(
+      format = "[:bar] :percent",
+      total = length(base_files),
+      clear = TRUE,
+      # show_after = 0
+    )
+  }
+  Map(
+    file.path(assets_path, base_files),
+    file.path(destdir, base_files),
+    f = function(src_path, dest_path) {
+      if (verbose) {
+        p$tick()
+      }
+      mark_file(src_path, dest_path)
+    }
   )
-  lapply(base_files, function(base_file) {
-    src_path <- fs::path(assets_path, base_file)
-    dest_path <- fs::path(destdir, base_file)
-    p$tick()
+  # lapply(base_files, function(base_file) {
+  #   src_path <- fs::path(assets_path, base_file)
+  #   dest_path <- fs::path(destdir, base_file)
+  #   if (verbose) {
+  #     p$tick()
+  #   }
 
-    copy_fn(src_path, dest_path)
-  })
+  #   # Add file to copy list
+  #   copy_fn(src_path, dest_path)
+  # })
+  # Copy all files in one call
+  copy_files()
 
   # =========================================================================
   # Load each app's contents into a list[FileContentJson]
@@ -125,7 +145,7 @@ export <- function(
     html_source_dir = fs::path(assets_path, "export_template")
   )
 
-  message(
+  verbose_print(
     "\nRun the following in an R session to serve the app:\n",
     "  httpuv::runStaticServer(\"", destdir, "\", port=8008)\n"
   )

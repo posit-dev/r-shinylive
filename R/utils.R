@@ -62,6 +62,10 @@ drop_nulls_rec <- function(x) {
 # If overwrite is False, the copy function will not overwrite files that already exist.
 # """
 # Using base file methods in this function because `{fs}` is slow.
+# Perform the file copying in two stages:
+# 1. Mark all files to be copied
+# 2. Copy all files
+# IO operations are slow in R. It is faster to call `fs::file_copy()` with a large vector than many times with single values.
 create_copy_fn <- function(
     overwrite = FALSE,
     verbose_print = list # or `message`
@@ -69,7 +73,9 @@ create_copy_fn <- function(
   overwrite <- isTRUE(overwrite)
   stopifnot(is.function(verbose_print))
 
-  function(src_file_path, dst_file_path) {
+  file_list <- list()
+
+  mark_file <- function(src_file_path, dst_file_path) {
     if (file.exists(dst_file_path)) {
       if (!files_are_equal(src_file_path, dst_file_path)) {
         message(
@@ -93,8 +99,26 @@ create_copy_fn <- function(
       }
       # fs::dir_create(fs::path_dir(dst_file_path))
     }
-    # Copy file
-    file.copy(src_file_path, dst_file_path)
-    # fs::file_copy(src_file_path, dst_file_path)
+
+    file_list[[length(file_list) + 1]] <<- list(
+      src_file_path = src_file_path,
+      dst_file_path = dst_file_path
+    )
+    # # Copy file
+    # file.copy(src_file_path, dst_file_path)
+    # # fs::file_copy(src_file_path, dst_file_path)
   }
+  copy_files <- function() {
+    if (length(file_list) == 0) {
+      return()
+    }
+    src_file_paths <- vapply(file_list, `[[`, character(1), "src_file_path")
+    dst_file_paths <- vapply(file_list, `[[`, character(1), "dst_file_path")
+    # Because this is many files, `fs` is marginally faster
+    fs::file_copy(src_file_paths, dst_file_paths)
+  }
+  list(
+    mark_file = mark_file,
+    copy_files = copy_files
+  )
 }

@@ -152,9 +152,12 @@ read_app_files <- function(
 # Write index.html, edit/index.html, and app.json for an application in the destdir.
 # """
 write_app_json <- function(
-    app_info,
-    destdir,
-    html_source_dir) {
+  app_info,
+  destdir,
+  html_source_dir,
+  verbose = FALSE
+) {
+  verbose_print <- if (isTRUE(verbose)) message else list
   stopifnot(inherits(app_info, APP_INFO_CLASS))
   # stopifnot(fs::dir_exists(destdir))
   stopifnot(fs::dir_exists(html_source_dir))
@@ -203,12 +206,12 @@ write_app_json <- function(
 
   app_json_output_file <- fs::path(app_destdir, "app.json")
 
-  message("Writing ", app_json_output_file, appendLF = FALSE)
+  verbose_print("Writing ", app_json_output_file, appendLF = FALSE)
   jsonlite::write_json(
     app_info$files,
     path = app_json_output_file,
     auto_unbox = TRUE,
     pretty = FALSE
   )
-  message(": ", fs::file_info(app_json_output_file)$size[1], " bytes")
+  verbose_print(": ", fs::file_info(app_json_output_file)$size[1], " bytes")
 }

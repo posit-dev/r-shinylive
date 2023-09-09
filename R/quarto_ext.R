@@ -5,8 +5,9 @@
 #'
 #'    - `codeblock-to-json-path`: Prints the path to the `codeblock-to-json.js` script.
 #'    - `base-deps`: Prints the base dependencies as a JSON array.
-#'    - `package-deps`: Prints the package dependencies as a JSON array. Currently, this returns an empty array as `webr` is handling the package dependencies.
-#' @return JSON string that should be printed to be ingested by the extension.
+#'    - `package-deps`: Prints the package dependencies as a JSON array.
+#'      Currently, this returns an empty array as `webr` is handling the package
+#'      dependencies.
 #' @export
 quarto_ext <- function(args = commandArgs(trailingOnly = TRUE)) {
   # This method should not print anything to stdout. Instead, it should return a JSON string that will be printed by the extension.
@@ -36,7 +37,9 @@ quarto_ext <- function(args = commandArgs(trailingOnly = TRUE)) {
   )
   ret_null_free <- drop_nulls_rec(ret)
   ret_json <- jsonlite::toJSON(ret_null_free, pretty = TRUE, auto_unbox = TRUE)
-  ret_json
+  print(ret_json)
+
+  invisible()
 }
 
 
