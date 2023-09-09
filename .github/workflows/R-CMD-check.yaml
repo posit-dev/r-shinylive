@@ -60,7 +60,7 @@ jobs:
 
           # Remove any existing assets
           if (length(shinylive:::assets_versions()) > 0) {
-            shinylive::assets_clean()
+            shinylive::assets_cleanup()
           }
           if (length(shinylive:::assets_versions()) > 0) {
             shinylive::assets_remove(shinylive::assets_version())
