@@ -58,6 +58,14 @@ jobs:
         run: |
           # Link the assets
 
+          # Remove any existing assets
+          if (length(shinylive:::assets_versions()) > 0) {
+            shinylive::assets_clean()
+          }
+          if (length(shinylive:::assets_versions()) > 0) {
+            shinylive::assets_remove(shinylive::assets_version())
+          }
+
           # Assert no assets exist
           testthat::expect_equal(length(shinylive:::assets_versions()), 0)
 
@@ -65,7 +73,7 @@ jobs:
           shinylive::assets_install_link("shinylive_assets")
 
           # Assert the assets were linked
-          testthat::expect_gt(length(shinylive:::assets_versions()), 0)
+          testthat::expect_true(length(shinylive:::assets_versions()) > 0)
 
           # Print installed info
           shinylive::assets_info()

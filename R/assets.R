@@ -221,7 +221,7 @@ assets_cleanup <- function(
     versions <- setdiff(versions, assets_version())
   }
 
-  remove_assets(dir, versions)
+  assets_remove(dir, versions)
 }
 
 
@@ -238,9 +238,14 @@ assets_cleanup <- function(
 #     If a version is specified, only that version will be removed.
 #     If None, all local versions except the version specified by SHINYLIVE_ASSETS_VERSION will be removed.
 # """
-remove_assets <- function(
-    dir,
-    versions) {
+
+#' @describeIn assets Removes a local copies of shinylive web assets.
+#' @param versions The assets versions to remove.
+#' @export
+assets_remove <- function(
+  dir,
+  versions
+) {
   stopifnot(length(versions) > 0 && is.character(versions))
 
   lapply(versions, function(version) {
@@ -297,7 +302,7 @@ assets_info <- function() {
 
   cat(
     collapse(c(
-      paste0("shinylive R package version:  ", packageVersion("shinylive")),
+      paste0("shinylive R package version:  ", utils::packageVersion("shinylive")),
       paste0("shinylive web assets version: ", assets_version()),
       "",
       "Local cached shinylive asset dir:",
