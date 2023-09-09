@@ -205,8 +205,9 @@ shinylive_common_files <- function() {
   # `dir()` is 10x faster than `fs::dir_ls()`
   common_files <- dir(assets_dir, recursive = TRUE)
 
-  common_files <- common_files[!grepl("^shinylive/pyodide/", common_files)]
-  common_files <- common_files[!grepl("^shinylive/pyright/", common_files)]
+  # TODO-barret-future: Remove these files for lighter deployments.
+  # common_files <- common_files[!grepl("^shinylive/pyodide/", common_files)]
+  # common_files <- common_files[!grepl("^shinylive/pyright/", common_files)]
   common_files <- common_files[!grepl("^scripts/", common_files)]
   common_files <- common_files[!grepl("^export_template/", common_files)]
   common_files <- setdiff(common_files, "shinylive/examples.json")
