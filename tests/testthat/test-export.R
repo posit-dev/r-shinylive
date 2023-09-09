@@ -9,7 +9,7 @@ test_that("export", {
   app_file <- file.path(tempfile(), "app.R")
   app_dir <- dirname(app_file)
   dir.create(app_dir, recursive = TRUE)
-  on.exit(unlink_path(app_dir))
+  on.exit(unlink_path(app_dir), add = TRUE)
   cat(
     file = app_file,
     collapse(c(
@@ -36,4 +36,27 @@ test_that("export", {
     export(app_dir, out_dir)
   })
 
+  asset_root_files <- c("shinylive", "shinylive-sw.js")
+  asset_app_files <- c("app.json", "edit", "index.html")
+  asset_edit_files <- c("index.html")
+
+  expect_setequal(
+    dir(out_dir),
+    c(asset_root_files, asset_app_files)
+  )
+  expect_setequal(dir(file.path(out_dir, "edit")), asset_edit_files)
+
+  expect_silent({
+    export(app_dir, out_dir, subdir = "test_subdir")
+  })
+
+  expect_setequal(
+    dir(out_dir),
+    c(asset_root_files, asset_app_files, "test_subdir")
+  )
+  expect_setequal(
+    dir(file.path(out_dir, "test_subdir")),
+    asset_app_files
+  )
+  expect_setequal(dir(file.path(out_dir, "test_subdir", "edit")), asset_edit_files)
 })
