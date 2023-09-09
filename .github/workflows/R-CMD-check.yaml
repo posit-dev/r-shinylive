@@ -56,7 +56,7 @@ jobs:
       - name: Link shinylive assets
         shell: Rscript {0}
         run: |
-          shinylive:::link_shinylive_assets("shinylive_assets")
+          shinylive::assets_install_link("shinylive_assets")
 
       - name: Run shinylive R package tests
         env:
