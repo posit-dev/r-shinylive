@@ -33,7 +33,7 @@ jobs:
         shell: bash
         run: |
           cd local/quarto
-          quarto add schloerke/quarto-ext-shinylive@r-shinylive
+          quarto add schloerke/quarto-ext-shinylive@r-shinylive --no-prompt
 
       - name: Install R, system dependencies, and package dependencies
         uses: rstudio/shiny-workflows/setup-r-package@v1
