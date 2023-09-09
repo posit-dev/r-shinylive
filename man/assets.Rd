@@ -23,9 +23,9 @@ assets_ensure(
   url = assets_bundle_url(version)
 )
 
-assets_cleanup(dir = assets_cache_dir())
+assets_cleanup(..., dir = assets_cache_dir())
 
-assets_remove(dir, versions)
+assets_remove(versions, ..., dir = assets_cache_dir())
 
 assets_info()
 

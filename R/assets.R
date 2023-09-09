@@ -207,8 +207,10 @@ assets_ensure <- function(
 #' except for the one used by the current version of \pkg{shinylive}.
 #' @export
 assets_cleanup <- function(
+  ...,
   dir = assets_cache_dir()
 ) {
+  stopifnot(length(list(...)) == 0)
   versions <- vapply(
     assets_versions(dir),
     function(ver_path) {
@@ -221,7 +223,7 @@ assets_cleanup <- function(
     versions <- setdiff(versions, assets_version())
   }
 
-  assets_remove(dir, versions)
+  assets_remove(versions, dir = dir)
 }
 
 
@@ -243,9 +245,11 @@ assets_cleanup <- function(
 #' @param versions The assets versions to remove.
 #' @export
 assets_remove <- function(
-  dir,
-  versions
+  versions,
+  ...,
+  dir = assets_cache_dir()
 ) {
+  stopifnot(length(list(...)) == 0)
   stopifnot(length(versions) > 0 && is.character(versions))
 
   lapply(versions, function(version) {
