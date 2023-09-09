@@ -72,7 +72,7 @@ jobs:
           TEST_ASSETS: 1
         shell: Rscript {0}
         run: |
-          testthat::test_package("shinylive")
+          testthat::test_local()
       # If this (^^) completes, it is a big success!
       # Run quarto test after testthat test
       - name: Test shinylive quarto extension can build
