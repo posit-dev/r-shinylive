@@ -54,8 +54,12 @@ assets_bundle_url <- function(version = assets_version()) {
 
 
 assets_cache_dir <- function() {
-  # Must be normalized a `~` does not work with quarto
-  normalizePath(rappdirs::user_cache_dir("shinylive"))
+  # Must be normalized as `~` does not work with quarto
+  cache_dir <- rappdirs::user_cache_dir("shinylive")
+  if (!dir.exists(cache_dir)) {
+    dir.create(cache_dir, recursive = TRUE)
+  }
+  normalizePath(cache_dir)
 }
 
 # Returns the directory used for caching Shinylive assets. This directory can
