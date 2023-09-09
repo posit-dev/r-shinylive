@@ -149,4 +149,6 @@ export <- function(
     "\nRun the following in an R session to serve the app:\n",
     "  httpuv::runStaticServer(\"", destdir, "\", port=8008)\n"
   )
+
+  invisible()
 }

@@ -27,7 +27,6 @@ assets_download <- function(
   on.exit(
     {
       if (fs::file_exists(tmp_targz)) {
-        message("Removing ", tmp_targz)
         fs::file_delete(tmp_targz)
       }
     },
@@ -46,7 +45,7 @@ assets_download <- function(
 # Returns the URL for the Shinylive assets bundle.
 assets_bundle_url <- function(version = assets_version()) {
   paste0(
-    "https://github.com/rstudio/shinylive/releases/download/",
+    "https://github.com/posit-dev/shinylive/releases/download/",
     paste0("v", version),
     "/",
     paste0("shinylive-", version, ".tar.gz")
@@ -294,16 +293,15 @@ assets_info <- function() {
 
   cat(
     collapse(c(
-      "Shinylive local info:",
+      paste0("shinylive R package version:  ", packageVersion("shinylive")),
+      paste0("shinylive web assets version: ", assets_version()),
       "",
-      "    Local cached shinylive asset dir:",
+      "Local cached shinylive asset dir:",
       collapse("    ", assets_cache_dir()),
       "",
+      "Installed assets:",
       if (assets_cache_dir_exists()) {
-        collapse(c(
-          "    Installed versions:",
-          collapse("    ", installed_versions)
-        ))
+        collapse("    ", installed_versions)
       } else {
         "    (Cache dir does not exist)"
       }
