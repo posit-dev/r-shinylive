@@ -58,10 +58,11 @@ jobs:
         run: |
           # Link the assets
 
-          # Remove any existing assets
+          # Remove any prev assets
           if (length(shinylive:::assets_versions()) > 0) {
             shinylive::assets_cleanup()
           }
+          # Remove cur assets
           if (length(shinylive:::assets_versions()) > 0) {
             shinylive::assets_remove(shinylive::assets_version())
           }

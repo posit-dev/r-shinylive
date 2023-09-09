@@ -183,7 +183,7 @@ assets_ensure <- function(
 
   assets_path <- assets_dir(version)
   if (!fs::dir_exists(assets_path)) {
-    message(assets_path, " does not exist")
+    message(assets_path, " assets directory does not exist.")
     assets_download(url = url, version = version, dir = dir)
   }
 
@@ -223,7 +223,11 @@ assets_cleanup <- function(
     versions <- setdiff(versions, assets_version())
   }
 
-  assets_remove(versions, dir = dir)
+  if (length(versions) > 0) {
+    assets_remove(versions, dir = dir)
+  }
+
+  invisible()
 }
 
 
@@ -258,7 +262,7 @@ assets_remove <- function(
       message("Removing ", target_dir)
       unlink_path(target_dir)
     } else {
-      message(target_dir, " does not exist")
+      message(target_dir, " folder does not exist")
     }
   })
 
@@ -268,9 +272,11 @@ assets_remove <- function(
 
 
 assets_versions <- function(
-    dir = assets_cache_dir()) {
-
-
+  dir = assets_cache_dir()
+) {
+  if (!fs::dir_exists(dir)) {
+    return(character(0))
+  }
   # fs::dir_ls(shinylive_dir, type = "directory", regexp = "^shinylive-")
 
   path_basenames <-
@@ -281,6 +287,9 @@ assets_versions <- function(
       full.names = FALSE,
       pattern = paste0("^", shinylive_prefix)
     )
+  if (length(path_basenames) == 0) {
+    return(character(0))
+  }
 
   # Sort descending by version numbers
   path_versions_str <- sub(shinylive_prefix, "", path_basenames)
