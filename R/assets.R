@@ -86,8 +86,8 @@ assets_dir_impl <- function(
 
 install_local_helper <- function(
     ...,
-    install_fn = fs::file_copy,
     assets_repo_dir,
+    install_fn = fs::file_copy,
     dir = assets_cache_dir(),
     version = package_json_version(assets_repo_dir)) {
   stopifnot(length(list(...)) == 0)
@@ -177,13 +177,13 @@ assets_ensure <- function(
 ) {
   stopifnot(length(list(...)) == 0)
   if (!fs::dir_exists(dir)) {
-    message("Creating directory ", dir)
+    message("Creating assets cache directory ", dir)
     fs::dir_create(dir)
   }
 
-  assets_path <- assets_dir(version)
+  assets_path <- assets_dir(version, dir = dir)
   if (!fs::dir_exists(assets_path)) {
-    message(assets_path, " assets directory does not exist.")
+    message("`", assets_path, "` assets directory does not exist.")
     assets_download(url = url, version = version, dir = dir)
   }
 
