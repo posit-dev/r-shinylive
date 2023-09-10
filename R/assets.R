@@ -212,7 +212,7 @@ assets_cleanup <- function(
 ) {
   stopifnot(length(list(...)) == 0)
   versions <- vapply(
-    assets_versions(dir),
+    assets_dirs(dir),
     function(ver_path) {
       sub(shinylive_prefix, "", basename(ver_path))
     },
@@ -271,9 +271,11 @@ assets_remove <- function(
 
 
 
-assets_versions <- function(
+assets_dirs <- function(
+  ...,
   dir = assets_cache_dir()
 ) {
+  stopifnot(length(list(...)) == 0)
   if (!fs::dir_exists(dir)) {
     return(character(0))
   }
@@ -308,7 +310,7 @@ assets_versions <- function(
 #'    assets that have been installed.
 #' @export
 assets_info <- function() {
-  installed_versions <- assets_versions()
+  installed_versions <- assets_dirs()
   if (length(installed_versions) == 0) {
     installed_versions <- "(None)"
   }
