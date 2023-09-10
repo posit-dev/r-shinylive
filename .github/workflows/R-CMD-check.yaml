@@ -40,7 +40,7 @@ jobs:
         with:
           needs: quarto
 
-      - name: Check out repository
+      - name: Check out 'posit-dev/shinylive' repo into './shinylive_assets'
         uses: actions/checkout@v3
         with:
           repository: posit-dev/shinylive
@@ -70,8 +70,8 @@ jobs:
           # Assert no assets exist
           testthat::expect_equal(length(shinylive:::assets_dirs()), 0)
 
-          # Link the assets
-          shinylive::assets_install_link("shinylive_assets")
+          # Copy the assets
+          shinylive::assets_install_copy("shinylive_assets")
 
           # Assert the assets were linked
           testthat::expect_true(length(shinylive:::assets_dirs()) > 0)
@@ -85,6 +85,7 @@ jobs:
         shell: Rscript {0}
         run: |
           shinylive::assets_info()
+          dir(shinylive:::assets_cache_dir())
           dir(shinylive:::assets_dirs())
           as.list(fs::file_info(shinylive:::assets_dirs()))
 
