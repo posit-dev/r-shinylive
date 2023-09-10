@@ -41,8 +41,6 @@ jobs:
       - name: Install assets for py-shinylive
         run: |
           shinylive assets info
-          shinylive assets cleanup
-          shinylive assets info
           shinylive assets download
           shinylive assets info
 
