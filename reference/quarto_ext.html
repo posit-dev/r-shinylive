@@ -38,7 +38,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Quarto extension for shinylive</h1>
-      <small class="dont-index">Source: <a href="https://github.com/posit-dev/r-shinylive/blob/HEAD/R/quarto.R" class="external-link"><code>R/quarto.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/posit-dev/r-shinylive/blob/HEAD/R/quarto_ext.R" class="external-link"><code>R/quarto_ext.R</code></a></small>
       <div class="d-none name"><code>quarto_ext.Rd</code></div>
     </div>
 
@@ -57,16 +57,12 @@
 <dd><p>Command line arguments passed by the extension. The first
 argument can be one of:</p><ul><li><p><code>codeblock-to-json-path</code>: Prints the path to the <code>codeblock-to-json.js</code> script.</p></li>
 <li><p><code>base-deps</code>: Prints the base dependencies as a JSON array.</p></li>
-<li><p><code>package-deps</code>: Prints the package dependencies as a JSON array. Currently, this returns an empty array as <code>webr</code> is handling the package dependencies.</p></li>
+<li><p><code>package-deps</code>: Prints the package dependencies as a JSON array.
+Currently, this returns an empty array as <code>webr</code> is handling the package
+dependencies.</p></li>
 </ul></dd>
 
 </dl></div>
-    <div class="section level2">
-    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    
-
-<p>JSON string that should be printed to be ingested by the extension.</p>
-    </div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>

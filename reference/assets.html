@@ -62,7 +62,9 @@
 <span>  url <span class="op">=</span> <span class="fu">assets_bundle_url</span><span class="op">(</span><span class="va">version</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">assets_cleanup</span><span class="op">(</span>dir <span class="op">=</span> <span class="fu">assets_cache_dir</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">assets_cleanup</span><span class="op">(</span><span class="va">...</span>, dir <span class="op">=</span> <span class="fu">assets_cache_dir</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">assets_remove</span><span class="op">(</span><span class="va">versions</span>, <span class="va">...</span>, dir <span class="op">=</span> <span class="fu">assets_cache_dir</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">assets_info</span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
@@ -88,6 +90,10 @@ should be used.</p></dd>
 <dd><p>The URL to download the assets from. Unless testing, the default
 behavior should be used.</p></dd>
 
+
+<dt>versions</dt>
+<dd><p>The assets versions to remove.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
@@ -102,6 +108,7 @@ installed. If a local copy of shinylive is installed, its path will be
 returned.</p></li>
 <li><p><code>assets_cleanup()</code>: Removes local copies of shinylive web assets,
 except for the one used by the current version of <span class="pkg">shinylive</span>.</p></li>
+<li><p><code>assets_remove()</code>: Removes a local copies of shinylive web assets.</p></li>
 <li><p><code>assets_info()</code>: Prints information about the local shinylive
 assets that have been installed.</p></li>
 <li><p><code>assets_version()</code>: Returns the version of the currently supported Shinylive

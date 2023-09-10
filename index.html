@@ -68,7 +68,10 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>The goal of shinylive is to … TODO-barret; document</p>
+<!-- [py-shinylive Documentation site](https://shiny.rstudio.com/py/docs/shinylive.html) -->
+<p>This repository contains an R package for exporting Shiny applications as Shinylive applications.</p>
+<p>This repository is not the same as the <a href="https://github.com/posit-dev/shinylive" class="external-link uri">https://github.com/posit-dev/shinylive</a> repository. That repository is used to generate the Shinylive assets distribution, which is a bundle containing HTML, JavaScript, CSS, and wasm files. The R package in this repository downloads the assets and uses them to create Shinylive applications.</p>
+<p>Twin shinylive python package: <a href="https://github.com/posit-dev/py-shinylive" class="external-link uri">https://github.com/posit-dev/py-shinylive</a></p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -78,34 +81,118 @@
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"posit-dev/r-shinylive"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
+<h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
-<p>This is a basic example that will export a shiny app to a directory which can be hosted locally:</p>
+<p>(Optional) Create a basic shiny application in a new directory <code>myapp/</code>:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://posit-dev.github.io/r-shinylive/">shinylive</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">app_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"examples"</span>, <span class="st">"01_hello"</span>, package<span class="op">=</span><span class="st">"shiny"</span><span class="op">)</span></span>
-<span><span class="va">out_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="st">"shinylive-export"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Export the app to a directory</span></span>
-<span><span class="fu"><a href="reference/export.html">export</a></span><span class="op">(</span><span class="va">app_dir</span>, <span class="va">out_dir</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Run the following in an R session to serve the app:</span></span>
-<span><span class="co">#&gt;   httpuv::runStaticServer(&lt;OUT_DIR&gt;, port=8008)</span></span>
-<span></span>
-<span><span class="co"># Serve the exported directory</span></span>
-<span><span class="fu">httpuv</span><span class="fu">::</span><span class="fu">runStaticServer</span><span class="op">(</span><span class="va">out_dir</span>, port<span class="op">=</span><span class="fl">8008</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"examples"</span>, <span class="st">"01_hello"</span>, package<span class="op">=</span><span class="st">"shiny"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/copy.html" class="external-link">dir_copy</a></span><span class="op">(</span><span class="st">"myapp"</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Once you have a Shiny application in <code>myapp/</code> and would like turn it into a Shinylive app in <code>site/</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/export.html">export</a></span><span class="op">(</span><span class="st">"myapp"</span>, <span class="st">"site"</span><span class="op">)</span></span></code></pre></div>
+<p>Then you can preview the application by running a web server and visiting it in a browser:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">httpuv</span><span class="fu">::</span><span class="fu">runStaticServer</span><span class="op">(</span><span class="st">"site/"</span>, port<span class="op">=</span><span class="fl">8008</span><span class="op">)</span></span></code></pre></div>
+<p>At this point, you can deploy the <code>site/</code> directory to any static web hosting service.</p>
+<div class="section level3">
+<h3 id="multiple-applications">Multiple applications<a class="anchor" aria-label="anchor" href="#multiple-applications"></a>
+</h3>
+<p>If you have multiple applications that you want to put on the same site, you can export them to subdirectories of the site, so that they can all share the same Shinylive assets. You can do this with the <code>--subdir</code> option:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/export.html">export</a></span><span class="op">(</span><span class="st">"myapp1"</span>, <span class="st">"site"</span>, subdir <span class="op">=</span> <span class="st">"app1"</span><span class="op">)</span></span>
+<span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/export.html">export</a></span><span class="op">(</span><span class="st">"myapp2"</span>, <span class="st">"site"</span>, subdir <span class="op">=</span> <span class="st">"app2"</span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="shinylive-asset-management">Shinylive asset management<a class="anchor" aria-label="anchor" href="#shinylive-asset-management"></a>
+</h2>
+<p>Each version of the Shinylive R package is associated with a particular version of the Shinylive web assets. (<a href="https://github.com/posit-dev/shinylive/releases" class="external-link">See the releases here</a>.)</p>
+<p>To see which version of this R package you have, and which version of the web assets it is associated with, simply run <code><a href="reference/assets.html">shinylive::assets_info()</a></code> in your R session. It wil also show which asset versions you have already installed locally:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/assets.html">assets_info</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; shinylive R package version:  0.0.1</span></span>
+<span><span class="co">#&gt; shinylive web assets version: 0.1.7</span></span>
+<span><span class="co">#&gt;</span></span>
+<span><span class="co">#&gt; Local cached shinylive asset dir:</span></span>
+<span><span class="co">#&gt;     /Users/username/Library/Caches/shinylive</span></span>
+<span><span class="co">#&gt;</span></span>
+<span><span class="co">#&gt; Installed assets:</span></span>
+<span><span class="co">#&gt;     /Users/username/Library/Caches/shinylive/0.1.7</span></span>
+<span><span class="co">#&gt;     /Users/username/Library/Caches/shinylive/0.1.6</span></span></code></pre></div>
+<p>The web assets will be downloaded and cached the first time you run <code><a href="reference/export.html">shinylive::export()</a></code>. Or, you can run <code><a href="reference/assets.html">shinylive::assets_download()</a></code> to fetch them manually.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/assets.html">assets_download</a></span><span class="op">(</span><span class="st">"0.1.5"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Downloading shinylive v0.1.5...</span></span>
+<span><span class="co">#&gt; Unzipping to /Users/username/Library/Caches/shinylive/</span></span></code></pre></div>
+<p>You can remove old versions with <code><a href="reference/assets.html">shinylive::assets_cleanup()</a></code>. This will remove all versions except the one that the Python package wants to use:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/assets.html">assets_cleanup</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Keeping version 0.1.7</span></span>
+<span><span class="co">#&gt; Removing /Users/username/Library/Caches/shinylive/0.1.6</span></span>
+<span><span class="co">#&gt; Removing /Users/username/Library/Caches/shinylive/0.1.5</span></span></code></pre></div>
+<p>To remove a specific version, use <code><a href="reference/assets.html">shinylive::assets_remove()</a></code>:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/assets.html">assets_remove</a></span><span class="op">(</span><span class="st">"0.1.5"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Removing /Users/username/Library/Caches/shinylive/0.1.5</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="known-limitations">Known limitations<a class="anchor" aria-label="anchor" href="#known-limitations"></a>
+</h2>
+<ul>
+<li>A single quarto document can have both <code>shinylive-python</code> and <code>shinylive-r</code> code blocks, but <code>shinylive-r</code> code block must come first.
+<ul>
+<li>Details: Only the first shinylive code block will be initialized. Currently <code>posit-dev/shinylive-py</code> does not know about <code>shinylive-r</code> code blocks.</li>
+<li>Details: This should be (naturally) fixed in the next release of <code>posit-dev/shinylive-py</code>.</li>
+</ul>
+</li>
+<li>The current R common files contain files for python’s pyodide and pyright. These should be removed in the future to make smaller bundles / faster loading.</li>
+</ul>
 </div>
 <div class="section level2">
 <h2 id="development">Development<a class="anchor" aria-label="anchor" href="#development"></a>
 </h2>
 <div class="section level3">
-<h3 id="testing">Testing<a class="anchor" aria-label="anchor" href="#testing"></a>
+<h3 id="setup---shinylive-assets">Setup - shinylive assets<a class="anchor" aria-label="anchor" href="#setup---shinylive-assets"></a>
 </h3>
-<p>Works with latest GitHub version of <a href="https://github.com/posit-dev/shinylive/tree/r-shinylive-support" class="external-link"><code>posit-dev/shinylive@r-shinylive-support</code></a>.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu">link_shinylive_local</span><span class="op">(</span><span class="st">"PATH/TO/posit-dev/shinylive"</span><span class="op">)</span></span></code></pre></div>
+<p>Works with latest GitHub version of <a href="https://github.com/posit-dev/shinylive/" class="external-link"><code>posit-dev/shinylive</code></a> (&gt;= v<code>0.1.6.9001</code>).</p>
+<p>Before linking the shinylive assets to the asset cache folder, you must first build the shiny live assets:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co">## In your shinylive assets repo</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="co"># cd PATH/TO/posit-dev/shinylive</span></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co"># Generate the shiny live assets</span></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="fu">make</span> submodules all</span></code></pre></div>
+<p>Then link the assets (using the <a href="https://posit-dev.github.io/r-shinylive/">shinylive</a> R package) to the asset cache folder so that changes to the assets are automatically in your cached shinylive assets:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Link to your local shinylive repo</span></span>
+<span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu">link_shinylive_local</span><span class="op">(</span><span class="st">"PATH/TO/posit-dev/shinylive"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="setup---quarto">Setup - quarto<a class="anchor" aria-label="anchor" href="#setup---quarto"></a>
+</h3>
+<p>In your quarto project, call the following lines in the terminal to install the updated shinylive quarto extension:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># Go to the quarto project directory</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="bu">cd</span> local/quarto</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co"># Install the updated shinylive quarto extension</span></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="ex">quarto</span> add schloerke/quarto-ext-shinylive@r-shinylive</span></code></pre></div>
+<p>By default, the extension will used the installed <a href="https://posit-dev.github.io/r-shinylive/">shinylive</a> R package. To use the local <a href="https://posit-dev.github.io/r-shinylive/">shinylive</a> R package, run the following in your R session to update the quarto extension locally:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">shinylive_lua</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"local"</span>, <span class="st">"quarto"</span>, <span class="st">"_extensions"</span>, <span class="st">"schloerke"</span>, <span class="st">"shinylive"</span>, <span class="st">"shinylive.lua"</span><span class="op">)</span></span>
+<span><span class="va">shinylive_lua</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu">brio</span><span class="fu">::</span><span class="fu"><a href="https://brio.r-lib.org/reference/read_file.html" class="external-link">read_file</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span></span>
+<span>        pattern <span class="op">=</span> <span class="st">"shinylive::quarto_ext()"</span>,</span>
+<span>        replacement <span class="op">=</span> <span class="st">"pkgload::load_all('../../', quiet = TRUE); shinylive::quarto_ext()"</span>,</span>
+<span>        fixed <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>    <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu">brio</span><span class="fu">::</span><span class="fu"><a href="https://brio.r-lib.org/reference/write_file.html" class="external-link">write_file</a></span><span class="op">(</span><span class="va">shinylive_lua</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="execute---export">Execute - <code>export()</code>
+<a class="anchor" aria-label="anchor" href="#execute---export"></a>
+</h3>
 <p>Export a local app to a dir and run it:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">pkgload</span><span class="fu">::</span><span class="fu"><a href="https://pkgload.r-lib.org/reference/load_all.html" class="external-link">load_all</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co"># Delete prior</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="st">"local/shiny-apps-out/"</span><span class="op">)</span></span>
@@ -116,25 +203,6 @@
 <span><span class="co"># Host the local directory</span></span>
 <span><span class="fu">httpuv</span><span class="fu">::</span><span class="fu">runStaticServer</span><span class="op">(</span><span class="st">"local/shiny-apps-out"</span>, port<span class="op">=</span><span class="fl">8008</span><span class="op">)</span></span></code></pre></div>
 </div>
-</div>
-<div class="section level2">
-<h2 id="todo-barret">TODO-barret<a class="anchor" aria-label="anchor" href="#todo-barret"></a>
-</h2>
-<ul>
-<li>TODO-barret; document readme</li>
-<li>TODO-barret; test
-<ul>
-<li>quarto_ext_call(c(“base-deps”, “–sw-dir”, “asdfasfd”))</li>
-<li>quarto_ext_call(c(“package-deps”))</li>
-<li>quarto_ext_call(c(“codeblock-to-json-path”))</li>
-</ul>
-</li>
-<li>TOOD-barret; Move quarto extensions changes to <code>quarto-ext/shinylive</code>
-<ul>
-<li>Remove pkgload::load_all() call</li>
-</ul>
-</li>
-</ul>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
@@ -178,6 +246,7 @@
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
 <li><a href="https://github.com/posit-dev/r-shinylive/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/posit-dev/r-shinylive/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://CRAN.R-project.org/package=shinylive" class="external-link"><img src="https://www.r-pkg.org/badges/version/shinylive" alt="CRAN status"></a></li>
 </ul>
 </div>
 
