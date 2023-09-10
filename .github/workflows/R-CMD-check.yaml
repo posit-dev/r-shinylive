@@ -78,6 +78,32 @@ jobs:
 
           # Print installed info
           shinylive::assets_info()
+      - name: Update lua script for debugging
+        shell: Rscript {0}
+        run: |
+          shinylive_lua <- file.path(
+            "local", "quarto", "_extensions", "schloerke", "shinylive", "shinylive.lua"
+          )
+          shinylive_lua |>
+            brio::read_file() |>
+            sub(
+              pattern = "-- print(\"Calling",
+              replacement = "print(\"Calling",
+              fixed = TRUE
+            ) |>
+            sub(
+              pattern = "  local deps = quarto.json.decode(depJson)",
+              replacement = "  print(depJson)\n  local deps = quarto.json.decode(depJson)",
+              fixed = TRUE
+            ) |>
+            sub(
+              pattern = "        local appDeps = quarto.json.decode(appDepsJson)",
+              replacement = "        print(appDepsJson)\n        local appDeps = quarto.json.decode(appDepsJson)",
+              fixed = TRUE
+            ) |>
+            brio::write_file(shinylive_lua)
+
+          cat(brio::read_file(shinylive_lua),"\n")
 
       - name: Run shinylive R package tests
         env:
