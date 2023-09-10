@@ -1,0 +1,59 @@
+---
+title: Shinylive applications embedded in Quarto documents
+format: html
+filters:
+  - shinylive
+---
+
+Install the latest extension using `quarto add schloerke/quarto-ext-shinylive@r-shinylive`.
+
+
+# `R`
+
+:::{.column-page-inset-right}
+```{shinylive-r}
+#| standalone: true
+#| components: [editor, viewer]
+#| layout: vertical
+library(shiny)
+
+shinyApp(
+    fluidPage(
+        sliderInput("n", "N", 0, 100, 40),
+        verbatimTextOutput("txt", placeholder = TRUE),
+    ),
+    function(input, output) {
+        output$txt <- renderText({
+            paste0("The value of n*2 is ", 2 * input$n)
+        })
+    }
+)
+```
+:::
+
+
+# `python`
+
+:::{.column-page-inset-right}
+```{shinylive-python}
+#| standalone: true
+#| components: [editor, viewer]
+#| layout: vertical
+from shiny import App, render, ui
+
+app_ui = ui.page_fluid(
+    ui.input_slider("n", "N", 0, 100, 20),
+    ui.output_text_verbatim("txt"),
+)
+
+
+def server(input, output, session):
+    @output
+    @render.text
+    def txt():
+        return f"n*2 is {2 * input.n()}"
+
+
+app = App(app_ui, server)
+```
+:::

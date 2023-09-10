@@ -4,6 +4,7 @@
 \alias{assets_download}
 \alias{assets_ensure}
 \alias{assets_cleanup}
+\alias{assets_remove}
 \alias{assets_info}
 \alias{assets_version}
 \title{Manage shinylive assets}
@@ -22,7 +23,9 @@ assets_ensure(
   url = assets_bundle_url(version)
 )
 
-assets_cleanup(dir = assets_cache_dir())
+assets_cleanup(..., dir = assets_cache_dir())
+
+assets_remove(versions, ..., dir = assets_cache_dir())
 
 assets_info()
 
@@ -38,6 +41,8 @@ should be used.}
 
 \item{url}{The URL to download the assets from. Unless testing, the default
 behavior should be used.}
+
+\item{versions}{The assets versions to remove.}
 }
 \description{
 Helper methods for managing shinylive assets.
@@ -56,6 +61,8 @@ returned.
 
 \item \code{assets_cleanup()}: Removes local copies of shinylive web assets,
 except for the one used by the current version of \pkg{shinylive}.
+
+\item \code{assets_remove()}: Removes a local copies of shinylive web assets.
 
 \item \code{assets_info()}: Prints information about the local shinylive
 assets that have been installed.

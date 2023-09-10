@@ -25,5 +25,7 @@ Imports:
     rappdirs,
     tools
 Suggests:
-    httr
+    httr,
+    testthat (>= 3.0.0)
 Config/Needs/website: tidyverse/tidytemplate
+Config/testthat/edition: 3

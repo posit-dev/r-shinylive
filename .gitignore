@@ -7,3 +7,4 @@ local/quarto/*.html
 local/quarto/*.html
 local/quarto/*_files/
 local/quarto/*.js
+local/quarto/_extensions/

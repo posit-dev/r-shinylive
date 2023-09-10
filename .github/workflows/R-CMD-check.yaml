@@ -13,30 +13,114 @@ on:
 name: Package checks
 
 jobs:
-  website:
-    uses: rstudio/shiny-workflows/.github/workflows/website.yaml@v1
-  routine:
-    uses: rstudio/shiny-workflows/.github/workflows/routine.yaml@v1
-  R-CMD-check:
-    uses: rstudio/shiny-workflows/.github/workflows/R-CMD-check.yaml@v1
+  # website:
+  #   uses: rstudio/shiny-workflows/.github/workflows/website.yaml@v1
+  # routine:
+  #   uses: rstudio/shiny-workflows/.github/workflows/routine.yaml@v1
+  # R-CMD-check:
+  #   uses: rstudio/shiny-workflows/.github/workflows/R-CMD-check.yaml@v1
 
-  # quarto:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Check out repository
-  #       uses: actions/checkout@v3
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
 
-  #     # TODO-barret: document this process in the readme:
-  #     # TODO-barret-future; Install R, r-shinylive
-  #     # TODO-barret-future; Install posit-dev/shinylive; Run `make submodules all`; Then `make build-prod-r`;
-  #     # TODO-barret-future; r-shinylive: link local copy
-  #     # TODO-barret-future; Render quarto project
+      - name: Set up Python - 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
-  #     - name: Set up Quarto
-  #       uses: quarto-dev/quarto-actions/setup@v2
+      - name: Upgrade pip
+        run: |
+          python -m pip install --upgrade pip
 
-  #     - name: Render Quarto Project
-  #       uses: quarto-dev/quarto-actions/render@v2
-  #       with:
-  #         path: local/quarto/r.qmd
-  #     # TODO-barret-future; Test the output of the render
+      - name: Install py-shinylive
+        run: |
+          pip install shinylive
+      - name: Install assets for py-shinylive
+        run: |
+          shinylive assets info
+          shinylive assets download
+          shinylive assets info
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Install quarto-ext/shinylive
+        shell: bash
+        run: |
+          cd local/quarto
+          quarto add schloerke/quarto-ext-shinylive@r-shinylive --no-prompt
+
+      - name: Install R, system dependencies, and package dependencies
+        uses: rstudio/shiny-workflows/setup-r-package@v1
+        with:
+          needs: quarto
+
+      - name: Check out 'posit-dev/shinylive' repo into './shinylive_assets'
+        uses: actions/checkout@v3
+        with:
+          repository: posit-dev/shinylive
+          path: shinylive_assets
+
+      - name: Build shinylive assets
+        shell: bash
+        run: |
+          cd shinylive_assets
+          make submodules
+          make all
+
+      - name: Link shinylive assets
+        shell: Rscript {0}
+        run: |
+          shinylive::assets_install_copy("shinylive_assets")
+          shinylive::assets_info()
+      - name: Update lua script for debugging
+        shell: Rscript {0}
+        run: |
+          shinylive_lua <- file.path(
+            "local", "quarto", "_extensions", "schloerke", "shinylive", "shinylive.lua"
+          )
+          shinylive_lua |>
+            brio::read_file() |>
+            sub(
+              pattern = "-- print(\"Calling",
+              replacement = "print(\"Calling",
+              fixed = TRUE
+            ) |>
+            sub(
+              pattern = "  local deps = quarto.json.decode(depJson)",
+              replacement = "  print(depJson)\n  local deps = quarto.json.decode(depJson)",
+              fixed = TRUE
+            ) |>
+            sub(
+              pattern = "        local appDeps = quarto.json.decode(appDepsJson)",
+              replacement = "        print(appDepsJson)\n        local appDeps = quarto.json.decode(appDepsJson)",
+              fixed = TRUE
+            ) |>
+            brio::write_file(shinylive_lua)
+
+          cat(brio::read_file(shinylive_lua),"\n")
+
+      - name: Run shinylive R package tests
+        env:
+          TEST_ASSETS: "TRUE"
+        shell: Rscript {0}
+        run: |
+          shinylive::assets_info()
+          dir(shinylive:::assets_cache_dir())
+          dir(shinylive:::assets_dirs())
+          as.list(fs::file_info(shinylive:::assets_dirs()))
+
+          shinylive::assets_ensure()
+
+          testthat::test_local()
+      # If this (^^) completes, it is a big success!
+      # Run quarto test after testthat test
+      - name: Test shinylive quarto extension can build
+        uses: quarto-dev/quarto-actions/render@v2
+        with:
+          path: local/quarto/
+
+      # TODO-barret-future; Test the output of the render using pyright / py-shiny e2e controls?

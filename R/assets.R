@@ -27,7 +27,6 @@ assets_download <- function(
   on.exit(
     {
       if (fs::file_exists(tmp_targz)) {
-        message("Removing ", tmp_targz)
         fs::file_delete(tmp_targz)
       }
     },
@@ -46,7 +45,7 @@ assets_download <- function(
 # Returns the URL for the Shinylive assets bundle.
 assets_bundle_url <- function(version = assets_version()) {
   paste0(
-    "https://github.com/rstudio/shinylive/releases/download/",
+    "https://github.com/posit-dev/shinylive/releases/download/",
     paste0("v", version),
     "/",
     paste0("shinylive-", version, ".tar.gz")
@@ -55,8 +54,12 @@ assets_bundle_url <- function(version = assets_version()) {
 
 
 assets_cache_dir <- function() {
-  # Must be normalized a `~` does not work with quarto
-  normalizePath(rappdirs::user_cache_dir("shinylive"))
+  # Must be normalized as `~` does not work with quarto
+  cache_dir <- rappdirs::user_cache_dir("shinylive")
+  if (!dir.exists(cache_dir)) {
+    dir.create(cache_dir, recursive = TRUE)
+  }
+  normalizePath(cache_dir)
 }
 
 # Returns the directory used for caching Shinylive assets. This directory can
@@ -83,8 +86,8 @@ assets_dir_impl <- function(
 
 install_local_helper <- function(
     ...,
-    install_fn = fs::file_copy,
     assets_repo_dir,
+    install_fn = fs::file_copy,
     dir = assets_cache_dir(),
     version = package_json_version(assets_repo_dir)) {
   stopifnot(length(list(...)) == 0)
@@ -174,13 +177,13 @@ assets_ensure <- function(
 ) {
   stopifnot(length(list(...)) == 0)
   if (!fs::dir_exists(dir)) {
-    message("Creating directory ", dir)
+    message("Creating assets cache directory ", dir)
     fs::dir_create(dir)
   }
 
-  assets_path <- assets_dir(version)
+  assets_path <- assets_dir(version, dir = dir)
   if (!fs::dir_exists(assets_path)) {
-    message(assets_path, " does not exist")
+    message("`", assets_path, "` assets directory does not exist.")
     assets_download(url = url, version = version, dir = dir)
   }
 
@@ -204,10 +207,12 @@ assets_ensure <- function(
 #' except for the one used by the current version of \pkg{shinylive}.
 #' @export
 assets_cleanup <- function(
+  ...,
   dir = assets_cache_dir()
 ) {
+  stopifnot(length(list(...)) == 0)
   versions <- vapply(
-    assets_versions(dir),
+    assets_dirs(dir),
     function(ver_path) {
       sub(shinylive_prefix, "", basename(ver_path))
     },
@@ -218,7 +223,11 @@ assets_cleanup <- function(
     versions <- setdiff(versions, assets_version())
   }
 
-  remove_assets(dir, versions)
+  if (length(versions) > 0) {
+    assets_remove(versions, dir = dir)
+  }
+
+  invisible()
 }
 
 
@@ -235,9 +244,16 @@ assets_cleanup <- function(
 #     If a version is specified, only that version will be removed.
 #     If None, all local versions except the version specified by SHINYLIVE_ASSETS_VERSION will be removed.
 # """
-remove_assets <- function(
-    dir,
-    versions) {
+
+#' @describeIn assets Removes a local copies of shinylive web assets.
+#' @param versions The assets versions to remove.
+#' @export
+assets_remove <- function(
+  versions,
+  ...,
+  dir = assets_cache_dir()
+) {
+  stopifnot(length(list(...)) == 0)
   stopifnot(length(versions) > 0 && is.character(versions))
 
   lapply(versions, function(version) {
@@ -246,7 +262,7 @@ remove_assets <- function(
       message("Removing ", target_dir)
       unlink_path(target_dir)
     } else {
-      message(target_dir, " does not exist")
+      message(target_dir, " folder does not exist")
     }
   })
 
@@ -255,10 +271,14 @@ remove_assets <- function(
 
 
 
-assets_versions <- function(
-    dir = assets_cache_dir()) {
-
-
+assets_dirs <- function(
+  ...,
+  dir = assets_cache_dir()
+) {
+  stopifnot(length(list(...)) == 0)
+  if (!fs::dir_exists(dir)) {
+    return(character(0))
+  }
   # fs::dir_ls(shinylive_dir, type = "directory", regexp = "^shinylive-")
 
   path_basenames <-
@@ -269,6 +289,9 @@ assets_versions <- function(
       full.names = FALSE,
       pattern = paste0("^", shinylive_prefix)
     )
+  if (length(path_basenames) == 0) {
+    return(character(0))
+  }
 
   # Sort descending by version numbers
   path_versions_str <- sub(shinylive_prefix, "", path_basenames)
@@ -277,7 +300,7 @@ assets_versions <- function(
   )
 
   # Return full path to the versions
-  fs::path(dir, path_versions)
+  fs::path(dir, paste0(shinylive_prefix, path_versions))
 }
 
 
@@ -287,26 +310,26 @@ assets_versions <- function(
 #'    assets that have been installed.
 #' @export
 assets_info <- function() {
-  installed_versions <- assets_versions()
+  installed_versions <- assets_dirs()
   if (length(installed_versions) == 0) {
     installed_versions <- "(None)"
   }
 
   cat(
     collapse(c(
-      "Shinylive local info:",
+      paste0("shinylive R package version:  ", utils::packageVersion("shinylive")),
+      paste0("shinylive web assets version: ", assets_version()),
       "",
-      "    Local cached shinylive asset dir:",
+      "Local cached shinylive asset dir:",
       collapse("    ", assets_cache_dir()),
       "",
+      "Installed assets:",
       if (assets_cache_dir_exists()) {
-        collapse(c(
-          "    Installed versions:",
-          collapse("    ", installed_versions)
-        ))
+        collapse("    ", installed_versions)
       } else {
         "    (Cache dir does not exist)"
-      }
+      },
+      ""
     )),
     sep = ""
   )
