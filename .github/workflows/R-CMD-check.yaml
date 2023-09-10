@@ -32,11 +32,19 @@ jobs:
           python-version: "3.11"
 
       - name: Upgrade pip
-        run: python -m pip install --upgrade pip
+        run: |
+          python -m pip install --upgrade pip
 
-      - name: Install dependencies
+      - name: Install py-shinylive
         run: |
           pip install shinylive
+      - name: Install assets for py-shinylive
+        run: |
+          shinylive assets info
+          shinylive assets cleanup
+          shinylive assets info
+          shinylive assets download
+          shinylive assets info
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
@@ -68,27 +76,7 @@ jobs:
       - name: Link shinylive assets
         shell: Rscript {0}
         run: |
-          # Link the assets
-
-          # Remove any prev assets
-          if (length(shinylive:::assets_dirs()) > 0) {
-            shinylive::assets_dirs()
-          }
-          # Remove cur assets
-          if (length(shinylive:::assets_dirs()) > 0) {
-            shinylive::assets_remove(shinylive::assets_version())
-          }
-
-          # Assert no assets exist
-          testthat::expect_equal(length(shinylive:::assets_dirs()), 0)
-
-          # Copy the assets
           shinylive::assets_install_copy("shinylive_assets")
-
-          # Assert the assets were linked
-          testthat::expect_true(length(shinylive:::assets_dirs()) > 0)
-
-          # Print installed info
           shinylive::assets_info()
       - name: Update lua script for debugging
         shell: Rscript {0}
