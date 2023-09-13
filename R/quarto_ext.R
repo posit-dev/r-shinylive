@@ -8,7 +8,7 @@
 #'    - `package-deps`: Prints the package dependencies as a JSON array.
 #'      Currently, this returns an empty array as `webr` is handling the package
 #'      dependencies.
-#' @export
+#' @noRd
 quarto_ext <- function(args = commandArgs(trailingOnly = TRUE)) {
   # This method should not print anything to stdout. Instead, it should return a JSON string that will be printed by the extension.
   stopifnot(length(args) >= 1)
