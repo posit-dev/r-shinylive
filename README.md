@@ -29,6 +29,7 @@ pak::pak("posit-dev/r-shinylive")
 (Optional) Create a basic shiny application in a new directory `myapp/`:
 
 ``` r
+# Copy "Hello World" from `{shiny}`
 system.file("examples", "01_hello", package="shiny") |>
     fs::dir_copy("myapp", overwrite = TRUE)
 ```
