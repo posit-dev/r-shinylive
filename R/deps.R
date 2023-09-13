@@ -84,14 +84,6 @@ serviceworker_dep <- function(sw_dir) {
       html_dep_serviceworker_obj(
         source = file.path(assets_dir(), "shinylive-sw.js"),
         destination = "/shinylive-sw.js"
-      ),
-      html_dep_serviceworker_obj(
-        source = file.path(assets_dir(), "shinylive", "webr", "webr-serviceworker.js"),
-        destination = "/webr-serviceworker.js"
-      ),
-      html_dep_serviceworker_obj(
-        source = file.path(assets_dir(), "shinylive", "webr", "webr-worker.js"),
-        destination = "/webr-worker.js"
       )
     ),
     meta =
