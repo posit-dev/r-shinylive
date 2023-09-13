@@ -2,11 +2,9 @@
 title: Shinylive applications embedded in Quarto documents
 format: html
 filters:
+  # quarto-ext/shinylive
   - shinylive
 ---
-
-Install the latest extension using `quarto add schloerke/quarto-ext-shinylive@r-shinylive`.
-
 
 # `R`
 

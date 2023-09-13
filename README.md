@@ -140,13 +140,15 @@ In your quarto project, call the following lines in the terminal to install the 
 cd local/quarto
 
 # Install the updated shinylive quarto extension
-quarto add schloerke/quarto-ext-shinylive@r-shinylive
+quarto add quarto-ext/shinylive
 ```
 
 By default, the extension will used the installed `{shinylive}` R package. To use the local `{shinylive}` R package, run the following in your R session to update the quarto extension locally:
 
 ```R
-shinylive_lua <- file.path("local", "quarto", "_extensions", "schloerke", "shinylive", "shinylive.lua")
+if (!require("pkgload")) install.packages("pkgload")
+
+shinylive_lua <- file.path("local", "quarto", "_extensions", "quarto-ext", "shinylive", "shinylive.lua")
 shinylive_lua |>
     brio::read_file() |>
     sub(
