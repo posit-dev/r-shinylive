@@ -9,3 +9,4 @@
 ^shinylive\.Rproj$
 ^\.github$
 ^shinylive_assets$
+^cran-comments\.md$
