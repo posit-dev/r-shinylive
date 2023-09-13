@@ -49,18 +49,17 @@ Helper methods for managing shinylive assets.
 }
 \section{Functions}{
 \itemize{
-\item \code{assets_download()}: Downloads the shinylive assets bundle from
-GitHub and extracts it to the specified directory. The bundle will always be
+\item \code{assets_download()}: Downloads the shinylive assets bundle from GitHub and
+extracts it to the specified directory. The bundle will always be
 downloaded from GitHub, even if it already exists in the cache directory
 (\verb{dir=}).
 
-\item \code{assets_ensure()}: Ensures a local copy of shinylive is installed.
-If a local copy of shinylive is not installed, it will be downloaded and
-installed. If a local copy of shinylive is installed, its path will be
-returned.
+\item \code{assets_ensure()}: Ensures a local copy of shinylive is installed. If a local
+copy of shinylive is not installed, it will be downloaded and installed.
+If a local copy of shinylive is installed, its path will be returned.
 
-\item \code{assets_cleanup()}: Removes local copies of shinylive web assets,
-except for the one used by the current version of \pkg{shinylive}.
+\item \code{assets_cleanup()}: Removes local copies of shinylive web assets, except for
+the one used by the current version of \pkg{shinylive}.
 
 \item \code{assets_remove()}: Removes a local copies of shinylive web assets.
 

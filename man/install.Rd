@@ -21,7 +21,7 @@ assets_install_link(
 }
 \arguments{
 \item{assets_repo_dir}{The local repository directory for shinylive assets
-(e.g. \code{posit-dev/shinylive})}
+(e.g. \href{https://github.com/posit-dev/py-shinylive}{\code{posit-dev/shinylive}})}
 
 \item{...}{Ignored.}
 
@@ -35,12 +35,14 @@ Helper methods for testing updates to shinylive assets.
 }
 \section{Functions}{
 \itemize{
-\item \code{assets_install_copy()}: Copyies all shinylive assets from a local
-directory. This must be repeated for any change in the assets.
+\item \code{assets_install_copy()}: Copies all shinylive assets from a local shinylive
+repository (e.g.
+\href{https://github.com/posit-dev/py-shinylive}{\code{posit-dev/shinylive}}). This
+must be repeated for any change in the assets.
 
-\item \code{assets_install_link()}: Creates a symlink of the local shinylive assets to
-the cached assets directory. After the first installation, the assets will
-the same as the source due to the symlink.
+\item \code{assets_install_link()}: Creates a symlink of the local shinylive assets to the
+cached assets directory. After the first installation, the assets will the
+same as the source due to the symlink.
 
 }}
 \seealso{
