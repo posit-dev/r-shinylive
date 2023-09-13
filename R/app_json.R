@@ -194,11 +194,6 @@ write_app_json <- function(
       index_content,
       fixed = TRUE
     )
-    index_content <- sub(
-      pattern = "(runApp\\(.+)\\);",
-      replacement = "\\1, \"r\");",
-      index_content
-    )
 
     # Save updated file contents
     brio::write_file(index_content, copy_info$dest)
