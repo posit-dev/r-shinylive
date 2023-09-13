@@ -112,7 +112,7 @@ shinylive::assets_remove("0.1.5")
 
 ### Setup - shinylive assets
 
-Works with latest GitHub version of [`posit-dev/shinylive`](https://github.com/posit-dev/shinylive/) (>= v`0.1.6.9001`).
+Works with latest GitHub version of [`posit-dev/shinylive`](https://github.com/posit-dev/shinylive/) (>= v`0.2.0`).
 
 Before linking the shinylive assets to the asset cache folder, you must first build the shiny live assets:
 
