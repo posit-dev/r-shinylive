@@ -213,7 +213,7 @@ assets_cleanup <- function(
 ) {
   stopifnot(length(list(...)) == 0)
   versions <- vapply(
-    assets_dirs(dir),
+    assets_dirs(dir = dir),
     function(ver_path) {
       sub(shinylive_prefix, "", basename(ver_path))
     },
