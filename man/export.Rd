@@ -4,7 +4,7 @@
 \alias{export}
 \title{Export a Shiny app to a directory}
 \usage{
-export(appdir, destdir, ..., subdir = "", verbose = FALSE)
+export(appdir, destdir, ..., subdir = "", verbose = is_interactive())
 }
 \arguments{
 \item{appdir}{Directory containing the application.}
@@ -15,7 +15,8 @@ export(appdir, destdir, ..., subdir = "", verbose = FALSE)
 
 \item{subdir}{Subdirectory of \code{destdir} to write the app to.}
 
-\item{verbose}{Print verbose output.}
+\item{verbose}{Print verbose output. Defaults to \code{TRUE} if running
+interactively.}
 }
 \description{
 This function exports a Shiny app to a directory, which can then be served

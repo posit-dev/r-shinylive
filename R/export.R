@@ -6,9 +6,11 @@
 #' @param appdir Directory containing the application.
 #' @param destdir Destination directory.
 #' @param subdir Subdirectory of `destdir` to write the app to.
-#' @param verbose Print verbose output.
+#' @param verbose Print verbose output. Defaults to `TRUE` if running
+#'    interactively.
 #' @param ... Ignored
 #' @export
+#' @importFrom rlang is_interactive
 #' @examples
 #' \dontrun{
 #' app_dir <- system.file("examples", "01_hello", package="shiny")
@@ -27,7 +29,7 @@ export <- function(
     destdir,
     ...,
     subdir = "",
-    verbose = FALSE
+    verbose = is_interactive()
     # full_shinylive = FALSE
 ) {
   verbose_print <- if (verbose) message else list
@@ -143,7 +145,8 @@ export <- function(
   write_app_json(
     app_info,
     destdir,
-    html_source_dir = fs::path(assets_path, "export_template")
+    html_source_dir = fs::path(assets_path, "export_template"),
+    verbose = verbose
   )
 
   verbose_print(

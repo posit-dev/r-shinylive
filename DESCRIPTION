@@ -23,6 +23,7 @@ Imports:
     jsonlite,
     progress,
     rappdirs,
+    rlang,
     tools
 Suggests:
     httr,
