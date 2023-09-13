@@ -154,7 +154,7 @@
 <div class="section level3">
 <h3 id="setup---shinylive-assets">Setup - shinylive assets<a class="anchor" aria-label="anchor" href="#setup---shinylive-assets"></a>
 </h3>
-<p>Works with latest GitHub version of <a href="https://github.com/posit-dev/shinylive/" class="external-link"><code>posit-dev/shinylive</code></a> (&gt;= v<code>0.1.6.9001</code>).</p>
+<p>Works with latest GitHub version of <a href="https://github.com/posit-dev/shinylive/" class="external-link"><code>posit-dev/shinylive</code></a> (&gt;= v<code>0.2.0</code>).</p>
 <p>Before linking the shinylive assets to the asset cache folder, you must first build the shiny live assets:</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co">## In your shinylive assets repo</span></span>
 <span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="co"># cd PATH/TO/posit-dev/shinylive</span></span>
@@ -164,7 +164,7 @@
 <p>Then link the assets (using the <a href="https://posit-dev.github.io/r-shinylive/">shinylive</a> R package) to the asset cache folder so that changes to the assets are automatically in your cached shinylive assets:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Link to your local shinylive repo</span></span>
-<span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu">link_shinylive_local</span><span class="op">(</span><span class="st">"PATH/TO/posit-dev/shinylive"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/install.html">assets_install_link</a></span><span class="op">(</span><span class="st">"PATH/TO/posit-dev/shinylive"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="setup---quarto">Setup - quarto<a class="anchor" aria-label="anchor" href="#setup---quarto"></a>
@@ -174,10 +174,12 @@
 <span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="bu">cd</span> local/quarto</span>
 <span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a></span>
 <span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co"># Install the updated shinylive quarto extension</span></span>
-<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="ex">quarto</span> add schloerke/quarto-ext-shinylive@r-shinylive</span></code></pre></div>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="ex">quarto</span> add quarto-ext/shinylive</span></code></pre></div>
 <p>By default, the extension will used the installed <a href="https://posit-dev.github.io/r-shinylive/">shinylive</a> R package. To use the local <a href="https://posit-dev.github.io/r-shinylive/">shinylive</a> R package, run the following in your R session to update the quarto extension locally:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">shinylive_lua</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"local"</span>, <span class="st">"quarto"</span>, <span class="st">"_extensions"</span>, <span class="st">"schloerke"</span>, <span class="st">"shinylive"</span>, <span class="st">"shinylive.lua"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://github.com/r-lib/pkgload" class="external-link">"pkgload"</a></span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"pkgload"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">shinylive_lua</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"local"</span>, <span class="st">"quarto"</span>, <span class="st">"_extensions"</span>, <span class="st">"quarto-ext"</span>, <span class="st">"shinylive"</span>, <span class="st">"shinylive.lua"</span><span class="op">)</span></span>
 <span><span class="va">shinylive_lua</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu">brio</span><span class="fu">::</span><span class="fu"><a href="https://brio.r-lib.org/reference/read_file.html" class="external-link">read_file</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span></span>
