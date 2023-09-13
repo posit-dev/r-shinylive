@@ -128,7 +128,7 @@ Then link the assets (using the `{shinylive}` R package) to the asset cache fold
 
 ```r
 # Link to your local shinylive repo
-shinylive::link_shinylive_local("PATH/TO/posit-dev/shinylive")
+shinylive::assets_install_link("PATH/TO/posit-dev/shinylive")
 ```
 
 ### Setup - quarto
