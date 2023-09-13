@@ -105,7 +105,7 @@ serviceworker_dep <- function(sw_dir) {
 shinylive_common_dep_htmldep <- function() {
   assets_path <- assets_dir()
   # In quarto ext, keep support for python engine
-  base_files <- shinylive_common_files(remove_python_support = FALSE)
+  base_files <- shinylive_common_files(all_files = TRUE)
 
   scripts <- list()
   stylesheets <- list()
@@ -191,14 +191,14 @@ shinylive_common_dep_htmldep <- function() {
 # Return a list of files that are base dependencies; in other words, the files
 # that are always included in a Shinylive deployment.
 # """
-shinylive_common_files <- function(remove_python_support = FALSE) {
+shinylive_common_files <- function(all_files = FALSE) {
   assets_ensure()
 
   assets_dir <- assets_dir()
   # `dir()` is 10x faster than `fs::dir_ls()`
   common_files <- dir(assets_dir, recursive = TRUE)
 
-  if (remove_python_support) {
+  if (!all_files) {
     common_files <- common_files[!grepl("^shinylive/pyodide/", common_files)]
     common_files <- common_files[!grepl("^shinylive/pyright/", common_files)]
   }
