@@ -196,6 +196,14 @@ write_app_json <- function(
       fixed = TRUE
     )
 
+    # Set wasm engine
+    index_content <- gsub(
+      pattern = "{{APP_ENGINE}}",
+      replacement = "r",
+      index_content,
+      fixed = TRUE
+    )
+
     # Save updated file contents
     brio::write_file(index_content, copy_info$dest)
   }
