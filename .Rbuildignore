@@ -10,3 +10,4 @@
 ^\.github$
 ^shinylive_assets$
 ^cran-comments\.md$
+^revdep$
