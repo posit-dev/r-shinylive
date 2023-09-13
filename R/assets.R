@@ -153,6 +153,10 @@ assets_install_link <- function(
   install_local_helper(
     ...,
     install_fn = function(from, to) {
+      # Make sure from is an absolute path
+      if (!fs::is_absolute_path(from)) {
+        from <- fs::path_wd(from)
+      }
       # Make sure parent folder exists
       fs::dir_create(fs::path_dir(to))
       # Link dir
