@@ -62,7 +62,7 @@ shinylive::export("myapp2", "site", subdir = "app2")
 
 Each version of the Shinylive R package is associated with a particular version of the Shinylive web assets. ([See the releases here](https://github.com/posit-dev/shinylive/releases).)
 
-To see which version of this R package you have, and which version of the web assets it is associated with, simply run `shinylive::assets_info()` in your R session. It wil also show which asset versions you have already installed locally:
+To see which version of this R package you have, and which version of the web assets it is associated with, simply run `shinylive::assets_info()` in your R session. It will also show which asset versions you have already installed locally:
 
 ``` r
 shinylive::assets_info()
@@ -161,7 +161,7 @@ shinylive_lua |>
 
 ### Execute - `export()`
 
-Export a local app to a dir and run it:
+Export a local app to a directory and run it:
 
 ```r
 pkgload::load_all()

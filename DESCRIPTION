@@ -26,6 +26,8 @@ Imports:
     tools
 Suggests:
     httr,
+    spelling,
     testthat (>= 3.0.0)
 Config/Needs/website: tidyverse/tidytemplate
 Config/testthat/edition: 3
+Language: en-US
