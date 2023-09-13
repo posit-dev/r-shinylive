@@ -81,7 +81,7 @@ create_copy_fn <- function(
         message(
           "\nSource and destination copies differ:", dst_file_path,
           "\nThis is probably because your shinylive sources have been updated and differ from the copy in the exported app.",
-          "\nYou probably should remove the export directory and re-export the application.",
+          "\nYou probably should remove the export directory and re-export the application."
         )
       }
       if (overwrite) {
