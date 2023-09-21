@@ -40,9 +40,11 @@ Once you have a Shiny application in `myapp/` and would like turn it into a Shin
 shinylive::export("myapp", "site")
 ```
 
-Then you can preview the application by running a web server and visiting it in a browser:
+Then you can preview the application by running a web server and visiting it in a browser (this example is using the development version of `httpuv`):
 
 ``` r
+# install.packages("pak")
+pak::pak("rstudio/httpuv")
 httpuv::runStaticServer("site/", port=8008)
 ```
 
