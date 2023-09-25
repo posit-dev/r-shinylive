@@ -13,16 +13,16 @@
 #' @importFrom rlang is_interactive
 #' @examples
 #' \dontrun{
-#' app_dir <- system.file("examples", "01_hello", package="shiny")
+#' app_dir <- system.file("examples", "01_hello", package = "shiny")
 #' out_dir <- tempfile("shinylive-export")
 #'
 #' # Export the app to a directory
 #' export(app_dir, out_dir)
 #' #> Run the following in an R session to serve the app:
-#' #>   httpuv::runStaticServer(<OUT_DIR>, port=8008)
+#' #>   httpuv::runStaticServer(<OUT_DIR>)
 #'
 #' # Serve the exported directory
-#' httpuv::runStaticServer(out_dir, port=8008)
+#' httpuv::runStaticServer(out_dir)
 #' }
 export <- function(
     appdir,
@@ -31,7 +31,7 @@ export <- function(
     subdir = "",
     verbose = is_interactive()
     # full_shinylive = FALSE
-) {
+    ) {
   verbose_print <- if (verbose) message else list
 
   stopifnot(fs::is_dir(appdir))
@@ -52,11 +52,11 @@ export <- function(
   }
 
 
-  cp_funcs = create_copy_fn(overwrite=FALSE, verbose_print=verbose_print)
-  mark_file = cp_funcs$mark_file
-  copy_files = cp_funcs$copy_files
+  cp_funcs <- create_copy_fn(overwrite = FALSE, verbose_print = verbose_print)
+  mark_file <- cp_funcs$mark_file
+  copy_files <- cp_funcs$copy_files
 
-  assets_path = assets_dir()
+  assets_path <- assets_dir()
 
   # =========================================================================
   # Copy the base dependencies for shinylive/ distribution. This does not
@@ -151,7 +151,7 @@ export <- function(
 
   verbose_print(
     "\nRun the following in an R session to serve the app:\n",
-    "  httpuv::runStaticServer(\"", destdir, "\", port=8008)\n"
+    "  httpuv::runStaticServer(\"", destdir, "\")\n"
   )
 
   invisible()
