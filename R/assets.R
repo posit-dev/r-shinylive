@@ -33,7 +33,7 @@ assets_download <- function(
     add = TRUE
   )
 
-  message("Downloading shinylive v", version, "...")
+  message("Downloading shinylive assets v", version, "...")
   utils::download.file(url, destfile = tmp_targz, method = "auto")
 
   message("Unzipping to ", dir, "/")
