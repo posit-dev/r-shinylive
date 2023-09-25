@@ -24,15 +24,15 @@ using \code{httpuv::runStaticServer()}.
 }
 \examples{
 \dontrun{
-app_dir <- system.file("examples", "01_hello", package="shiny")
+app_dir <- system.file("examples", "01_hello", package = "shiny")
 out_dir <- tempfile("shinylive-export")
 
 # Export the app to a directory
 export(app_dir, out_dir)
 #> Run the following in an R session to serve the app:
-#>   httpuv::runStaticServer(<OUT_DIR>, port=8008)
+#>   httpuv::runStaticServer(<OUT_DIR>)
 
 # Serve the exported directory
-httpuv::runStaticServer(out_dir, port=8008)
+httpuv::runStaticServer(out_dir)
 }
 }

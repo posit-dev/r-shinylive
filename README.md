@@ -40,12 +40,13 @@ Once you have a Shiny application in `myapp/` and would like turn it into a Shin
 shinylive::export("myapp", "site")
 ```
 
-Then you can preview the application by running a web server and visiting it in a browser (this example is using the development version of `httpuv`):
+Then you can preview the application by running a web server and visiting it in a browser (this example is using the development version of `{httpuv}`):
 
 ``` r
+## Get development version of `{httpuv}`
 # install.packages("pak")
-pak::pak("rstudio/httpuv")
-httpuv::runStaticServer("site/", port=8008)
+# pak::pak("rstudio/httpuv")
+httpuv::runStaticServer("site/")
 ```
 
 At this point, you can deploy the `site/` directory to any static web hosting service.
@@ -172,8 +173,8 @@ pkgload::load_all()
 unlink("local/shiny-apps-out/")
 export("local/shiny-apps/simple-r", "local/shiny-apps-out")
 #> Run the following in an R session to serve the app:
-#>   httpuv::runStaticServer("local/shiny-apps-out", port=8008)
+#>   httpuv::runStaticServer("local/shiny-apps-out")
 
 # Host the local directory
-httpuv::runStaticServer("local/shiny-apps-out", port=8008)
+httpuv::runStaticServer("local/shiny-apps-out")
 ```
