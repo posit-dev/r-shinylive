@@ -94,11 +94,12 @@
 <p>Once you have a Shiny application in <code>myapp/</code> and would like turn it into a Shinylive app in <code>site/</code>:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/export.html">export</a></span><span class="op">(</span><span class="st">"myapp"</span>, <span class="st">"site"</span><span class="op">)</span></span></code></pre></div>
-<p>Then you can preview the application by running a web server and visiting it in a browser (this example is using the development version of <code>httpuv</code>):</p>
+<p>Then you can preview the application by running a web server and visiting it in a browser (this example is using the development version of <a href="https://github.com/rstudio/httpuv" class="external-link">httpuv</a>):</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
-<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"rstudio/httpuv"</span><span class="op">)</span></span>
-<span><span class="fu">httpuv</span><span class="fu">::</span><span class="fu">runStaticServer</span><span class="op">(</span><span class="st">"site/"</span>, port<span class="op">=</span><span class="fl">8008</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co">## Get development version of `{httpuv}`</span></span>
+<span><span class="co"># install.packages("pak")</span></span>
+<span><span class="co"># pak::pak("rstudio/httpuv")</span></span>
+<span><span class="fu">httpuv</span><span class="fu">::</span><span class="fu">runStaticServer</span><span class="op">(</span><span class="st">"site/"</span><span class="op">)</span></span></code></pre></div>
 <p>At this point, you can deploy the <code>site/</code> directory to any static web hosting service.</p>
 <div class="section level3">
 <h3 id="multiple-applications">Multiple applications<a class="anchor" aria-label="anchor" href="#multiple-applications"></a>
@@ -206,10 +207,10 @@
 <span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="st">"local/shiny-apps-out/"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/export.html">export</a></span><span class="op">(</span><span class="st">"local/shiny-apps/simple-r"</span>, <span class="st">"local/shiny-apps-out"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Run the following in an R session to serve the app:</span></span>
-<span><span class="co">#&gt;   httpuv::runStaticServer("local/shiny-apps-out", port=8008)</span></span>
+<span><span class="co">#&gt;   httpuv::runStaticServer("local/shiny-apps-out")</span></span>
 <span></span>
 <span><span class="co"># Host the local directory</span></span>
-<span><span class="fu">httpuv</span><span class="fu">::</span><span class="fu">runStaticServer</span><span class="op">(</span><span class="st">"local/shiny-apps-out"</span>, port<span class="op">=</span><span class="fl">8008</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">httpuv</span><span class="fu">::</span><span class="fu">runStaticServer</span><span class="op">(</span><span class="st">"local/shiny-apps-out"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 </div>
