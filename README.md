@@ -61,6 +61,41 @@ shinylive::export("myapp1", "site", subdir = "app1")
 shinylive::export("myapp2", "site", subdir = "app2")
 ```
 
+## R package availaility
+
+To tell `{webr}` that you need to use a package outside of `{shiny}` and its dependencies, call `webr::install("CRAN_PKG")`. Once the package has been installed by `{webr}`, you can use `library(CRAN_PKG)` or `require(CRAN_PKG)` as you desire.
+
+```` markdown
+<!-- file: shinylive_example.qmd -->
+
+# Shinylive example chunk that uses `{plotly}` and `{DT}`
+
+```{shinylive-r}
+#| standalone: true
+#| components: [editor, viewer]
+
+# Install {plotly} and {DT} via {webr}
+webr::install("plotly")
+webr::install("DT")
+
+# Use plotly, DT, and shiny like normal
+library("shiny")
+library("plotly")
+library("DT")
+
+## INSERT `ui` and `server` CODE HERE ##
+ui <- ....
+server <- ....
+
+shinyApp(ui, server)
+```
+````
+
+If a package has trouble loading, visit https://repo.r-wasm.org/ to see if it is able to be installed as a precompiled WebAssembly binary.
+
+> [Note from `{webr}`](https://docs.r-wasm.org/webr/latest/packages.html#building-r-packages-for-webr):<br />
+> It is not possible to install packages from source in webR. This is not likely to change in the near future, as such a process would require an entire C and Fortran compiler toolchain to run inside the browser. For the moment, providing pre-compiled WebAssembly binaries is the only supported way to install R packages in webR.
+
 
 ## Shinylive asset management
 
@@ -110,7 +145,12 @@ shinylive::assets_remove("0.1.5")
 * A single quarto document can have both `shinylive-python` and `shinylive-r` code blocks, but `shinylive-r` code block must come first.
   * Details: Only the first shinylive code block will be initialized. Currently `posit-dev/shinylive-py` does not know about `shinylive-r` code blocks.
   * Details: This should be (naturally) fixed in the next release of `posit-dev/shinylive-py`.
-* The current R common files contain files for python's pyodide and pyright. These should be removed in the future to make smaller bundles / faster loading.
+* The current R common files contain files for python's pyodide and pyright when used within the quarto extension.
+  * Details: If only R files are used, these python files should be removed for smaller bundles / faster loading.
+  * Details: Currently, the extension does not know if there are more chunks with python code, so `r-shinylive` includes the `py-shinylive` asset files by default.
+* [Note from `{webr}`](https://docs.r-wasm.org/webr/latest/packages.html#building-r-packages-for-webr):
+    * > It is not possible to install packages from source in webR. This is not likely to change in the near future, as such a process would require an entire C and Fortran compiler toolchain to run inside the browser. For the moment, providing pre-compiled WebAssembly binaries is the only supported way to install R packages in webR.
+
 
 ## Development
 
