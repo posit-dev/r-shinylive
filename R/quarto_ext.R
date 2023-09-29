@@ -127,6 +127,12 @@ quarto_ext <- function(
     )
   }
 
+  # --version support
+  if (args[1] == "--version") {
+    cat(SHINYLIVE_R_VERSION, "\n")
+    return(invisible())
+  }
+
   if (args[1] != "extension") {
     stop(
       "Unknown command: '", args[1], "'\n",
