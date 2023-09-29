@@ -78,9 +78,17 @@ quarto_html_dependency_obj <- function(
 shinylive_base_deps_htmldep <- function(sw_dir = NULL) {
   list(
     serviceworker_dep(sw_dir),
-    shinylive_common_dep_htmldep()
+    shinylive_common_dep_htmldep("base")
   )
 }
+shinylive_r_resources <- function() {
+  shinylive_common_dep_htmldep("r")$resources
+}
+# Not used in practice!
+shinylive_python_resources <- function(sw_dir = NULL) {
+  shinylive_common_dep_htmldep("python")$resources
+}
+
 
 serviceworker_dep <- function(sw_dir) {
   quarto_html_dependency_obj(
@@ -94,7 +102,8 @@ serviceworker_dep <- function(sw_dir) {
     ),
     meta =
       if (!is.null(sw_dir)) {
-        # Add meta tag to tell load-shinylive-sw.js where to find shinylive-sw.js.
+        # Add meta tag to tell load-shinylive-sw.js where to find
+        # shinylive-sw.js.
         list("shinylive:serviceworker_dir" = sw_dir)
       } else {
         NULL
@@ -108,82 +117,106 @@ serviceworker_dep <- function(sw_dir) {
 # dependencies; in other words, the files that are always included in a
 # Shinylive deployment.
 # """
-shinylive_common_dep_htmldep <- function() {
+shinylive_common_dep_htmldep <- function(dep_type = c("base", "python", "r")) {
   assets_path <- assets_dir()
   # In quarto ext, keep support for python engine
-  base_files <- shinylive_common_files(all_files = TRUE)
+  rel_common_files <- shinylive_common_files(dep_type = dep_type)
+  abs_common_files <- file.path(assets_path, rel_common_files)
 
-  scripts <- list()
-  stylesheets <- list()
-  resources <- list()
+  # `NULL` values can be inserted into;
+  # Ex: `a <- NULL; a[[1]] <- 4; stopifnot(identical(a, list(4)))`
+  scripts <- NULL
+  stylesheets <- NULL
+  resources <- NULL
 
-  add_item <- function(
-      type = c("script", "stylesheet", "resource"),
-      name,
-      path,
-      attribs = NULL) {
-    dep_item <- html_dep_obj(name = name, path = path, attribs = attribs)
-    switch(match.arg(type),
-      "script" = {
-        scripts[[length(scripts) + 1]] <<- dep_item
-      },
-      "stylesheet" = {
-        stylesheets[[length(stylesheets) + 1]] <<- dep_item
-      },
-      "resource" = {
-        resources[[length(resources) + 1]] <<- dep_item
-      },
-      {
-        stop("unknown type: ", type)
+  switch(dep_type,
+    "python" = ,
+    "r" = {
+      # Language specific files are all resources
+      # For speed / simplicity, create deps directly
+      resources <- Map(
+        USE.NAMES = FALSE,
+        rel_common_files,
+        abs_common_files,
+        f = function(rel_common_file, abs_common_file) {
+          html_dep_obj(
+            name = rel_common_file,
+            path = abs_common_file
+          )
+        }
+      )
+    },
+    "base" = {
+      # Placeholder for load-shinylive-sw.js; (Existance is validated later)
+      load_shinylive_dep <- NULL
+      # Placeholder for run-python-blocks.js; Appended to end of scripts
+      run_python_blocks_dep <- NULL
+
+      Map(
+        rel_common_files,
+        abs_common_files,
+        basename(rel_common_files),
+        f = function(rel_common_file, abs_common_file, common_file_basename) {
+          switch(common_file_basename,
+            "run-python-blocks.js" = {
+              run_python_blocks_dep <<-
+                html_dep_obj(
+                  name = rel_common_file,
+                  path = abs_common_file,
+                  attribs = list(type = "module")
+                )
+            },
+            "load-shinylive-sw.js" = {
+              load_shinylive_dep <<-
+                html_dep_obj(
+                  name = rel_common_file,
+                  path = abs_common_file,
+                  attribs = list(type = "module")
+                )
+            },
+            "shinylive.css" = {
+              stylesheets[[length(stylesheets) + 1]] <<-
+                html_dep_obj(
+                  name = rel_common_file,
+                  path = abs_common_file
+                )
+            },
+            {
+              # Resource file
+              resources[[length(resources) + 1]] <<-
+                html_dep_obj(
+                  name = rel_common_file,
+                  path = abs_common_file
+                )
+            }
+          )
+          # Do not return anything
+          NULL
+        }
+      )
+
+
+      # Put load-shinylive-sw.js in the scripts first
+      if (is.null(load_shinylive_dep)) {
+        stop("load-shinylive-sw.js not found in assets")
       }
-    )
-  }
+      scripts <- c(list(load_shinylive_dep), scripts)
 
-  lapply(base_files, function(base_file) {
-    base_file_basename <- basename(base_file)
-    if (
-      base_file_basename == "load-shinylive-sw.js" ||
-        base_file_basename == "run-python-blocks.js"
-    ) {
-      add_item(
-        type = "script",
-        name = base_file,
-        path = file.path(assets_path, base_file),
-        attribs = list(type = "module")
-      )
-    } else if (base_file_basename == "shinylive.css") {
-      add_item(
-        type = "stylesheet",
-        name = base_file,
-        path = file.path(assets_path, base_file)
-      )
-    } else {
-      add_item(
-        type = "resource",
-        name = base_file,
-        path = file.path(assets_path, base_file)
-      )
+      # Append run_python_blocks_dep if it exists
+      if (!is.null(run_python_blocks_dep)) {
+        scripts[[length(scripts) + 1]] <- run_python_blocks_dep
+      }
+    },
+    {
+      stop("unknown dep_type: ", dep_type)
     }
-  })
-
+  )
 
   # # Add base python packages as resources
-  # resources.extend(base_package_deps_htmldepitems())
-
-  # Sort scripts so that load-serviceworker.js is first, and
-  # run-python-blocks.js is last.
-  scripts_names <- vapply(scripts, `[[`, character(1), "name")
-  scripts <- c(
-    scripts[scripts_names == "load-serviceworker.js"],
-    scripts[scripts_names != "load-serviceworker.js"]
-  )
-  scripts_names <- vapply(scripts, `[[`, character(1), "name")
-  scripts <- c(
-    scripts[scripts_names != "run-python-blocks.js"],
-    scripts[scripts_names == "run-python-blocks.js"]
-  )
+  # python: `resources.extend(base_package_deps_htmldepitems())`
 
   quarto_html_dependency_obj(
+    # MUST be called `"shinylive"` to match quarto ext name
     name = "shinylive",
     version = SHINYLIVE_ASSETS_VERSION,
     scripts = scripts,
@@ -197,30 +230,65 @@ shinylive_common_dep_htmldep <- function() {
 # Return a list of files that are base dependencies; in other words, the files
 # that are always included in a Shinylive deployment.
 # """
-shinylive_common_files <- function(all_files = FALSE) {
+shinylive_common_files <- function(dep_type = c("base", "python", "r")) {
+  dep_type <- match.arg(dep_type)
   assets_ensure()
 
-  assets_dir <- assets_dir()
-  # `dir()` is 10x faster than `fs::dir_ls()`
-  common_files <- dir(assets_dir, recursive = TRUE)
+  assets_folder <- assets_dir()
+  # # `dir()` is 10x faster than `fs::dir_ls()`
+  # common_files <- dir(assets_folder, recursive = TRUE)
 
-  if (!all_files) {
-    common_files <- common_files[!grepl("^shinylive/pyodide/", common_files)]
-    common_files <- common_files[!grepl("^shinylive/pyright/", common_files)]
+  asset_files_in_folder <- function(assets_sub_path, recurse) {
+    folder <-
+      if (is.null(assets_sub_path)) {
+        assets_folder
+      } else {
+        file.path(assets_folder, assets_sub_path)
+      }
+    files <- dir(folder, recursive = recurse, full.names = FALSE)
+    rel_files <-
+      if (is.null(assets_sub_path)) {
+        files
+      } else {
+        file.path(assets_sub_path, files)
+      }
+    if (recurse) {
+      # Does not contain dirs by definition
+      # Return as is
+      rel_files
+    } else {
+      # Remove directories
+      rel_files[!file.info(file.path(folder, files))$isdir]
+    }
   }
-  common_files <- common_files[!grepl("^scripts/", common_files)]
-  common_files <- common_files[!grepl("^export_template/", common_files)]
-  common_files <- setdiff(common_files, "shinylive/examples.json")
 
-  # Return relative path to the assets_dir
-  fs::path(common_files)
+  common_files <-
+    switch(dep_type,
+      "base" = {
+        # Do copy any "top-level" python files as they are minimal
+        c(
+          # Do not include `./scripts` or `./export_template` in base deps
+          asset_files_in_folder(NULL, recurse = FALSE),
+          # Do not include `./shinylive/examples.json` in base deps
+          setdiff(asset_files_in_folder("shinylive", recurse = FALSE), "shinylive/examples.json")
+        )
+      },
+      "r" = {
+        c(
+          asset_files_in_folder(file.path("shinylive", "webr"), recurse = TRUE)
+        )
+      },
+      "python" = {
+        c(
+          asset_files_in_folder(file.path("shinylive", "pyodide"), recurse = TRUE),
+          asset_files_in_folder(file.path("shinylive", "pyright"), recurse = TRUE)
+        )
+      },
+      {
+        stop("unknown dep_type: ", dep_type)
+      }
+    )
+
+  # Return relative path to the assets in `assets_dir()`
+  common_files
 }
-
-
-
-
-
-
-
-
-# Also implement `package_deps_htmldepitems`? Return empty list?
