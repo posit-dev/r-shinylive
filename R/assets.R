@@ -322,7 +322,7 @@ assets_info <- function() {
 
   cat(
     collapse(c(
-      paste0("shinylive R package version:  ", utils::packageVersion("shinylive")),
+      paste0("shinylive R package version:  ", SHINYLIVE_R_VERSION),
       paste0("shinylive web assets version: ", assets_version()),
       "",
       "Local cached shinylive asset dir:",
