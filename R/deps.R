@@ -47,6 +47,7 @@ quarto_html_dependency_obj <- function(
     stylesheets = NULL,
     resources = NULL,
     meta = NULL,
+    head = NULL,
     serviceworkers = NULL) {
   stopifnot(length(list(...)) == 0)
   assert_nzchar_string(name)
@@ -55,6 +56,7 @@ quarto_html_dependency_obj <- function(
   is.null(stylesheets) || assert_list_items(stylesheets, HTML_DEP_ITEM_CLASS)
   is.null(resources) || assert_list_items(resources, HTML_DEP_ITEM_CLASS)
   is.null(meta) || assert_list(meta)
+  is.null(head) || assert_nzchar_string(head)
   is.null(serviceworkers) ||
     assert_list_items(serviceworkers, HTML_DEP_SERVICEWORKER_CLASS)
 
@@ -66,6 +68,7 @@ quarto_html_dependency_obj <- function(
       stylesheets = stylesheets,
       resources = resources,
       meta = meta,
+      head = head,
       serviceworkers = serviceworkers
     ),
     class = c(QUARTO_HTML_DEPENDENCY_CLASS, "list")
