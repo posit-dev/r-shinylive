@@ -63,7 +63,7 @@ shinylive::export("myapp2", "site", subdir = "app2")
 
 ## R package availability
 
-To tell `{webr}` that you need to use a package outside of `{shiny}` and its dependencies, call `webr::install("CRAN_PKG")`. Once the package has been installed by `{webr}`, you can use `library(CRAN_PKG)` or `require(CRAN_PKG)` as you desire.
+To tell `{webr}` that you need to use a package outside of `{shiny}` and its dependencies, call `webr::install("CRAN_PKG")` in your Quarto `shinylive-r` code block as below or within your `app.R` file if you are exporting your Shiny app. Once the package has been installed by `{webr}`, you can use `library(CRAN_PKG)` or `require(CRAN_PKG)` as you desire.
 
 ```` markdown
 <!-- file: shinylive_example.qmd -->
