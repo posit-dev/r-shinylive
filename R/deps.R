@@ -8,12 +8,15 @@ html_dep_obj <- function(
   assert_nzchar_string(name)
   assert_nzchar_string(path)
   is.null(attribs) || assert_list(attribs)
+  ret <- list(
+    name = name,
+    path = path
+  )
+  if (!is.null(attribs)) {
+    ret$attribs <- attribs
+  }
   structure(
-    list(
-      name = name,
-      path = path,
-      attribs = attribs
-    ),
+    ret,
     class = c(HTML_DEP_ITEM_CLASS, "list")
   )
 }
