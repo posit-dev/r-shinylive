@@ -2,7 +2,8 @@
 % Please edit documentation in R/quarto_ext.R
 \name{quarto_ext}
 \alias{quarto_ext}
-\title{Quarto extension for shinylive}
+\title{TODO-barret; update docs in py-shinylive
+Quarto extension for shinylive}
 \usage{
 quarto_ext(
   args = commandArgs(trailingOnly = TRUE),
@@ -13,8 +14,11 @@ quarto_ext(
 \arguments{
 \item{args}{Command line arguments passed by the extension. See details for more information.}
 }
+\value{
+Nothing. Values are printed to stdout.
+}
 \description{
-Quarto extension for shinylive
+Integration with https://github.com/quarto-ext/shinylive
 }
 \section{Command arguments}{
 
@@ -33,10 +37,15 @@ argument to minimize the api clutter the user can see.
 \item \code{scripts}: A list of paths scripts that are used by the extension,
 mainly \code{codeblock-to-json}
 }
-\item Shape
+\item Example
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{[
- "version": string,]
+\if{html}{\out{<div class="sourceCode">}}\preformatted{\{
+  "version": "0.1.0",
+  "assets_version": "0.2.0",
+  "scripts": \{
+    "codeblock-to-json": "/<ASSETS_CACHE_DIR>/shinylive-0.2.0/scripts/codeblock-to-json.js"
+  \}
+\}
 }\if{html}{\out{</div>}}
 }
 \item \verb{extension base-htmldeps}
@@ -50,26 +59,83 @@ automatically sourced), stylesheets (CSS files that are automatically
 included), and resources (additional files that the JS and CSS files can
 source).
 }
+\item Example
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{[
+  \{
+    "name": "shinylive-serviceworker",
+    "version": "0.2.0",
+    "meta": \{ "shinylive:serviceworker_dir": "." \},
+    "serviceworkers": [
+      \{
+        "source": "/<ASSETS_CACHE_DIR>/shinylive-0.2.0/shinylive-sw.js",
+        "destination": "/shinylive-sw.js"
+      \}
+    ]
+  \},
+  \{
+    "name": "shinylive",
+    "version": "0.2.0",
+    "scripts": [\{
+      "name": "shinylive/load-shinylive-sw.js",
+      "path": "/<ASSETS_CACHE_DIR>/shinylive-0.2.0/shinylive/load-shinylive-sw.js",
+        "attribs": \{ "type": "module" \}
+    \}],
+    "stylesheets": [\{
+      "name": "shinylive/shinylive.css",
+      "path": "/<ASSETS_CACHE_DIR>/shinylive-0.2.0/shinylive/shinylive.css"
+    \}],
+    "resources": [
+      \{
+        "name": "shinylive/shinylive.js",
+        "path": "/<ASSETS_CACHE_DIR>/shinylive-0.2.0/shinylive/shinylive.js"
+      \},
+      ... # [ truncated ]
+    ]
+  \}
+]
+}\if{html}{\out{</div>}}
 }
 \item \verb{extension language-resources}
 \itemize{
-\item Prints the language-specific quarto html dependency resource files as a
-JSON array. This includes the shinylive webr resource files.
+\item Prints the language-specific resource files as JSON that should be added to the quarto html dependency.
+\itemize{
+\item For r-shinylive, this includes the webr resource files
+\item For py-shinylive, this includes the pyodide and pyright resource files.
+}
+\item Example
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{[
+  \{
+    "name": "shinylive/webr/esbuild.d.ts",
+    "path": "/<ASSETS_CACHE_DIR>/shinylive-0.2.0/shinylive/webr/esbuild.d.ts"
+  \},
+  \{
+    "name": "shinylive/webr/libRblas.so",
+    "path": "/<ASSETS_CACHE_DIR>/shinylive-0.2.0/shinylive/webr/libRblas.so"
+  \},
+  ... # [ truncated ]
+]
+}\if{html}{\out{</div>}}
 }
 \item \verb{extension app-resources}
 \itemize{
-\item Prints the app-specific quarto html dependency resource files as a JSON.
-Currently this is an empty array.
-}
+\item Prints app-specific resource files as JSON that should be added to the \code{"shinylive"} quarto html dependency.
+\item Currently, r-shinylive does not return any resource files.
+\item Example
 
-TODO-barret; udpate docs in py-shinylive
-TODO-barret; add comments to LUA file to describe what call does. Maybe add a paragraph at the top given a co-located docs? (idk)
-\itemize{
-\item \code{codeblock-to-json-path}: Prints the path to the \code{codeblock-to-json.js} script.
-\item \code{base-deps}: Prints the base dependencies as a JSON array.
-\item \code{package-deps}: Prints the package dependencies as a JSON array.
-Currently, this returns an empty array as \code{webr} is handling the package
-dependencies.
+\if{html}{\out{<div class="sourceCode">}}\preformatted{[
+  \{
+    "name": "shinylive/pyodide/anyio-3.7.0-py3-none-any.whl",
+    "path": "/<ASSETS_CACHE_DIR>/shinylive-0.2.0/shinylive/pyodide/anyio-3.7.0-py3-none-any.whl"
+  \},
+  \{
+    "name": "shinylive/pyodide/appdirs-1.4.4-py2.py3-none-any.whl",
+    "path": "/<ASSETS_CACHE_DIR>/shinylive-0.2.0/shinylive/pyodide/appdirs-1.4.4-py2.py3-none-any.whl"
+  \},
+  ... # [ truncated ]
+]
+}\if{html}{\out{</div>}}
 }
 }
 }
