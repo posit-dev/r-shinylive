@@ -41,12 +41,12 @@ jobs:
         run: |
           # pip install shinylive
           pip install https://github.com/posit-dev/py-shinylive/archive/split_api.zip
-      - name: Install assets for py-shinylive
-        shell: bash
-        run: |
-          shinylive assets info
-          shinylive assets download
-          shinylive assets info
+      # - name: Install assets for py-shinylive
+      #   shell: bash
+      #   run: |
+      #     shinylive assets info
+      #     shinylive assets download
+      #     shinylive assets info
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
