@@ -13,6 +13,10 @@ quarto_ext(
 }
 \arguments{
 \item{args}{Command line arguments passed by the extension. See details for more information.}
+
+\item{...}{Ignored.}
+
+\item{pretty}{Whether to pretty print the JSON output.}
 }
 \value{
 Nothing. Values are printed to stdout.
