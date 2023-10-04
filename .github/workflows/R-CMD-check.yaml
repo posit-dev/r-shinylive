@@ -32,13 +32,17 @@ jobs:
           python-version: "3.11"
 
       - name: Upgrade pip
+        shell: bash
         run: |
           python -m pip install --upgrade pip
 
       - name: Install py-shinylive
+        shell: bash
         run: |
-          pip install shinylive
+          # pip install shinylive
+          pip install https://github.com/posit-dev/py-shinylive/archive/split_api.zip
       - name: Install assets for py-shinylive
+        shell: bash
         run: |
           shinylive assets info
           shinylive assets download
@@ -51,7 +55,7 @@ jobs:
         shell: bash
         run: |
           cd local/quarto
-          quarto add quarto-ext/shinylive --no-prompt
+          quarto add quarto-ext/shinylive@v2_api --no-prompt
 
       - name: Install R, system dependencies, and package dependencies
         uses: rstudio/shiny-workflows/setup-r-package@v1
