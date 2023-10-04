@@ -101,9 +101,10 @@ install_local_helper <- function(
 
   if (version != assets_version()) {
     message(
-      "Warning: You are installing a local copy of shinylive that is not the same as the version used by the shinylive R package.",
+      "Warning: You are installing a local copy of shinylive assets that is not the same as the version used by the shinylive R package.",
       "\nWarning: Unexpected behavior may occur!",
-      "\n\nNew version: ", version
+      "\n\nNew assets version: ", version,
+      "\nSupported assets version: ", assets_version()
     )
   }
 }
