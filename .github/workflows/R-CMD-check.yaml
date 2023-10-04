@@ -55,7 +55,9 @@ jobs:
         shell: bash
         run: |
           cd local/quarto
-          quarto add quarto-ext/shinylive@v2_api --no-prompt
+          # Trouble installing from branch. Using url instead.
+          # quarto add quarto-ext/shinylive@v2_api --no-prompt
+          quarto add http://github.com/quarto-ext/shinylive/archive/v2_api.zip --no-prompt
 
       - name: Install R, system dependencies, and package dependencies
         uses: rstudio/shiny-workflows/setup-r-package@v1
