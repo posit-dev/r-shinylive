@@ -113,31 +113,14 @@
 <div class="section level2">
 <h2 id="r-package-availability">R package availability<a class="anchor" aria-label="anchor" href="#r-package-availability"></a>
 </h2>
-<p>To tell <a href="https://github.com/cardiomoon/webr" class="external-link">webr</a> that you need to use a package outside of <a href="https://shiny.posit.co/" class="external-link">shiny</a> and its dependencies, call <code>webr::install("CRAN_PKG")</code> in your Quarto <code>shinylive-r</code> code block as below or within your <code>app.R</code> file if you are exporting your Shiny app. Once the package has been installed by <a href="https://github.com/cardiomoon/webr" class="external-link">webr</a>, you can use <code><a href="https://rdrr.io/r/base/library.html" class="external-link">library(CRAN_PKG)</a></code> or <code><a href="https://rdrr.io/r/base/library.html" class="external-link">require(CRAN_PKG)</a></code> as you desire.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co">&lt;!-- file: shinylive_example.qmd --&gt;</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="fu"># Shinylive example chunk that uses `{plotly}` and `{DT}`</span></span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a></span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="in">```{shinylive-r}</span></span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="in">#| standalone: true</span></span>
-<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="in">#| components: [editor, viewer]</span></span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a></span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="in"># Install {plotly} and {DT} via {webr}</span></span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="in">webr::install("plotly")</span></span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="in">webr::install("DT")</span></span>
-<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a></span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="in"># Use plotly, DT, and shiny like normal</span></span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="in">library("shiny")</span></span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="in">library("plotly")</span></span>
-<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="in">library("DT")</span></span>
-<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a></span>
-<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="in">## INSERT `ui` and `server` CODE HERE ##</span></span>
-<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="in">ui &lt;- ....</span></span>
-<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="in">server &lt;- ....</span></span>
-<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a></span>
-<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a><span class="in">shinyApp(ui, server)</span></span>
-<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a><span class="in">```</span></span></code></pre></div>
-<p>If a package has trouble loading, visit <a href="https://repo.r-wasm.org/" class="external-link uri">https://repo.r-wasm.org/</a> to see if it is able to be installed as a precompiled WebAssembly binary.</p>
+<p>The <a href="https://posit-dev.github.io/r-shinylive/">shinylive</a> web assets will statically inspect which packages are being used via <a href="https://rstudio.github.io/renv/" class="external-link">renv</a>.</p>
+<p>If you need a package that can not be found by <a href="https://rstudio.github.io/renv/" class="external-link">renv</a>, add an impossible-to-reach code within your Shiny application that has a library call to that R package. For example:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">HIDDEN_CRAN_PKG</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>If you’d rather handle it manually, call <code>webr::install("CRAN_PKG")</code> in your Shiny application before calling <code><a href="https://rdrr.io/r/base/library.html" class="external-link">library(CRAN_PKG)</a></code> or <code><a href="https://rdrr.io/r/base/library.html" class="external-link">require("CRAN_PKG")</a></code>.</p>
+<p>If an R package has trouble loading, visit <a href="https://repo.r-wasm.org/" class="external-link uri">https://repo.r-wasm.org/</a> to see if it is able to be installed as a precompiled WebAssembly binary.</p>
 <blockquote>
 <p><a href="https://docs.r-wasm.org/webr/latest/packages.html#building-r-packages-for-webr" class="external-link">Note from <code>{webr}</code></a>:<br> It is not possible to install packages from source in webR. This is not likely to change in the near future, as such a process would require an entire C and Fortran compiler toolchain to run inside the browser. For the moment, providing pre-compiled WebAssembly binaries is the only supported way to install R packages in webR.</p>
 </blockquote>
@@ -149,15 +132,15 @@
 <p>To see which version of this R package you have, and which version of the web assets it is associated with, simply run <code><a href="reference/assets.html">shinylive::assets_info()</a></code> in your R session. It will also show which asset versions you have already installed locally:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/assets.html">assets_info</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; shinylive R package version:  0.0.1</span></span>
-<span><span class="co">#&gt; shinylive web assets version: 0.1.7</span></span>
+<span><span class="co">#&gt; shinylive R package version:  0.1.0</span></span>
+<span><span class="co">#&gt; shinylive web assets version: 0.2.1</span></span>
 <span><span class="co">#&gt;</span></span>
 <span><span class="co">#&gt; Local cached shinylive asset dir:</span></span>
 <span><span class="co">#&gt;     /Users/username/Library/Caches/shinylive</span></span>
 <span><span class="co">#&gt;</span></span>
 <span><span class="co">#&gt; Installed assets:</span></span>
-<span><span class="co">#&gt;     /Users/username/Library/Caches/shinylive/0.1.7</span></span>
-<span><span class="co">#&gt;     /Users/username/Library/Caches/shinylive/0.1.6</span></span></code></pre></div>
+<span><span class="co">#&gt;     /Users/username/Library/Caches/shinylive/0.2.1</span></span>
+<span><span class="co">#&gt;     /Users/username/Library/Caches/shinylive/0.2.0</span></span></code></pre></div>
 <p>The web assets will be downloaded and cached the first time you run <code><a href="reference/export.html">shinylive::export()</a></code>. Or, you can run <code><a href="reference/assets.html">shinylive::assets_download()</a></code> to fetch them manually.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/assets.html">assets_download</a></span><span class="op">(</span><span class="st">"0.1.5"</span><span class="op">)</span></span>
@@ -166,30 +149,18 @@
 <p>You can remove old versions with <code><a href="reference/assets.html">shinylive::assets_cleanup()</a></code>. This will remove all versions except the one that the Python package wants to use:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/assets.html">assets_cleanup</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Keeping version 0.1.7</span></span>
-<span><span class="co">#&gt; Removing /Users/username/Library/Caches/shinylive/0.1.6</span></span>
+<span><span class="co">#&gt; Keeping version 0.2.1</span></span>
+<span><span class="co">#&gt; Removing /Users/username/Library/Caches/shinylive/0.2.0</span></span>
 <span><span class="co">#&gt; Removing /Users/username/Library/Caches/shinylive/0.1.5</span></span></code></pre></div>
 <p>To remove a specific version, use <code><a href="reference/assets.html">shinylive::assets_remove()</a></code>:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/assets.html">assets_remove</a></span><span class="op">(</span><span class="st">"0.1.5"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Removing /Users/username/Library/Caches/shinylive/0.1.5</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/assets.html">assets_remove</a></span><span class="op">(</span><span class="st">"0.2.1"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Removing /Users/username/Library/Caches/shinylive/0.2.1</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="known-limitations">Known limitations<a class="anchor" aria-label="anchor" href="#known-limitations"></a>
 </h2>
 <ul>
-<li>A single quarto document can have both <code>shinylive-python</code> and <code>shinylive-r</code> code blocks, but <code>shinylive-r</code> code block must come first.
-<ul>
-<li>Details: Only the first shinylive code block will be initialized. Currently <code>posit-dev/shinylive-py</code> does not know about <code>shinylive-r</code> code blocks.</li>
-<li>Details: This should be (naturally) fixed in the next release of <code>posit-dev/shinylive-py</code>.</li>
-</ul>
-</li>
-<li>The current R common files contain files for python’s pyodide and pyright when used within the quarto extension.
-<ul>
-<li>Details: If only R files are used, these python files should be removed for smaller bundles / faster loading.</li>
-<li>Details: Currently, the extension does not know if there are more chunks with python code, so <code>r-shinylive</code> includes the <code>py-shinylive</code> asset files by default.</li>
-</ul>
-</li>
 <li>
 <a href="https://docs.r-wasm.org/webr/latest/packages.html#building-r-packages-for-webr" class="external-link">Note from <code>{webr}</code></a>:
 <ul>
@@ -206,7 +177,7 @@
 <div class="section level3">
 <h3 id="setup---shinylive-assets">Setup - shinylive assets<a class="anchor" aria-label="anchor" href="#setup---shinylive-assets"></a>
 </h3>
-<p>Works with latest GitHub version of <a href="https://github.com/posit-dev/shinylive/" class="external-link"><code>posit-dev/shinylive</code></a> (&gt;= v<code>0.2.0</code>).</p>
+<p>Works with latest GitHub version of <a href="https://github.com/posit-dev/shinylive/" class="external-link"><code>posit-dev/shinylive</code></a> (&gt;= v<code>0.2.1</code>).</p>
 <p>Before linking the shinylive assets to the asset cache folder, you must first build the shiny live assets:</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co">## In your shinylive assets repo</span></span>
 <span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="co"># cd PATH/TO/posit-dev/shinylive</span></span>
