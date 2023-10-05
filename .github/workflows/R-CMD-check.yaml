@@ -39,14 +39,8 @@ jobs:
       - name: Install py-shinylive
         shell: bash
         run: |
-          # pip install shinylive
-          pip install https://github.com/posit-dev/py-shinylive/archive/split_api.zip
-      # - name: Install assets for py-shinylive
-      #   shell: bash
-      #   run: |
-      #     shinylive assets info
-      #     shinylive assets download
-      #     shinylive assets info
+          pip install shinylive
+          # pip install https://github.com/posit-dev/py-shinylive/archive/split_api.zip
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
@@ -55,9 +49,9 @@ jobs:
         shell: bash
         run: |
           cd local/quarto
+          quarto add quarto-ext/shinylive --no-prompt
           # Trouble installing from branch. Using url instead.
-          # quarto add quarto-ext/shinylive@v2_api --no-prompt
-          quarto add http://github.com/quarto-ext/shinylive/archive/v2_api.zip --no-prompt
+          # quarto add http://github.com/quarto-ext/shinylive/archive/v2_api.zip --no-prompt
 
       - name: Install R, system dependencies, and package dependencies
         uses: rstudio/shiny-workflows/setup-r-package@v1
@@ -87,8 +81,8 @@ jobs:
         run: |
           shinylive_lua <- file.path(
             "local", "quarto", "_extensions",
-            # When installing from a zip url, there is no `quarto-ext` dir.
-            # "quarto-ext",
+            # (When installing from a zip url, there is no `quarto-ext` dir.)
+            "quarto-ext",
             "shinylive", "shinylive.lua"
           )
           shinylive_lua |>
@@ -99,13 +93,8 @@ jobs:
               fixed = TRUE
             ) |>
             sub(
-              pattern = "  local deps = quarto.json.decode(depJson)",
-              replacement = "  print(depJson)\n  local deps = quarto.json.decode(depJson)",
-              fixed = TRUE
-            ) |>
-            sub(
-              pattern = "        local appDeps = quarto.json.decode(appDepsJson)",
-              replacement = "        print(appDepsJson)\n        local appDeps = quarto.json.decode(appDepsJson)",
+              pattern = "-- print(\"res",
+              replacement = "-- print(\"res",
               fixed = TRUE
             ) |>
             brio::write_file(shinylive_lua)
