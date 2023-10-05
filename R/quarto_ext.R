@@ -122,10 +122,12 @@ quarto_ext <- function(
 
   followup_statement <- function() {
     paste0(
-      "Please update your `quarto-ext/shinylive` quarto extension for the latest integration.\n",
+      "Please update your `quarto-ext/shinylive` Quarto extension for the latest integration.\n",
+      "To update the shinylive extension, run this command in your Quarto project:\n",
+      "\tquarto add quarto-ext/shinylive\n",
       "\n",
-      paste0("shinylive R package version:  ", SHINYLIVE_R_VERSION), "\n",
-      paste0("shinylive web assets version: ", assets_version())
+      paste0("R shinylive package version:  ", SHINYLIVE_R_VERSION), "\n",
+      paste0("Supported assets version: ", assets_version())
     )
   }
 
@@ -172,10 +174,7 @@ quarto_ext <- function(
         collapse = "\n"
       ),
       "\n\n",
-      "Please update your `quarto-ext/shinylive` quarto extension for the latest integration.\n",
-      "\n",
-      paste0("shinylive R package version:  ", SHINYLIVE_R_VERSION), "\n",
-      paste0("shinylive web assets version: ", assets_version())
+      followup_statement()
     )
   }
   stopifnot(length(args) >= 2)
