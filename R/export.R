@@ -35,8 +35,11 @@ export <- function(
   verbose_print <- if (verbose) message else list
 
   stopifnot(fs::is_dir(appdir))
-  if (!fs::file_exists(fs::path(appdir, "app.R"))) {
-    stop("Directory ", appdir, " does not contain an app.R file.")
+  if (!(
+    fs::file_exists(fs::path(appdir, "app.R")) ||
+      fs::file_exists(fs::path(appdir, "server.R"))
+  )) {
+    stop("Directory ", appdir, " does not contain an app.R or server.R file.")
   }
 
   if (fs::is_absolute_path(subdir)) {
