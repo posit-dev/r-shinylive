@@ -86,7 +86,10 @@ jobs:
         shell: Rscript {0}
         run: |
           shinylive_lua <- file.path(
-            "local", "quarto", "_extensions", "quarto-ext", "shinylive", "shinylive.lua"
+            "local", "quarto", "_extensions",
+            # When installing from a zip url, there is no `quarto-ext` dir.
+            # "quarto-ext",
+            "shinylive", "shinylive.lua"
           )
           shinylive_lua |>
             brio::read_file() |>
