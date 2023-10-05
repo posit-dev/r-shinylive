@@ -1,6 +1,3 @@
-#' TODO-barret; update docs in py-shinylive
-
-
 #' Quarto extension for shinylive
 #'
 #' Integration with https://github.com/quarto-ext/shinylive

@@ -2,8 +2,7 @@
 % Please edit documentation in R/quarto_ext.R
 \name{quarto_ext}
 \alias{quarto_ext}
-\title{TODO-barret; update docs in py-shinylive
-Quarto extension for shinylive}
+\title{Quarto extension for shinylive}
 \usage{
 quarto_ext(
   args = commandArgs(trailingOnly = TRUE),
