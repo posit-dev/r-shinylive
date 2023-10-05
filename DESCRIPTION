@@ -1,5 +1,5 @@
 Package: shinylive
-Title: Run Shiny applications in the browser
+Title: Run Shiny Applications in the Browser
 Version: 0.1.0
 Authors@R:
     c(
