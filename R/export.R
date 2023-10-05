@@ -1,7 +1,7 @@
 #' Export a Shiny app to a directory
 #'
 #' This function exports a Shiny app to a directory, which can then be served
-#' using `httpuv::runStaticServer()`.
+#' using `plumber`.
 #'
 #' @param appdir Directory containing the application.
 #' @param destdir Destination directory.
@@ -10,6 +10,8 @@
 #'    interactively.
 #' @param ... Ignored
 #' @export
+#' @return Nothing. The app is exported to `destdir`. Instructions for serving
+#' the directory are printed to stdout.
 #' @importFrom rlang is_interactive
 #' @examples
 #' \dontrun{
@@ -18,20 +20,19 @@
 #'
 #' # Export the app to a directory
 #' export(app_dir, out_dir)
-#' #> Run the following in an R session to serve the app:
-#' #>   httpuv::runStaticServer(<OUT_DIR>)
 #'
 #' # Serve the exported directory
-#' httpuv::runStaticServer(out_dir)
+#' library(plumber)
+#' pr() %>%
+#'   pr_static("/", out_dir) %>%
+#'   pr_run()
 #' }
 export <- function(
     appdir,
     destdir,
     ...,
     subdir = "",
-    verbose = is_interactive()
-    # full_shinylive = FALSE
-    ) {
+    verbose = is_interactive()) {
   verbose_print <- if (verbose) message else list
 
   stopifnot(fs::is_dir(appdir))
@@ -154,7 +155,8 @@ export <- function(
 
   verbose_print(
     "\nRun the following in an R session to serve the app:\n",
-    "  httpuv::runStaticServer(\"", destdir, "\")\n"
+    "  library(plumber)\n",
+    "  pr() %>% pr_static(\"/\", \"", destdir, "\") %>% pr_run()\n"
   )
 
   invisible()

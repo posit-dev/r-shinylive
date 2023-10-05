@@ -44,6 +44,11 @@ behavior should be used.}
 
 \item{versions}{The assets versions to remove.}
 }
+\value{
+\code{assets_version()} returns the version of the currently supported Shinylive.
+
+All other methods return \code{invisible()}.
+}
 \description{
 Helper methods for managing shinylive assets.
 }
