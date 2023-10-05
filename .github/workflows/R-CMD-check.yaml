@@ -32,17 +32,15 @@ jobs:
           python-version: "3.11"
 
       - name: Upgrade pip
+        shell: bash
         run: |
           python -m pip install --upgrade pip
 
       - name: Install py-shinylive
+        shell: bash
         run: |
           pip install shinylive
-      - name: Install assets for py-shinylive
-        run: |
-          shinylive assets info
-          shinylive assets download
-          shinylive assets info
+          # pip install https://github.com/posit-dev/py-shinylive/archive/split_api.zip
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
@@ -52,6 +50,8 @@ jobs:
         run: |
           cd local/quarto
           quarto add quarto-ext/shinylive --no-prompt
+          # Trouble installing from branch. Using url instead.
+          # quarto add http://github.com/quarto-ext/shinylive/archive/v2_api.zip --no-prompt
 
       - name: Install R, system dependencies, and package dependencies
         uses: rstudio/shiny-workflows/setup-r-package@v1
@@ -80,7 +80,10 @@ jobs:
         shell: Rscript {0}
         run: |
           shinylive_lua <- file.path(
-            "local", "quarto", "_extensions", "quarto-ext", "shinylive", "shinylive.lua"
+            "local", "quarto", "_extensions",
+            # (When installing from a zip url, there is no `quarto-ext` dir.)
+            "quarto-ext",
+            "shinylive", "shinylive.lua"
           )
           shinylive_lua |>
             brio::read_file() |>
@@ -90,13 +93,8 @@ jobs:
               fixed = TRUE
             ) |>
             sub(
-              pattern = "  local deps = quarto.json.decode(depJson)",
-              replacement = "  print(depJson)\n  local deps = quarto.json.decode(depJson)",
-              fixed = TRUE
-            ) |>
-            sub(
-              pattern = "        local appDeps = quarto.json.decode(appDepsJson)",
-              replacement = "        print(appDepsJson)\n        local appDeps = quarto.json.decode(appDepsJson)",
+              pattern = "-- print(\"res",
+              replacement = "-- print(\"res",
               fixed = TRUE
             ) |>
             brio::write_file(shinylive_lua)

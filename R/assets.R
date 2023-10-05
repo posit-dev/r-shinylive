@@ -1,4 +1,3 @@
-
 #' Manage shinylive assets
 #'
 #' Helper methods for managing shinylive assets.
@@ -15,13 +14,12 @@
 #'    behavior should be used.
 #' @export
 assets_download <- function(
-  version = assets_version(),
-  ...,
-  # Note that this is the cache directory, which is the parent of the assets
-  # directory. The tarball will have the assets directory as the top-level subdir.
-  dir = assets_cache_dir(),
-  url = assets_bundle_url(version)
-) {
+    version = assets_version(),
+    ...,
+    # Note that this is the cache directory, which is the parent of the assets
+    # directory. The tarball will have the assets directory as the top-level subdir.
+    dir = assets_cache_dir(),
+    url = assets_bundle_url(version)) {
   tmp_targz <- tempfile(paste0("shinylive-", gsub(".", "_", version, fixed = TRUE), "-"), fileext = ".tar.gz")
 
   on.exit(
@@ -103,9 +101,10 @@ install_local_helper <- function(
 
   if (version != assets_version()) {
     message(
-      "Warning: You are installing a local copy of shinylive that is not the same as the version used by the shinylive R package.",
+      "Warning: You are installing a local copy of shinylive assets that is not the same as the version used by the shinylive R package.",
       "\nWarning: Unexpected behavior may occur!",
-      "\n\nNew version: ", version
+      "\n\nNew assets version: ", version,
+      "\nSupported assets version: ", assets_version()
     )
   }
 }
@@ -175,11 +174,10 @@ assets_install_link <- function(
 #'    If a local copy of shinylive is installed, its path will be returned.
 #' @export
 assets_ensure <- function(
-  version = assets_version(),
-  ...,
-  dir = assets_cache_dir(),
-  url = assets_bundle_url(version)
-) {
+    version = assets_version(),
+    ...,
+    dir = assets_cache_dir(),
+    url = assets_bundle_url(version)) {
   stopifnot(length(list(...)) == 0)
   if (!fs::dir_exists(dir)) {
     message("Creating assets cache directory ", dir)
@@ -212,9 +210,8 @@ assets_ensure <- function(
 #'    the one used by the current version of \pkg{shinylive}.
 #' @export
 assets_cleanup <- function(
-  ...,
-  dir = assets_cache_dir()
-) {
+    ...,
+    dir = assets_cache_dir()) {
   stopifnot(length(list(...)) == 0)
   versions <- vapply(
     assets_dirs(dir = dir),
@@ -254,10 +251,9 @@ assets_cleanup <- function(
 #' @param versions The assets versions to remove.
 #' @export
 assets_remove <- function(
-  versions,
-  ...,
-  dir = assets_cache_dir()
-) {
+    versions,
+    ...,
+    dir = assets_cache_dir()) {
   stopifnot(length(list(...)) == 0)
   stopifnot(length(versions) > 0 && is.character(versions))
 
@@ -277,9 +273,8 @@ assets_remove <- function(
 
 
 assets_dirs <- function(
-  ...,
-  dir = assets_cache_dir()
-) {
+    ...,
+    dir = assets_cache_dir()) {
   stopifnot(length(list(...)) == 0)
   if (!fs::dir_exists(dir)) {
     return(character(0))
@@ -322,7 +317,7 @@ assets_info <- function() {
 
   cat(
     collapse(c(
-      paste0("shinylive R package version:  ", utils::packageVersion("shinylive")),
+      paste0("shinylive R package version:  ", SHINYLIVE_R_VERSION),
       paste0("shinylive web assets version: ", assets_version()),
       "",
       "Local cached shinylive asset dir:",

@@ -63,35 +63,18 @@ shinylive::export("myapp2", "site", subdir = "app2")
 
 ## R package availability
 
-To tell `{webr}` that you need to use a package outside of `{shiny}` and its dependencies, call `webr::install("CRAN_PKG")` in your Quarto `shinylive-r` code block as below or within your `app.R` file if you are exporting your Shiny app. Once the package has been installed by `{webr}`, you can use `library(CRAN_PKG)` or `require(CRAN_PKG)` as you desire.
+The `{shinylive}` web assets will statically inspect which packages are being used via `{renv}`.
 
-```` markdown
-<!-- file: shinylive_example.qmd -->
-
-# Shinylive example chunk that uses `{plotly}` and `{DT}`
-
-```{shinylive-r}
-#| standalone: true
-#| components: [editor, viewer]
-
-# Install {plotly} and {DT} via {webr}
-webr::install("plotly")
-webr::install("DT")
-
-# Use plotly, DT, and shiny like normal
-library("shiny")
-library("plotly")
-library("DT")
-
-## INSERT `ui` and `server` CODE HERE ##
-ui <- ....
-server <- ....
-
-shinyApp(ui, server)
+If you need a package that can not be found by `{renv}`, add an impossible-to-reach code within your Shiny application that has a library call to that R package. For example:
+```r
+if (FALSE) {
+  library(HIDDEN_CRAN_PKG)
+}
 ```
-````
 
-If a package has trouble loading, visit https://repo.r-wasm.org/ to see if it is able to be installed as a precompiled WebAssembly binary.
+If you'd rather handle it manually, call `webr::install("CRAN_PKG")` in your Shiny application before calling `library(CRAN_PKG)` or `require("CRAN_PKG")`.
+
+If an R package has trouble loading, visit https://repo.r-wasm.org/ to see if it is able to be installed as a precompiled WebAssembly binary.
 
 > [Note from `{webr}`](https://docs.r-wasm.org/webr/latest/packages.html#building-r-packages-for-webr):<br />
 > It is not possible to install packages from source in webR. This is not likely to change in the near future, as such a process would require an entire C and Fortran compiler toolchain to run inside the browser. For the moment, providing pre-compiled WebAssembly binaries is the only supported way to install R packages in webR.
@@ -105,15 +88,15 @@ To see which version of this R package you have, and which version of the web as
 
 ``` r
 shinylive::assets_info()
-#> shinylive R package version:  0.0.1
-#> shinylive web assets version: 0.1.7
+#> shinylive R package version:  0.1.0
+#> shinylive web assets version: 0.2.1
 #>
 #> Local cached shinylive asset dir:
 #>     /Users/username/Library/Caches/shinylive
 #>
 #> Installed assets:
-#>     /Users/username/Library/Caches/shinylive/0.1.7
-#>     /Users/username/Library/Caches/shinylive/0.1.6
+#>     /Users/username/Library/Caches/shinylive/0.2.1
+#>     /Users/username/Library/Caches/shinylive/0.2.0
 ```
 
 The web assets will be downloaded and cached the first time you run `shinylive::export()`. Or, you can run `shinylive::assets_download()` to fetch them manually.
@@ -128,26 +111,20 @@ You can remove old versions with `shinylive::assets_cleanup()`. This will remove
 
 ``` r
 shinylive::assets_cleanup()
-#> Keeping version 0.1.7
-#> Removing /Users/username/Library/Caches/shinylive/0.1.6
+#> Keeping version 0.2.1
+#> Removing /Users/username/Library/Caches/shinylive/0.2.0
 #> Removing /Users/username/Library/Caches/shinylive/0.1.5
 ```
 
 To remove a specific version, use `shinylive::assets_remove()`:
 
 ``` r
-shinylive::assets_remove("0.1.5")
-#> Removing /Users/username/Library/Caches/shinylive/0.1.5
+shinylive::assets_remove("0.2.1")
+#> Removing /Users/username/Library/Caches/shinylive/0.2.1
 ```
 
 ## Known limitations
 
-* A single quarto document can have both `shinylive-python` and `shinylive-r` code blocks, but `shinylive-r` code block must come first.
-  * Details: Only the first shinylive code block will be initialized. Currently `posit-dev/shinylive-py` does not know about `shinylive-r` code blocks.
-  * Details: This should be (naturally) fixed in the next release of `posit-dev/shinylive-py`.
-* The current R common files contain files for python's pyodide and pyright when used within the quarto extension.
-  * Details: If only R files are used, these python files should be removed for smaller bundles / faster loading.
-  * Details: Currently, the extension does not know if there are more chunks with python code, so `r-shinylive` includes the `py-shinylive` asset files by default.
 * [Note from `{webr}`](https://docs.r-wasm.org/webr/latest/packages.html#building-r-packages-for-webr):
     * > It is not possible to install packages from source in webR. This is not likely to change in the near future, as such a process would require an entire C and Fortran compiler toolchain to run inside the browser. For the moment, providing pre-compiled WebAssembly binaries is the only supported way to install R packages in webR.
 
@@ -156,7 +133,7 @@ shinylive::assets_remove("0.1.5")
 
 ### Setup - shinylive assets
 
-Works with latest GitHub version of [`posit-dev/shinylive`](https://github.com/posit-dev/shinylive/) (>= v`0.2.0`).
+Works with latest GitHub version of [`posit-dev/shinylive`](https://github.com/posit-dev/shinylive/) (>= v`0.2.1`).
 
 Before linking the shinylive assets to the asset cache folder, you must first build the shiny live assets:
 

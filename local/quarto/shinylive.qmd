@@ -2,8 +2,7 @@
 title: Shinylive applications embedded in Quarto documents
 format: html
 filters:
-  # quarto-ext/shinylive
-  - shinylive
+  - quarto-ext/shinylive
 ---
 
 # `R`
@@ -16,18 +15,17 @@ library(shiny)
 
 shinyApp(
     fluidPage(
-        sliderInput("n", "N", 0, 100, 40),
+        sliderInput("n", "N", 0, 100, 20),
         verbatimTextOutput("txt", placeholder = TRUE),
     ),
     function(input, output) {
         output$txt <- renderText({
-            paste0("The value of n*2 is ", 2 * input$n)
+            paste0("n*2 is ", 2 * input$n)
         })
     }
 )
 ```
 :::
-
 
 # `python`
 
