@@ -1,4 +1,4 @@
-## 2023-10-05
+## 2023-10-06
 
 This is a new package.
 
@@ -12,4 +12,7 @@ Barret
 
 0 errors | 0 warnings | 1 note
 
-* This is a new release.
+* checking CRAN incoming feasibility ... NOTE
+Maintainer: 'Barret Schloerke <barret@posit.co>'
+
+New submission
