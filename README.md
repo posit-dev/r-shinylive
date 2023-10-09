@@ -15,12 +15,22 @@ This repository is not the same as the https://github.com/posit-dev/shinylive re
 
 Twin shinylive python package: https://github.com/posit-dev/py-shinylive
 
+Those are the package versions used in this tutorial:
+
+``` r
+packageVersion("shinylive")
+[1] ‘0.1.0’
+
+packageVersion("httpuv")
+[1] ‘1.6.11.9000’
+```
+
 ## Installation
 
 You can install the development version of shinylive from GitHub via:
 
 ``` r
-# install.packages("pak")
+install.packages("pak")
 pak::pak("posit-dev/r-shinylive")
 ```
 
@@ -45,9 +55,10 @@ Then you can preview the application by running a web server and visiting it in 
 ``` r
 ## Get development version of `{httpuv}`
 # install.packages("pak")
-# pak::pak("rstudio/httpuv")
+pak::pak("rstudio/httpuv")
 httpuv::runStaticServer("site/")
 ```
+Note: Currently, the runStaticServer function is not available on the latest CRAN version of the package but on the dev version.
 
 At this point, you can deploy the `site/` directory to any static web hosting service.
 
