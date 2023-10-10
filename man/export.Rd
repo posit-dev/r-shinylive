@@ -27,7 +27,7 @@ This function exports a Shiny app to a directory, which can then be served
 using \code{plumber}.
 }
 \examples{
-\dontrun{
+\dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 app_dir <- system.file("examples", "01_hello", package = "shiny")
 out_dir <- tempfile("shinylive-export")
 
@@ -39,5 +39,5 @@ library(plumber)
 pr() \%>\%
   pr_static("/", out_dir) \%>\%
   pr_run()
-}
+\dontshow{\}) # examplesIf}
 }

@@ -13,8 +13,7 @@
 #' @return Nothing. The app is exported to `destdir`. Instructions for serving
 #' the directory are printed to stdout.
 #' @importFrom rlang is_interactive
-#' @examples
-#' \dontrun{
+#' @examplesIf interactive()
 #' app_dir <- system.file("examples", "01_hello", package = "shiny")
 #' out_dir <- tempfile("shinylive-export")
 #'
@@ -26,7 +25,6 @@
 #' pr() %>%
 #'   pr_static("/", out_dir) %>%
 #'   pr_run()
-#' }
 export <- function(
     appdir,
     destdir,

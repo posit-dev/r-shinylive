@@ -128,6 +128,7 @@ install_local_helper <- function(
 #' @param version The version of the assets being installed.
 #' @inheritParams assets_download
 #' @seealso [`assets_download()`], [`assets_ensure()`], [`assets_cleanup()`]
+#' @return All method return `invisible()`.
 #' @export
 assets_install_copy <- function(
     assets_repo_dir,
