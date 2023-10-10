@@ -11,3 +11,4 @@
 ^shinylive_assets$
 ^cran-comments\.md$
 ^revdep$
+^CRAN-SUBMISSION$
