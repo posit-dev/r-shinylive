@@ -26,6 +26,7 @@ Imports:
     rlang,
     tools
 Suggests:
+    plumber,
     httr,
     spelling,
     testthat (>= 3.0.0)

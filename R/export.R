@@ -21,10 +21,12 @@
 #' export(app_dir, out_dir)
 #'
 #' # Serve the exported directory
-#' library(plumber)
-#' pr() %>%
-#'   pr_static("/", out_dir) %>%
-#'   pr_run()
+#' if (require(plumber)) {
+#'   library(plumber)
+#'   pr() %>%
+#'     pr_static("/", out_dir) %>%
+#'     pr_run()
+#' }
 export <- function(
     appdir,
     destdir,
