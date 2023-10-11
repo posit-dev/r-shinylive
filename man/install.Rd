@@ -30,6 +30,9 @@ should be used.}
 
 \item{version}{The version of the assets being installed.}
 }
+\value{
+All method return \code{invisible()}.
+}
 \description{
 Helper methods for testing updates to shinylive assets.
 }

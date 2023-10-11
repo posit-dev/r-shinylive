@@ -1,6 +1,3 @@
-#' TODO-barret; update docs in py-shinylive
-
-
 #' Quarto extension for shinylive
 #'
 #' Integration with https://github.com/quarto-ext/shinylive
@@ -8,7 +5,7 @@
 #' @param args Command line arguments passed by the extension. See details for more information.
 #' @param ... Ignored.
 #' @param pretty Whether to pretty print the JSON output.
-#' @returns Nothing. Values are printed to stdout.
+#' @return Nothing. Values are printed to stdout.
 #' @section Command arguments:
 #'
 #' The first argument must be `"extension"`. This is done to match

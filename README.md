@@ -17,6 +17,12 @@ Twin shinylive python package: https://github.com/posit-dev/py-shinylive
 
 ## Installation
 
+You can install the released version of shinylive from CRAN via:
+
+``` r
+install.packages("shinylive")
+```
+
 You can install the development version of shinylive from GitHub via:
 
 ``` r
@@ -40,13 +46,13 @@ Once you have a Shiny application in `myapp/` and would like turn it into a Shin
 shinylive::export("myapp", "site")
 ```
 
-Then you can preview the application by running a web server and visiting it in a browser (this example is using the development version of `{httpuv}`):
+Then you can preview the application by running a web server and visiting it in a browser:
 
 ``` r
-## Get development version of `{httpuv}`
-# install.packages("pak")
-# pak::pak("rstudio/httpuv")
-httpuv::runStaticServer("site/")
+library(plumber)
+pr() %>%
+  pr_static("/", "site/") %>%
+  pr_run()
 ```
 
 At this point, you can deploy the `site/` directory to any static web hosting service.
@@ -185,13 +191,13 @@ shinylive_lua |>
 Export a local app to a directory and run it:
 
 ```r
+library(plumber)
 pkgload::load_all()
+
 # Delete prior
-unlink("local/shiny-apps-out/")
+unlink("local/shiny-apps-out/", recursive = TRUE)
 export("local/shiny-apps/simple-r", "local/shiny-apps-out")
-#> Run the following in an R session to serve the app:
-#>   httpuv::runStaticServer("local/shiny-apps-out")
 
 # Host the local directory
-httpuv::runStaticServer("local/shiny-apps-out")
+pr() %>% pr_static("/", "local/shiny-apps-out") %>% pr_run()
 ```

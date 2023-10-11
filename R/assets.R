@@ -13,6 +13,10 @@
 #' @param url The URL to download the assets from. Unless testing, the default
 #'    behavior should be used.
 #' @export
+#' @return
+#' `assets_version()` returns the version of the currently supported Shinylive.
+#'
+#' All other methods return `invisible()`.
 assets_download <- function(
     version = assets_version(),
     ...,
@@ -37,6 +41,8 @@ assets_download <- function(
   message("Unzipping to ", dir, "/")
   fs::dir_create(dir)
   archive::archive_extract(tmp_targz, dir)
+
+  invisible()
 }
 
 
@@ -122,6 +128,7 @@ install_local_helper <- function(
 #' @param version The version of the assets being installed.
 #' @inheritParams assets_download
 #' @seealso [`assets_download()`], [`assets_ensure()`], [`assets_cleanup()`]
+#' @return All method return `invisible()`.
 #' @export
 assets_install_copy <- function(
     assets_repo_dir,
@@ -138,6 +145,8 @@ assets_install_copy <- function(
     dir = dir,
     version = version
   )
+
+  invisible()
 }
 
 #' @describeIn install Creates a symlink of the local shinylive assets to the
@@ -165,6 +174,8 @@ assets_install_link <- function(
     dir = dir,
     version = version
   )
+
+  invisible()
 }
 
 
@@ -190,7 +201,7 @@ assets_ensure <- function(
     assets_download(url = url, version = version, dir = dir)
   }
 
-  assets_path
+  invisible(assets_path)
 }
 
 
@@ -333,6 +344,8 @@ assets_info <- function() {
     )),
     sep = ""
   )
+
+  invisible()
 }
 
 
