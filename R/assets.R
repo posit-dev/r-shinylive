@@ -36,6 +36,11 @@ assets_download <- function(
   )
 
   message("Downloading shinylive assets v", version, "...")
+
+  # temporarily increase download timeout for ?utils::download.file guidelines
+  opts <- options(timeout = 250 * 60 * 2)  # expect minimum 0.5 MB/s
+  on.exit(options(opts))
+
   utils::download.file(url, destfile = tmp_targz, method = "auto")
 
   message("Unzipping to ", dir, "/")
