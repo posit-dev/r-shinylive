@@ -1,6 +1,6 @@
 Package: shinylive
 Title: Run 'shiny' Applications in the Browser
-Version: 0.1.0.9000
+Version: 0.1.1
 Authors@R:
     c(
         person("Barret", "Schloerke", , "barret@posit.co", role = c("aut", "cre"),
