@@ -32,7 +32,7 @@
     
     <a class="navbar-brand me-2" href="index.html">shinylive</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9001</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -99,10 +99,7 @@
 <code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/export.html">export</a></span><span class="op">(</span><span class="st">"myapp"</span>, <span class="st">"site"</span><span class="op">)</span></span></code></pre></div>
 <p>Then you can preview the application by running a web server and visiting it in a browser:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://www.rplumber.io" class="external-link">plumber</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://www.rplumber.io/reference/pr.html" class="external-link">pr</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://www.rplumber.io/reference/pr_static.html" class="external-link">pr_static</a></span><span class="op">(</span><span class="st">"/"</span>, <span class="st">"site/"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://www.rplumber.io/reference/pr_run.html" class="external-link">pr_run</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">httpuv</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/httpuv/man/runStaticServer.html" class="external-link">runStaticServer</a></span><span class="op">(</span><span class="st">"site/"</span><span class="op">)</span></span></code></pre></div>
 <p>At this point, you can deploy the <code>site/</code> directory to any static web hosting service.</p>
 <div class="section level3">
 <h3 id="multiple-applications">Multiple applications<a class="anchor" aria-label="anchor" href="#multiple-applications"></a>
@@ -221,7 +218,7 @@
 </h3>
 <p>Export a local app to a directory and run it:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://www.rplumber.io" class="external-link">plumber</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/httpuv" class="external-link">httpuv</a></span><span class="op">)</span> <span class="co"># &gt;= 1.6.12</span></span>
 <span><span class="fu">pkgload</span><span class="fu">::</span><span class="fu"><a href="https://pkgload.r-lib.org/reference/load_all.html" class="external-link">load_all</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Delete prior</span></span>
@@ -229,7 +226,7 @@
 <span><span class="fu"><a href="reference/export.html">export</a></span><span class="op">(</span><span class="st">"local/shiny-apps/simple-r"</span>, <span class="st">"local/shiny-apps-out"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Host the local directory</span></span>
-<span><span class="fu"><a href="https://www.rplumber.io/reference/pr.html" class="external-link">pr</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://www.rplumber.io/reference/pr_static.html" class="external-link">pr_static</a></span><span class="op">(</span><span class="st">"/"</span>, <span class="st">"local/shiny-apps-out"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://www.rplumber.io/reference/pr_run.html" class="external-link">pr_run</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">httpuv</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/httpuv/man/runStaticServer.html" class="external-link">runStaticServer</a></span><span class="op">(</span><span class="st">"local/shiny-apps-out/"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 </div>
