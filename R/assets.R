@@ -21,10 +21,14 @@ assets_download <- function(
     version = assets_version(),
     ...,
     # Note that this is the cache directory, which is the parent of the assets
-    # directory. The tarball will have the assets directory as the top-level subdir.
+    # directory. The tarball will have the assets directory as the top-level
+    # subdir.
     dir = assets_cache_dir(),
     url = assets_bundle_url(version)) {
-  tmp_targz <- tempfile(paste0("shinylive-", gsub(".", "_", version, fixed = TRUE), "-"), fileext = ".tar.gz")
+  tmp_targz <- tempfile(
+    paste0("shinylive-", gsub(".", "_", version, fixed = TRUE), "-"),
+    fileext = ".tar.gz"
+  )
 
   on.exit(
     {
@@ -36,12 +40,10 @@ assets_download <- function(
   )
 
   message("Downloading shinylive assets v", version, "...")
-
-  # temporarily increase download timeout for ?utils::download.file guidelines
-  opts <- options(timeout = 250 * 60 * 2)  # expect minimum 0.5 MB/s
-  on.exit(options(opts))
-
-  utils::download.file(url, destfile = tmp_targz, method = "auto")
+  req <- httr2::request(url)
+  req <- httr2::req_progress(req)
+  httr2::req_perform(req, path = tmp_targz)
+  message("") # Newline after progress bar
 
   message("Unzipping to ", dir, "/")
   fs::dir_create(dir)
