@@ -24,7 +24,7 @@ the directory are printed to stdout.
 }
 \description{
 This function exports a Shiny app to a directory, which can then be served
-using \code{plumber}.
+using \code{httpuv}.
 }
 \examples{
 \dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
@@ -35,11 +35,8 @@ out_dir <- tempfile("shinylive-export")
 export(app_dir, out_dir)
 
 # Serve the exported directory
-if (require(plumber)) {
-  library(plumber)
-  pr() \%>\%
-    pr_static("/", out_dir) \%>\%
-    pr_run()
+if (require(httpuv)) {
+  httpuv::runStaticServer(out_dir)
 }
 \dontshow{\}) # examplesIf}
 }
