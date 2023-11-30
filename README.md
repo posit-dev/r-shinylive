@@ -49,10 +49,7 @@ shinylive::export("myapp", "site")
 Then you can preview the application by running a web server and visiting it in a browser:
 
 ``` r
-library(plumber)
-pr() %>%
-  pr_static("/", "site/") %>%
-  pr_run()
+httpuv::runStaticServer("site/")
 ```
 
 At this point, you can deploy the `site/` directory to any static web hosting service.
@@ -191,7 +188,7 @@ shinylive_lua |>
 Export a local app to a directory and run it:
 
 ```r
-library(plumber)
+library(httpuv) # >= 1.6.12
 pkgload::load_all()
 
 # Delete prior
@@ -199,5 +196,5 @@ unlink("local/shiny-apps-out/", recursive = TRUE)
 export("local/shiny-apps/simple-r", "local/shiny-apps-out")
 
 # Host the local directory
-pr() %>% pr_static("/", "local/shiny-apps-out") %>% pr_run()
+httpuv::runStaticServer("local/shiny-apps-out/")
 ```
