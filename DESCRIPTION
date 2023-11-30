@@ -1,6 +1,6 @@
 Package: shinylive
 Title: Run 'shiny' Applications in the Browser
-Version: 0.1.0.9000
+Version: 0.1.0.9001
 Authors@R:
     c(
         person("Barret", "Schloerke", , "barret@posit.co", role = c("aut", "cre"),
@@ -20,6 +20,7 @@ Imports:
     archive,
     brio,
     fs,
+    httr2 (>= 1.0.0),
     jsonlite,
     progress,
     rappdirs,
@@ -27,7 +28,6 @@ Imports:
     tools
 Suggests:
     httpuv (>= 1.6.12),
-    httr,
     spelling,
     testthat (>= 3.0.0)
 Config/Needs/website: tidyverse/tidytemplate
