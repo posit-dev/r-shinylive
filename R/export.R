@@ -1,7 +1,7 @@
 #' Export a Shiny app to a directory
 #'
 #' This function exports a Shiny app to a directory, which can then be served
-#' using `plumber`.
+#' using `httpuv`.
 #'
 #' @param appdir Directory containing the application.
 #' @param destdir Destination directory.
@@ -21,11 +21,8 @@
 #' export(app_dir, out_dir)
 #'
 #' # Serve the exported directory
-#' if (require(plumber)) {
-#'   library(plumber)
-#'   pr() %>%
-#'     pr_static("/", out_dir) %>%
-#'     pr_run()
+#' if (require(httpuv)) {
+#'   httpuv::runStaticServer(out_dir)
 #' }
 export <- function(
     appdir,
@@ -155,8 +152,7 @@ export <- function(
 
   verbose_print(
     "\nRun the following in an R session to serve the app:\n",
-    "  library(plumber)\n",
-    "  pr() %>% pr_static(\"/\", \"", destdir, "\") %>% pr_run()\n"
+    "  httpuv::runStaticServer(\"", destdir, "\")\n"
   )
 
   invisible()

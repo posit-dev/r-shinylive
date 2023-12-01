@@ -21,10 +21,14 @@ assets_download <- function(
     version = assets_version(),
     ...,
     # Note that this is the cache directory, which is the parent of the assets
-    # directory. The tarball will have the assets directory as the top-level subdir.
+    # directory. The tarball will have the assets directory as the top-level
+    # subdir.
     dir = assets_cache_dir(),
     url = assets_bundle_url(version)) {
-  tmp_targz <- tempfile(paste0("shinylive-", gsub(".", "_", version, fixed = TRUE), "-"), fileext = ".tar.gz")
+  tmp_targz <- tempfile(
+    paste0("shinylive-", gsub(".", "_", version, fixed = TRUE), "-"),
+    fileext = ".tar.gz"
+  )
 
   on.exit(
     {
@@ -36,7 +40,10 @@ assets_download <- function(
   )
 
   message("Downloading shinylive assets v", version, "...")
-  utils::download.file(url, destfile = tmp_targz, method = "auto")
+  req <- httr2::request(url)
+  req <- httr2::req_progress(req)
+  httr2::req_perform(req, path = tmp_targz)
+  message("") # Newline after progress bar
 
   message("Unzipping to ", dir, "/")
   fs::dir_create(dir)
@@ -367,6 +374,8 @@ assets_version <- function() {
 check_assets_url <- function(
     version = assets_version(),
     url = assets_bundle_url(version)) {
-  req <- httr::HEAD(url)
-  req$status_code == 200
+  req <- httr2::request(url)
+  req <- httr2::req_method(req, "HEAD")
+  resp <- httr2::req_perform(req)
+  resp$status_code == 200
 }

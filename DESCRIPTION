@@ -20,14 +20,14 @@ Imports:
     archive,
     brio,
     fs,
+    httr2 (>= 1.0.0),
     jsonlite,
     progress,
     rappdirs,
     rlang,
     tools
 Suggests:
-    plumber,
-    httr,
+    httpuv (>= 1.6.12),
     spelling,
     testthat (>= 3.0.0)
 Config/Needs/website: tidyverse/tidytemplate
