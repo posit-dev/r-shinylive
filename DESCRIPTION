@@ -33,3 +33,5 @@ Suggests:
 Config/Needs/website: tidyverse/tidytemplate
 Config/testthat/edition: 3
 Language: en-US
+LinkingTo:
+    cpp11
