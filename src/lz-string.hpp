@@ -33,6 +33,7 @@ using string = std::u16string;
 namespace __inner
 {
   const string keyStrBase64{_U("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=")};
+  const string keyStrUriSafe{_U("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$")};
   const string::value_type equal{_U('=')};
 
   int charCodeAt(const string& str, int pos)
@@ -532,6 +533,27 @@ namespace __inner
   }
 
 } // namespace __inner
+
+string compressToEncodedURIComponent(const string& input)
+{
+  if (input.empty()) return {};
+  using namespace __inner;
+  auto res = _compress(input, 6, [](int a) { return keyStrBase64.at(a); });
+  return res;
+}
+
+
+string decompressFromEncodedURIComponent(const string& input)
+{
+  if (input.empty()) return {};
+  using namespace __inner;
+  string input1 = input;
+  // std::replace(input1.begin(), input1.end(), ' ', '+');
+  std::unordered_map<string::value_type, int> baseReverseDic;
+  for (int i = 0; i < keyStrUriSafe.length(); ++i) baseReverseDic[keyStrUriSafe.at(i)] = i;
+  return _decompress(input1.length(), 32, [&](int index) { return baseReverseDic[input.at(index)]; });
+}
+
 
 // clang-format off
 string compressToBase64(const string& input)

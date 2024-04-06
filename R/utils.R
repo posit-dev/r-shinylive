@@ -1,3 +1,5 @@
+#' @useDynLib shinylive, .registration = TRUE
+
 assert_nzchar_string <- function(x) {
   stopifnot(is.character(x) && nchar(x) > 0)
   invisible(TRUE)
