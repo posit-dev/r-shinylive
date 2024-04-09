@@ -204,7 +204,8 @@ quarto_ext <- function(
       # shinylive_python_resources()
     },
     "app-resources" = {
-      list()
+      app_json <- readLines("stdin", warn = FALSE)
+      build_app_resources(app_json)
     },
     {
       stop("Not implemented `extension` type: ", args[2])
@@ -220,6 +221,53 @@ quarto_ext <- function(
   invisible()
 }
 
+build_app_resources <- function(app_json) {
+  appdir <- fs::path(".quarto", "_webr", "appdir")
+  destdir <- fs::path(".quarto", "_webr", "destdir")
+
+  # Build app directory, removing any previous app expanded there
+  if (fs::dir_exists(appdir)) {
+    fs::dir_delete(appdir)
+  }
+  fs::dir_create(appdir, recurse = TRUE)
+
+  # Convert app.json into files on disk, so we can use `renv::dependencies()`
+  app <- jsonlite::fromJSON(
+    app_json,
+    simplifyDataFrame = FALSE,
+    simplifyMatrix = FALSE
+  )
+  lapply(app, function (file) {
+    file_path <- fs::path(appdir, file$name)
+    if (file$type == "text") {
+      writeLines(file$content, file_path)
+    } else {
+      raw_content <- base64enc::base64decode(file$content, "raw")
+      writeBin(raw_content, file_path, useBytes = TRUE)
+    }
+  })
+
+  # Download wasm binaries ready to embed into Quarto deps
+  download_wasm_packages(appdir, destdir, verbose = FALSE, package_cache = TRUE)
+
+  # Enumerate R package Wasm binaries and prepare the VFS images as html deps
+  webr_dir <- fs::path(destdir, "shinylive", "webr")
+  packages_files <- dir(webr_dir, recursive = TRUE, full.names = FALSE)
+  packages_paths <- file.path("shinylive", "webr", packages_files)
+  packages_abs <- file.path(fs::path_abs(webr_dir), packages_files)
+
+  Map(
+    USE.NAMES = FALSE,
+    packages_paths,
+    packages_abs,
+    f = function(rel_common_file, abs_common_file) {
+      html_dep_obj(
+        name = rel_common_file,
+        path = abs_common_file
+      )
+    }
+  )
+}
 
 quarto_codeblock_to_json_path <- function() {
   file.path(assets_dir(), "scripts", "codeblock-to-json.js")
