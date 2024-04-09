@@ -141,7 +141,7 @@ get_github_wasm_assets <- function(desc) {
 
 # Lookup URL and metadata for Wasm binary package
 prepare_wasm_metadata <- function(pkg, metadata, verbose) {
-  desc <- packageDescription(pkg)
+  desc <- utils::packageDescription(pkg)
   repo <- desc$Repository
   prev_ref <- metadata$ref
   prev_cached <- metadata$cached
@@ -253,7 +253,7 @@ download_wasm_packages <- function(appdir, destdir, verbose, package_cache) {
     if (!meta$cached) {
       # Download Wasm binaries and copy to static assets dir
       for (file in meta$assets) {
-        download.file(file$url, fs::path(pkg_subdir, file$filename))
+        utils::download.file(file$url, fs::path(pkg_subdir, file$filename))
       }
       meta$cached <- TRUE
       meta$path <- glue::glue("packages/{pkg}/{meta$assets[[1]]$filename}")

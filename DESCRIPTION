@@ -13,7 +13,7 @@ Description: Exporting 'shiny' applications with 'shinylive' allows you to run t
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 BugReports: https://github.com/posit-dev/r-shinylive/issues
 URL: https://posit-dev.github.io/r-shinylive/, https://github.com/posit-dev/r-shinylive
 Imports:
@@ -22,6 +22,7 @@ Imports:
     brio,
     fs,
     glue,
+    gh,
     httr2 (>= 1.0.0),
     jsonlite,
     pkgdepends,
