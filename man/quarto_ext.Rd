@@ -7,7 +7,8 @@
 quarto_ext(
   args = commandArgs(trailingOnly = TRUE),
   ...,
-  pretty = is_interactive()
+  pretty = is_interactive(),
+  con = "stdin"
 )
 }
 \arguments{
@@ -16,6 +17,8 @@ quarto_ext(
 \item{...}{Ignored.}
 
 \item{pretty}{Whether to pretty print the JSON output.}
+
+\item{con}{File from which to take input. Default: \code{"stdin"}.}
 }
 \value{
 Nothing. Values are printed to stdout.

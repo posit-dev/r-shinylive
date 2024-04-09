@@ -63,9 +63,22 @@ test_that("quarto_ext handles `extension app-resources`", {
 
   assets_ensure()
 
+  # Clean-up on exit
+  tmpdir <- tempdir()
+  wd <- setwd(tmpdir)
+  on.exit({
+    setwd(wd)
+    fs::dir_delete(tmpdir)
+  })
+
+  app_json <- '[{"name":"app.R","type":"text","content":"library(shiny)"}]'
+  writeLines(app_json, "app.json")
+
   txt <- collapse(capture.output({
-    quarto_ext(c("extension", "app-resources"))
+    quarto_ext(c("extension", "app-resources"), con = "app.json")
   }))
-  obj <- jsonlite::parse_json(txt)
-  expect_equal(obj, list())
+  resources <- jsonlite::parse_json(txt)
+
+  # Package metadata included in resources
+  expect_true(any(grepl("metadata.rds", vapply(resources, `[[`, character(1), "name"), fixed = TRUE)))
 })

@@ -5,6 +5,7 @@
 #' @param args Command line arguments passed by the extension. See details for more information.
 #' @param ... Ignored.
 #' @param pretty Whether to pretty print the JSON output.
+#' @param con File from which to take input. Default: `"stdin"`.
 #' @return Nothing. Values are printed to stdout.
 #' @section Command arguments:
 #'
@@ -112,7 +113,9 @@
 quarto_ext <- function(
     args = commandArgs(trailingOnly = TRUE),
     ...,
-    pretty = is_interactive()) {
+    pretty = is_interactive(),
+    con = "stdin"
+  ) {
   stopifnot(length(list(...)) == 0)
   # This method should not print anything to stdout. Instead, it should return a JSON string that will be printed by the extension.
   stopifnot(length(args) >= 1)
@@ -204,7 +207,7 @@ quarto_ext <- function(
       # shinylive_python_resources()
     },
     "app-resources" = {
-      app_json <- readLines("stdin", warn = FALSE)
+      app_json <- readLines(con, warn = FALSE)
       build_app_resources(app_json)
     },
     {
