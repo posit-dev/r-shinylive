@@ -25,11 +25,13 @@ Imports:
     progress,
     rappdirs,
     rlang,
-    tools
+    tools,
+    utils
 Suggests:
     httpuv (>= 1.6.12),
     spelling,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    V8
 Config/Needs/website: tidyverse/tidytemplate
 Config/testthat/edition: 3
 Language: en-US
