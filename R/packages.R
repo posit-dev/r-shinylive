@@ -16,12 +16,13 @@ get_default_wasm_assets <- function(desc) {
   contrib <- glue::glue("{r_wasm}/bin/emscripten/contrib/{r_short}")
 
   info <- utils::available.packages(contriburl = contrib)
-  ver <- info[pkg, "Version", drop = TRUE]
   if (!pkg %in% rownames(info)) {
-    rlang::abort(c(
-      glue::glue("Can't find \"{pkg}\" in r-universe binary repository.")
+    rlang::warn(c(
+      glue::glue("Can't find \"{pkg}\" in webR binary repository.")
     ))
+    return(list())
   }
+  ver <- info[pkg, "Version", drop = TRUE]
 
   # Show a warning if packages major.minor versions differ
   # We don't worry too much about patch, since webR versions of packages may be
@@ -55,12 +56,13 @@ get_r_universe_wasm_assets <- function(desc) {
   contrib <- glue::glue("{r_universe}/bin/emscripten/contrib/{r_short}")
 
   info <- utils::available.packages(contriburl = contrib)
-  ver <- info[pkg, "Version", drop = TRUE]
   if (!pkg %in% rownames(info)) {
-    rlang::abort(c(
+    rlang::warn(c(
       glue::glue("Can't find \"{pkg}\" in r-universe binary repository.")
     ))
+    return(list())
   }
+  ver <- info[pkg, "Version", drop = TRUE]
 
   # Show a warning if packages major.minor versions differ
   # We don't worry too much about patch, since webR versions of packages may be
@@ -250,7 +252,7 @@ download_wasm_packages <- function(appdir, destdir, verbose, package_cache) {
     # Create package ref and lookup download URLs
     meta <- prepare_wasm_metadata(pkg, prev_meta, verbose)
 
-    if (!meta$cached) {
+    if (!meta$cached && length(meta$assets) > 0) {
       # Download Wasm binaries and copy to static assets dir
       for (file in meta$assets) {
         utils::download.file(file$url, fs::path(pkg_subdir, file$filename))
