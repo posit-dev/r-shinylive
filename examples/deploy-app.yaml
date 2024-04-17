@@ -1,0 +1,23 @@
+# Workflow derived from https://github.com/posit-dev/r-shinylive/tree/main/examples
+# Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
+#
+# Basic example of a GitHub Actions workflow that builds a Shiny app and deploys
+# it to GitHub Pages.
+name: Deploy app to gh-pages
+
+on:
+  # Manually trigger the workflow
+  workflow_dispatch:
+  # Trigger on push to `main` branch
+  push:
+    branches: ["main", "barret"]
+  # Trigger on pull request to all branches
+  pull_request:
+
+jobs:
+  deploy-app:
+    uses: posit-dev/r-shinylive/.github/workflows/deploy-app.yaml@barret
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write # to deploy to Pages
+      id-token: write # to verify the deployment originates from an appropriate source
