@@ -19,4 +19,4 @@ The agreed upon contract is:
 If this contract is not met or could be easily improved for others, please open
 a new Issue https://github.com/posit-dev/r-shinylive/ .
 
-To add the workflow to your repository, call `usethis::use_github_action(url="https://github.com/posit-dev/r-shinylive/blob/barret/examples/deploy-app.yaml")`.
+To add the workflow to your repository, call `usethis::use_github_action(url="https://github.com/posit-dev/r-shinylive/blob/actions/v1/examples/deploy-app.yaml")`.
