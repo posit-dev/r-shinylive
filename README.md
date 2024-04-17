@@ -64,11 +64,19 @@ shinylive::export("myapp1", "site", subdir = "app1")
 shinylive::export("myapp2", "site", subdir = "app2")
 ```
 
+### GitHub Pages
+
+`posit-dev/r-shiny` has a workflow to automatically deploy your Shiny app from the root directory in your GitHub repository to its GitHub Pages. To add this workflow to your repository, call `usethis::use_github_action(url="https://github.com/posit-dev/r-shinylive/blob/actions/v1/examples/deploy-app.yaml")`.
+
+For more information, see the [examples folder](https://github.com/posit-dev/r-shinylive/tree/actions/v1/examples).
+
+
 ## R package availability
 
 The `{shinylive}` web assets will statically inspect which packages are being used via `{renv}`.
 
 If you need a package that can not be found by `{renv}`, add an impossible-to-reach code within your Shiny application that has a library call to that R package. For example:
+
 ```r
 if (FALSE) {
   library(HIDDEN_CRAN_PKG)
