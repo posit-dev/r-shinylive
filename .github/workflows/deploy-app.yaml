@@ -35,19 +35,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: rstudio/shiny-workflows/setup-r-package@v1
+        with:
+          packages: |
+            renv
+            shinylive
+            sessioninfo
+          cache-version: ${{ github.event.inputs.cache-version }}
+
       - name: Find package dependencies
         shell: Rscript {0}
         id: packages
         run: |
-          # Using pre-built R, find package dependencies using {renv}
-          install.packages("renv")
-          pkgs <- unique(c("shinylive", "sessioninfo", renv::dependencies(".")$Package))
-          cat("names=", pkgs, "\n", file = Sys.getenv("GITHUB_OUTPUT"), sep = "", append = TRUE)
-
-      - uses: rstudio/shiny-workflows/setup-r-package@v1
-        with:
-          packages: ${{ steps.packages.outputs.names }}
-          cache-version: ${{ github.event.inputs.cache-version }}
+          # Find package dependencies using {renv} and install with {pak}
+          pak::pak(
+            unique(renv::dependencies(".")$Package)
+          )
 
       - name: Build site
         shell: Rscript {0}

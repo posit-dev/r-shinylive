@@ -11,11 +11,11 @@ on:
   # Trigger on push to `main` branch
   push:
     branches: ["main", "barret"]
-  # Trigger on pull request to all branches
+  # Trigger on pull request to all branches (but do not deploy to gh-pages)
   pull_request:
 
 jobs:
-  deploy-app:
+  shinylive:
     uses: posit-dev/r-shinylive/.github/workflows/deploy-app.yaml@barret
     # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
     permissions:
