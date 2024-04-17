@@ -24,12 +24,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Python - 3.11
-        uses: actions/setup-python@v4
+      - name: Set up Python - 3.12
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Upgrade pip
         shell: bash
@@ -59,7 +59,7 @@ jobs:
           needs: quarto
 
       - name: Check out 'posit-dev/shinylive' repo into './shinylive_assets'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: posit-dev/shinylive
           path: shinylive_assets
