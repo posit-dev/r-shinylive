@@ -234,7 +234,7 @@ download_wasm_packages <- function(appdir, destdir, verbose, package_cache) {
 
   # Loop over packages and download them if not cached
   names(pkgs) <- pkgs
-  cur_metadata <- sapply(pkgs, function(pkg) {
+  cur_metadata <- lapply(pkgs, function(pkg) {
     if (verbose) p$tick()
 
     pkg_subdir <- fs::path(pkg_dir, pkg)
@@ -257,15 +257,14 @@ download_wasm_packages <- function(appdir, destdir, verbose, package_cache) {
       meta$path <- glue::glue("packages/{pkg}/{meta$assets[[1]]$filename}")
     }
     meta
-  }, simplify = FALSE, USE.NAMES = TRUE)
+  })
 
   # Merge metadata to protect previous cache
   pkgs <- unique(c(names(prev_metadata), names(cur_metadata)))
-  metadata <- mapply(
+  metadata <- Map(
     function(a, b) if (is.null(b)) a else b,
     prev_metadata[pkgs],
-    cur_metadata[pkgs],
-    SIMPLIFY = FALSE, USE.NAMES = FALSE
+    cur_metadata[pkgs]
   )
   names(metadata) <- pkgs
 
