@@ -19,15 +19,15 @@ The agreed upon contract is:
 If this contract is not met or could be easily improved for others, please open
 a new Issue https://github.com/posit-dev/r-shinylive/ .
 
-To add the workflow to your repository, call `usethis::use_github_action(url="https://github.com/posit-dev/r-shinylive/blob/actions/v1/examples/deploy-app.yaml")`.
+To add the workflow to your repository, call `usethis::use_github_action(url="https://github.com/posit-dev/r-shinylive/blob/actions-v1/examples/deploy-app.yaml")`.
 
 
 # Contributing
 
-If any changes are made to the reusable workflows in `.github/workflows/`, please force update the tag `actions/v1` to the latest appropriate git sha. This will allow users to easily reference the latest version of the workflow.
+If any changes are made to the reusable workflows in `.github/workflows/`, please force update the tag `actions-v1` to the latest appropriate git sha. This will allow users to easily reference the latest version of the workflow.
 
 ```bash
-git tag -f actions/v1
+git tag -f actions-v1
 git push --tags
 ```
 
