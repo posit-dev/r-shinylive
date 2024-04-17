@@ -78,8 +78,8 @@ export <- function(
     p <- progress::progress_bar$new(
       format = "[:bar] :percent\n",
       total = length(base_files),
-      clear = TRUE,
-      # show_after = 0
+      clear = FALSE,
+      show_after = 0
     )
   }
   Map(

@@ -211,16 +211,14 @@ download_wasm_packages <- function(appdir, destdir, verbose, package_cache) {
     p <- progress::progress_bar$new(
       format = "[:bar] :percent\n",
       total = length(pkgs),
-      clear = TRUE
+      clear = TRUE,
+      show_after = 0
     )
   }
 
   # Create empty R packages directory in app assets if not already there
   pkg_dir <- fs::path(destdir, "shinylive", "webr", "packages")
-  if (!fs::dir_exists(pkg_dir)) {
-    verbose_print("Creating ", pkg_dir, "/")
-    fs::dir_create(pkg_dir)
-  }
+  fs::dir_create(pkg_dir, recurse = TRUE)
 
   verbose_print(
     "Downloading WebAssembly R package binaries to ", pkg_dir, "/"
@@ -240,9 +238,7 @@ download_wasm_packages <- function(appdir, destdir, verbose, package_cache) {
     if (verbose) p$tick()
 
     pkg_subdir <- fs::path(pkg_dir, pkg)
-    if (!fs::dir_exists(pkg_subdir)) {
-      fs::dir_create(pkg_subdir)
-    }
+    fs::dir_create(pkg_subdir, recurse = TRUE)
 
     prev_meta <- if (pkg %in% names(prev_metadata)) {
       prev_metadata[[pkg]]
