@@ -1,8 +1,8 @@
 # Resolve package list hard dependencies
 resolve_dependencies <- function(pkgs, verbose) {
   pkg_refs <- find.package(pkgs, lib.loc = NULL, quiet = FALSE, verbose)
-  pkg_refs <- glue::glue("installed::{pkg_refs}")
-  inst <- pkgdepends::new_pkg_installation_proposal(pkg_refs)
+  pkg_refs <- glue::glue("local::{pkg_refs}")
+  inst <- pkgdepends::new_pkg_deps(pkg_refs)
   inst$resolve()
   unique(inst$get_resolution()$package)
 }
