@@ -18,12 +18,17 @@ BugReports: https://github.com/posit-dev/r-shinylive/issues
 URL: https://posit-dev.github.io/r-shinylive/, https://github.com/posit-dev/r-shinylive
 Imports:
     archive,
+    base64enc,
     brio,
     fs,
+    glue,
+    gh,
     httr2 (>= 1.0.0),
     jsonlite,
+    pkgdepends,
     progress,
     rappdirs,
+    renv,
     rlang,
     tools
 Suggests:

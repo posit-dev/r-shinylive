@@ -8,6 +8,10 @@
 #' @param subdir Subdirectory of `destdir` to write the app to.
 #' @param verbose Print verbose output. Defaults to `TRUE` if running
 #'    interactively.
+#' @param wasm_packages Download and include binary WebAssembly packages as
+#'    part of the output app's static assets. Defaults to `TRUE`.
+#' @param package_cache Cache downloaded binary WebAssembly packages. Defaults
+#'    to `TRUE`.
 #' @param ... Ignored
 #' @export
 #' @return Nothing. The app is exported to `destdir`. Instructions for serving
@@ -29,7 +33,9 @@ export <- function(
     destdir,
     ...,
     subdir = "",
-    verbose = is_interactive()) {
+    verbose = is_interactive(),
+    wasm_packages = TRUE,
+    package_cache = TRUE) {
   verbose_print <- if (verbose) message else list
 
   stopifnot(fs::is_dir(appdir))
@@ -70,10 +76,10 @@ export <- function(
   base_files <- c(shinylive_common_files("base"), shinylive_common_files("r"))
   if (verbose) {
     p <- progress::progress_bar$new(
-      format = "[:bar] :percent",
+      format = "[:bar] :percent\n",
       total = length(base_files),
-      clear = TRUE,
-      # show_after = 0
+      clear = FALSE,
+      show_after = 0
     )
   }
   Map(
@@ -138,6 +144,13 @@ export <- function(
   #         os.makedirs(dest_path.parent)
 
   #     copy_fn(src_path, dest_path)
+
+  # =========================================================================
+  # Copy app package dependencies as Wasm binaries
+  # =========================================================================
+  if (wasm_packages) {
+    download_wasm_packages(appdir, destdir, verbose, package_cache)
+  }
 
   # =========================================================================
   # For each app, write the index.html, edit/index.html, and app.json in

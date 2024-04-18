@@ -4,7 +4,15 @@
 \alias{export}
 \title{Export a Shiny app to a directory}
 \usage{
-export(appdir, destdir, ..., subdir = "", verbose = is_interactive())
+export(
+  appdir,
+  destdir,
+  ...,
+  subdir = "",
+  verbose = is_interactive(),
+  wasm_packages = TRUE,
+  package_cache = TRUE
+)
 }
 \arguments{
 \item{appdir}{Directory containing the application.}
@@ -17,6 +25,12 @@ export(appdir, destdir, ..., subdir = "", verbose = is_interactive())
 
 \item{verbose}{Print verbose output. Defaults to \code{TRUE} if running
 interactively.}
+
+\item{wasm_packages}{Download and include binary WebAssembly packages as
+part of the output app's static assets. Defaults to \code{TRUE}.}
+
+\item{package_cache}{Cache downloaded binary WebAssembly packages. Defaults
+to \code{TRUE}.}
 }
 \value{
 Nothing. The app is exported to \code{destdir}. Instructions for serving
