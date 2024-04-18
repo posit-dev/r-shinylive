@@ -54,7 +54,8 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">quarto_ext</span><span class="op">(</span></span>
 <span>  args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/commandArgs.html" class="external-link">commandArgs</a></span><span class="op">(</span>trailingOnly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span>,</span>
-<span>  pretty <span class="op">=</span> <span class="fu">is_interactive</span><span class="op">(</span><span class="op">)</span></span>
+<span>  pretty <span class="op">=</span> <span class="fu">is_interactive</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  con <span class="op">=</span> <span class="st">"stdin"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -70,6 +71,10 @@
 
 <dt>pretty</dt>
 <dd><p>Whether to pretty print the JSON output.</p></dd>
+
+
+<dt>con</dt>
+<dd><p>File from which to take input. Default: <code>"stdin"</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
