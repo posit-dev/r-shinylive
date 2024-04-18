@@ -31,6 +31,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
 
     steps:
       - uses: actions/checkout@v4
@@ -39,7 +42,7 @@ jobs:
         with:
           packages: |
             renv
-            shinylive
+            posit-dev/shinylive
             sessioninfo
           cache-version: ${{ github.event.inputs.cache-version }}
 
