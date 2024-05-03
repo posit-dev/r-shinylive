@@ -1,7 +1,11 @@
 # Resolve package list hard dependencies
-resolve_dependencies <- function(pkgs, verbose) {
-  pkg_refs <- find.package(pkgs, lib.loc = NULL, quiet = FALSE, verbose)
-  pkg_refs <- glue::glue("local::{pkg_refs}")
+resolve_dependencies <- function(pkgs, verbose, local = TRUE) {
+  pkg_refs <- if (local) {
+    refs <- find.package(pkgs, lib.loc = NULL, quiet = FALSE, verbose)
+    glue::glue("local::{refs}")
+  } else {
+    pkgs
+  }
   inst <- pkgdepends::new_pkg_deps(pkg_refs)
   inst$resolve()
   unique(inst$get_resolution()$package)
@@ -201,8 +205,10 @@ prepare_wasm_metadata <- function(pkg, metadata, verbose) {
 download_wasm_packages <- function(appdir, destdir, verbose, package_cache) {
   verbose_print <- if (verbose) message else list
   # App dependencies, ignoring shiny packages in base webR image
-  shiny_pkgs <- resolve_dependencies(c("shiny", "bslib", "renv"), verbose)
+  shiny_pkgs <- c("shiny", "bslib", "renv")
+  shiny_pkgs <- resolve_dependencies(shiny_pkgs, verbose, local = FALSE)
   pkgs <- unique(renv::dependencies(appdir, quiet = !verbose)$Package)
+  pkgs <- pkgs[pkgs != "shiny" & pkgs != "bslib" & pkgs != "renv"]
 
   # Create empty R packages directory in app assets if not already there
   pkg_dir <- fs::path(destdir, "shinylive", "webr", "packages")
