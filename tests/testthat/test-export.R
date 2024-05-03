@@ -3,6 +3,9 @@ test_that("export - app.R", {
 
   assets_ensure()
 
+  # Ensure pkgcache metadata has been loaded
+  invisible(pkgcache::meta_cache_list())
+
   # Create a temporary directory
   app_file <- file.path(tempfile(), "app.R")
   app_dir <- dirname(app_file)
