@@ -201,10 +201,10 @@ prepare_wasm_metadata <- function(pkg, metadata, verbose) {
 download_wasm_packages <- function(appdir, destdir, verbose, package_cache) {
   verbose_print <- if (verbose) message else list
   # App dependencies, ignoring shiny packages in base webR image
+  shiny_pkgs <- resolve_dependencies(c("shiny", "bslib", "renv"), verbose)
   pkgs <- unique(renv::dependencies(appdir, quiet = !verbose)$Package)
-  pkgs <- pkgs[pkgs != "shiny" & pkgs != "bslib"]
   if (length(pkgs) > 0) {
-    pkgs <- resolve_dependencies(pkgs, verbose)
+    pkgs <- resolve_dependencies(pkgs, verbose) |> setdiff(shiny_pkgs)
   }
 
   if (verbose) {
