@@ -203,18 +203,6 @@ download_wasm_packages <- function(appdir, destdir, verbose, package_cache) {
   # App dependencies, ignoring shiny packages in base webR image
   shiny_pkgs <- resolve_dependencies(c("shiny", "bslib", "renv"), verbose)
   pkgs <- unique(renv::dependencies(appdir, quiet = !verbose)$Package)
-  if (length(pkgs) > 0) {
-    pkgs <- resolve_dependencies(pkgs, verbose) |> setdiff(shiny_pkgs)
-  }
-
-  if (verbose) {
-    p <- progress::progress_bar$new(
-      format = "[:bar] :percent\n",
-      total = length(pkgs),
-      clear = TRUE,
-      show_after = 0
-    )
-  }
 
   # Create empty R packages directory in app assets if not already there
   pkg_dir <- fs::path(destdir, "shinylive", "webr", "packages")
@@ -232,8 +220,22 @@ download_wasm_packages <- function(appdir, destdir, verbose, package_cache) {
     list()
   }
 
+  if (length(pkgs) > 0) {
+    pkgs <- resolve_dependencies(pkgs, verbose)
+    pkgs <- setdiff(pkgs, shiny_pkgs)
+    names(pkgs) <- pkgs
+  }
+
+  if (verbose) {
+    p <- progress::progress_bar$new(
+      format = "[:bar] :percent\n",
+      total = length(pkgs),
+      clear = TRUE,
+      show_after = 0
+    )
+  }
+
   # Loop over packages and download them if not cached
-  names(pkgs) <- pkgs
   cur_metadata <- lapply(pkgs, function(pkg) {
     if (verbose) p$tick()
 
