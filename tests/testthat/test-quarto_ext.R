@@ -82,3 +82,30 @@ test_that("quarto_ext handles `extension app-resources`", {
   # Package metadata included in resources
   expect_true(any(grepl("metadata.rds", vapply(resources, `[[`, character(1), "name"), fixed = TRUE)))
 })
+
+test_that("quarto_ext handles `extension app-resources` with additional binary files", {
+  maybe_skip_test()
+
+  assets_ensure()
+
+  # Clean-up on exit
+  tmpdir <- tempdir()
+  wd <- setwd(tmpdir)
+  on.exit({
+    setwd(wd)
+    fs::dir_delete(tmpdir)
+  })
+
+  # A binary file included in app.json should successfully be decoded while
+  # building package metadata for app-resources.
+  app_json <- '[{"name":"app.R","type":"text","content":"library(shiny)"},{"name":"image.png","type":"binary","content":"iVBORw0KGgoAAAANSUhEUgAAAQAAAAEAAQMAAABmvDolAAAAA1BMVEW10NBjBBbqAAAAH0lEQVRoge3BAQ0AAADCoPdPbQ43oAAAAAAAAAAAvg0hAAABmmDh1QAAAABJRU5ErkJggg=="}]'
+  writeLines(app_json, "app.json")
+
+  txt <- collapse(capture.output({
+    quarto_ext(c("extension", "app-resources"), con = "app.json")
+  }))
+  resources <- jsonlite::parse_json(txt)
+
+  # Package metadata included in resources
+  expect_true(any(grepl("metadata.rds", vapply(resources, `[[`, character(1), "name"), fixed = TRUE)))
+})
