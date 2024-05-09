@@ -171,7 +171,8 @@ prepare_wasm_metadata <- function(pkg, metadata, verbose) {
     repo <- desc$RemoteRepo
     sha <- desc$RemoteSha
     metadata$ref <- glue::glue("github::{user}/{repo}@{sha}")
-  } else if (repo == "CRAN") {
+  } else if (is.null(repo) || repo == "CRAN") {
+    repo <- "CRAN"
     metadata$ref <- glue::glue("{metadata$name}@{metadata$version}")
   } else if (grepl("Bioconductor", repo)) {
     metadata$ref <- glue::glue("bioc::{metadata$name}@{metadata$version}")
