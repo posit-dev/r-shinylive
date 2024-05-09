@@ -245,7 +245,7 @@ build_app_resources <- function(app_json) {
     if (file$type == "text") {
       writeLines(file$content, file_path)
     } else {
-      raw_content <- base64enc::base64decode(file$content, "raw")
+      raw_content <- jsonlite::base64_dec(file$content)
       writeBin(raw_content, file_path, useBytes = TRUE)
     }
   })
