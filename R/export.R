@@ -38,9 +38,12 @@ export <- function(
     verbose = is_interactive(),
     wasm_packages = TRUE,
     package_cache = TRUE,
-    assets_version = assets_version()
+    assets_version = NULL
 ) {
   verbose_print <- if (verbose) message else list
+  if (is.null(assets_version)) {
+    assets_version <- assets_version()
+  }
 
   stopifnot(fs::is_dir(appdir))
   if (!(
