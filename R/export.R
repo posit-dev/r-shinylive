@@ -12,6 +12,8 @@
 #'    part of the output app's static assets. Defaults to `TRUE`.
 #' @param package_cache Cache downloaded binary WebAssembly packages. Defaults
 #'    to `TRUE`.
+#' @param assets_version The version of the Shinylive assets to use in the
+#'    exported app. Defaults to [assets_version()].
 #' @param ... Ignored
 #' @export
 #' @return Nothing. The app is exported to `destdir`. Instructions for serving
@@ -35,7 +37,9 @@ export <- function(
     subdir = "",
     verbose = is_interactive(),
     wasm_packages = TRUE,
-    package_cache = TRUE) {
+    package_cache = TRUE,
+    assets_version = assets_version()
+) {
   verbose_print <- if (verbose) message else list
 
   stopifnot(fs::is_dir(appdir))
@@ -63,7 +67,7 @@ export <- function(
   mark_file <- cp_funcs$mark_file
   copy_files <- cp_funcs$copy_files
 
-  assets_path <- assets_dir()
+  assets_path <- assets_dir(version = assets_version)
 
   # =========================================================================
   # Copy the base dependencies for shinylive/ distribution. This does not
