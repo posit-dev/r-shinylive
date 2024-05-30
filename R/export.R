@@ -77,7 +77,11 @@ export <- function(
     "Copying base Shinylive files from ", assets_path, "/ to ", destdir, "/"
   )
   # When exporting, we know it is only an R app. So remove python support
-  base_files <- c(shinylive_common_files("base"), shinylive_common_files("r"))
+  base_files <- c(
+    shinylive_common_files("base", version = assets_version),
+    shinylive_common_files("r", version = assets_version)
+  )
+
   if (verbose) {
     p <- progress::progress_bar$new(
       format = "[:bar] :percent\n",
