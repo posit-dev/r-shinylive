@@ -361,7 +361,7 @@ assets_info <- function() {
 #'    assets version.
 #' @export
 assets_version <- function() {
-  SHINYLIVE_ASSETS_VERSION
+  Sys.getenv("SHINYLIVE_ASSETS_VERSION", SHINYLIVE_ASSETS_VERSION)
 }
 
 # """Checks if the URL for the Shinylive assets bundle is valid.

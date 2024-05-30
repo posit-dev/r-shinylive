@@ -183,7 +183,7 @@ quarto_ext <- function(
     "info" = {
       list(
         "version" = SHINYLIVE_R_VERSION,
-        "assets_version" = SHINYLIVE_ASSETS_VERSION,
+        "assets_version" = assets_version(),
         "scripts" = list(
           "codeblock-to-json" = quarto_codeblock_to_json_path()
         )
