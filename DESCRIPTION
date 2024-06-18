@@ -31,7 +31,7 @@ Suggests:
     httpuv (>= 1.6.12),
     spelling,
     testthat (>= 3.0.0),
-    V8
+    lzstring
 Config/Needs/website: tidyverse/tidytemplate
 Config/testthat/edition: 3
 Language: en-US

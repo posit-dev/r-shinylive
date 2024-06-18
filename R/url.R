@@ -1,11 +1,10 @@
 url_encode_dir <- function(
-  dir,
-  language = c("auto", "r", "py"),
-  mode = c("editor", "app"),
-  hide_header = FALSE,
-  exclude = "rsconnect/"
+    dir,
+    language = c("auto", "r", "py"),
+    mode = c("editor", "app"),
+    hide_header = FALSE,
+    exclude = "rsconnect/"
 ) {
-  check_v8_installed()
 
   stopifnot(fs::dir_exists(dir))
 
@@ -46,19 +45,50 @@ url_encode_dir <- function(
   }
 
   names <- fs::path_rel(files, path_root)
-
   bundle <- unname(Map(as_file_list, files, names))
-
+  bundle <- jsonlite::toJSON(bundle, auto_unbox = TRUE, null = "null", na = "null")
+  URI <- lzstring::compressToEncodedURIComponent(bundle)
+  URI <- gsub("/", "-", URI)
   sprintf(
     "https://%s/%s/%s/#%scode=%s",
     getOption("shinylive.host", "shinylive.io"),
     language,
     mode,
     if (hide_header) "h=0&" else "",
-    lzstring_compress_uri(bundle)
+    URI
   )
 }
 
+url_decode <- function(encoded_url, dir = NULL, json = FALSE) {
+  url_in <- strsplit(encoded_url, "code=")[[1]][2]
+  sl_app <- lzstring::decompressFromEncodedURIComponent(url_in)
+  sl_app <- jsonlite::fromJSON(sl_app, simplifyVector = FALSE, simplifyDataFrame = FALSE, simplifyMatrix = FALSE)
+  if (json) {
+    sl_app <- jsonlite::toJSON(sl_app)
+    return(sl_app)
+  }
+  if (!is.null(dir)) {
+    write_files(sl_app, dir)
+  } else {
+    print(sl_app)
+  }
+}
+
+write_files <- function(sl_app, dest) {
+  if (!fs::dir_exists(dest)) {
+    fs::dir_create(dest)
+  }
+  for (file in sl_app) {
+    if ("type" %in% names(file) && file[["type"]] == "binary") {
+      file_content <- base64enc::base64decode(file[["content"]])
+      writeBin(file_content, file.path(dest, file[["name"]]))
+    } else {
+      file_content <- iconv(file[["content"]], "UTF-8", "UTF-8", sub = "")
+      writeLines(file_content, file.path(dest, file[["name"]]), sep = "")
+    }
+  }
+  return(dest)
+}
 
 as_file_list <- function(path, name = fs::path_file(path), type = NULL) {
   if (is.null(type)) {
