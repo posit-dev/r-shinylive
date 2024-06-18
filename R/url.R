@@ -84,7 +84,7 @@ write_files <- function(sl_app, dest) {
       writeBin(file_content, file.path(dest, file[["name"]]))
     } else {
       file_content <- iconv(file[["content"]], "UTF-8", "UTF-8", sub = "")
-      writeLines(file_content, file.path(dest, file[["name"]]))
+      writeLines(file_content, file.path(dest, file[["name"]]), sep = "")
     }
   }
   return(dest)
