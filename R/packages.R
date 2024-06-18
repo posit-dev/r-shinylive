@@ -203,6 +203,8 @@ prepare_wasm_metadata <- function(pkg, metadata, verbose) {
   metadata
 }
 
+# Dev usage:
+# withr::with_envvar(list(SHINYLIVE_DOWNLOAD_WASM_CORE_PACKAGES = "bslib"), {CODE})
 env_download_wasm_core_packages <- function() {
   pkgs <- Sys.getenv("SHINYLIVE_DOWNLOAD_WASM_CORE_PACKAGES", "")
   
