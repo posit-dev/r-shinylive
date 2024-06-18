@@ -72,6 +72,7 @@ the one used by the current version of \pkg{shinylive}.
 assets that have been installed.
 
 \item \code{assets_version()}: Returns the version of the currently supported Shinylive
-assets version.
+assets version. If the \code{SHINYLIVE_ASSETS_VERSION} environment variable is set,
+that value will be used.
 
 }}
