@@ -221,7 +221,7 @@ shinylive_common_dep_htmldep <- function(
   quarto_html_dependency_obj(
     # MUST be called `"shinylive"` to match quarto ext name
     name = "shinylive",
-    version = SHINYLIVE_ASSETS_VERSION,
+    version = assets_version(),
     scripts = scripts,
     stylesheets = stylesheets,
     resources = resources
