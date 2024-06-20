@@ -203,13 +203,35 @@ prepare_wasm_metadata <- function(pkg, metadata, verbose) {
   metadata
 }
 
+# Dev usage:
+# withr::with_envvar(list(SHINYLIVE_DOWNLOAD_WASM_CORE_PACKAGES = "bslib"), {CODE})
+env_download_wasm_core_packages <- function() {
+  pkgs <- Sys.getenv("SHINYLIVE_DOWNLOAD_WASM_CORE_PACKAGES", "")
+  
+  if (!nzchar(pkgs)) {
+    return()
+  }
+
+  strsplit(pkgs, "\\s*[ ,\n]\\s*")[[1]]
+}
+
 download_wasm_packages <- function(appdir, destdir, verbose, package_cache) {
   verbose_print <- if (verbose) message else list
-  # App dependencies, ignoring shiny packages in base webR image
+  
+  # Core packages in base webR image that we don't need to download
   shiny_pkgs <- c("shiny", "bslib", "renv")
   shiny_pkgs <- resolve_dependencies(shiny_pkgs, verbose, local = FALSE)
-  pkgs <- unique(renv::dependencies(appdir, quiet = !verbose)$Package)
-  pkgs <- pkgs[pkgs != "shiny" & pkgs != "bslib" & pkgs != "renv"]
+  
+  # If a package appears in the download core allow list,
+  # we remove it from the internal list of packages to skip downloading
+  pkgs_download_core <- env_download_wasm_core_packages()
+  if (length(pkgs_download_core) > 0) {
+    shiny_pkgs <- setdiff(shiny_pkgs, pkgs_download_core)
+  }
+
+  # App dependencies, ignoring base webR + shiny packages
+  pkgs_app <- unique(renv::dependencies(appdir, quiet = !verbose)$Package)
+  pkgs_app <- setdiff(pkgs_app, shiny_pkgs)
 
   # Create empty R packages directory in app assets if not already there
   pkg_dir <- fs::path(destdir, "shinylive", "webr", "packages")
@@ -227,23 +249,23 @@ download_wasm_packages <- function(appdir, destdir, verbose, package_cache) {
     list()
   }
 
-  if (length(pkgs) > 0) {
-    pkgs <- resolve_dependencies(pkgs, verbose)
-    pkgs <- setdiff(pkgs, shiny_pkgs)
-    names(pkgs) <- pkgs
+  if (length(pkgs_app) > 0) {
+    pkgs_app <- resolve_dependencies(pkgs_app, verbose)
+    pkgs_app <- setdiff(pkgs_app, shiny_pkgs)
+    names(pkgs_app) <- pkgs_app
   }
 
   if (verbose) {
     p <- progress::progress_bar$new(
       format = "[:bar] :percent\n",
-      total = length(pkgs),
+      total = length(pkgs_app),
       clear = TRUE,
       show_after = 0
     )
   }
 
   # Loop over packages and download them if not cached
-  cur_metadata <- lapply(pkgs, function(pkg) {
+  cur_metadata <- lapply(pkgs_app, function(pkg) {
     if (verbose) p$tick()
 
     pkg_subdir <- fs::path(pkg_dir, pkg)
