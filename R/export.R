@@ -12,6 +12,8 @@
 #'    part of the output app's static assets. Defaults to `TRUE`.
 #' @param package_cache Cache downloaded binary WebAssembly packages. Defaults
 #'    to `TRUE`.
+#' @param assets_version The version of the Shinylive assets to use in the
+#'    exported app. Defaults to [assets_version()].
 #' @param ... Ignored
 #' @export
 #' @return Nothing. The app is exported to `destdir`. Instructions for serving
@@ -35,8 +37,13 @@ export <- function(
     subdir = "",
     verbose = is_interactive(),
     wasm_packages = TRUE,
-    package_cache = TRUE) {
+    package_cache = TRUE,
+    assets_version = NULL
+) {
   verbose_print <- if (verbose) message else list
+  if (is.null(assets_version)) {
+    assets_version <- assets_version()
+  }
 
   stopifnot(fs::is_dir(appdir))
   if (!(
@@ -63,7 +70,7 @@ export <- function(
   mark_file <- cp_funcs$mark_file
   copy_files <- cp_funcs$copy_files
 
-  assets_path <- assets_dir()
+  assets_path <- assets_dir(version = assets_version)
 
   # =========================================================================
   # Copy the base dependencies for shinylive/ distribution. This does not
@@ -73,7 +80,11 @@ export <- function(
     "Copying base Shinylive files from ", assets_path, "/ to ", destdir, "/"
   )
   # When exporting, we know it is only an R app. So remove python support
-  base_files <- c(shinylive_common_files("base"), shinylive_common_files("r"))
+  base_files <- c(
+    shinylive_common_files("base", version = assets_version),
+    shinylive_common_files("r", version = assets_version)
+  )
+
   if (verbose) {
     p <- progress::progress_bar$new(
       format = "[:bar] :percent\n",

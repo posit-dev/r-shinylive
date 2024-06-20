@@ -358,10 +358,11 @@ assets_info <- function() {
 
 
 #' @describeIn assets Returns the version of the currently supported Shinylive
-#'    assets version.
+#'    assets version. If the `SHINYLIVE_ASSETS_VERSION` environment variable is set,
+#'    that value will be used.
 #' @export
 assets_version <- function() {
-  SHINYLIVE_ASSETS_VERSION
+  Sys.getenv("SHINYLIVE_ASSETS_VERSION", SHINYLIVE_ASSETS_VERSION)
 }
 
 # """Checks if the URL for the Shinylive assets bundle is valid.

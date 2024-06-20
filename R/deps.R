@@ -75,28 +75,28 @@ quarto_html_dependency_obj <- function(
   )
 }
 
-shinylive_base_deps_htmldep <- function(sw_dir = NULL) {
+shinylive_base_deps_htmldep <- function(sw_dir = NULL, version = assets_version()) {
   list(
-    serviceworker_dep(sw_dir),
-    shinylive_common_dep_htmldep("base")
+    serviceworker_dep(sw_dir, version = version),
+    shinylive_common_dep_htmldep("base", version = version)
   )
 }
-shinylive_r_resources <- function() {
-  shinylive_common_dep_htmldep("r")$resources
+shinylive_r_resources <- function(version = assets_version()) {
+  shinylive_common_dep_htmldep("r", version = version)$resources
 }
 # Not used in practice!
-shinylive_python_resources <- function(sw_dir = NULL) {
-  shinylive_common_dep_htmldep("python")$resources
+shinylive_python_resources <- function(sw_dir = NULL, version = assets_version()) {
+  shinylive_common_dep_htmldep("python", version = version)$resources
 }
 
 
-serviceworker_dep <- function(sw_dir) {
+serviceworker_dep <- function(sw_dir, version = assets_version()) {
   quarto_html_dependency_obj(
     name = "shinylive-serviceworker",
-    version = SHINYLIVE_ASSETS_VERSION,
+    version = version,
     serviceworkers = list(
       html_dep_serviceworker_obj(
-        source = file.path(assets_dir(), "shinylive-sw.js"),
+        source = file.path(assets_dir(version = version), "shinylive-sw.js"),
         destination = "/shinylive-sw.js"
       )
     ),
@@ -117,8 +117,11 @@ serviceworker_dep <- function(sw_dir) {
 # dependencies; in other words, the files that are always included in a
 # Shinylive deployment.
 # """
-shinylive_common_dep_htmldep <- function(dep_type = c("base", "python", "r")) {
-  assets_path <- assets_dir()
+shinylive_common_dep_htmldep <- function(
+  dep_type = c("base", "python", "r"),
+  version = assets_version()
+) {
+  assets_path <- assets_dir(version = version)
   # In quarto ext, keep support for python engine
   rel_common_files <- shinylive_common_files(dep_type = dep_type)
   abs_common_files <- file.path(assets_path, rel_common_files)
@@ -218,7 +221,7 @@ shinylive_common_dep_htmldep <- function(dep_type = c("base", "python", "r")) {
   quarto_html_dependency_obj(
     # MUST be called `"shinylive"` to match quarto ext name
     name = "shinylive",
-    version = SHINYLIVE_ASSETS_VERSION,
+    version = assets_version(),
     scripts = scripts,
     stylesheets = stylesheets,
     resources = resources
@@ -230,11 +233,14 @@ shinylive_common_dep_htmldep <- function(dep_type = c("base", "python", "r")) {
 # Return a list of files that are base dependencies; in other words, the files
 # that are always included in a Shinylive deployment.
 # """
-shinylive_common_files <- function(dep_type = c("base", "python", "r")) {
+shinylive_common_files <- function(
+  dep_type = c("base", "python", "r"),
+  version = assets_version()
+) {
   dep_type <- match.arg(dep_type)
-  assets_ensure()
+  assets_ensure(version = version)
 
-  assets_folder <- assets_dir()
+  assets_folder <- assets_dir(version = version)
   # # `dir()` is 10x faster than `fs::dir_ls()`
   # common_files <- dir(assets_folder, recursive = TRUE)
 

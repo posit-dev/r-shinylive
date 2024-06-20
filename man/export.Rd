@@ -11,7 +11,8 @@ export(
   subdir = "",
   verbose = is_interactive(),
   wasm_packages = TRUE,
-  package_cache = TRUE
+  package_cache = TRUE,
+  assets_version = NULL
 )
 }
 \arguments{
@@ -31,6 +32,9 @@ part of the output app's static assets. Defaults to \code{TRUE}.}
 
 \item{package_cache}{Cache downloaded binary WebAssembly packages. Defaults
 to \code{TRUE}.}
+
+\item{assets_version}{The version of the Shinylive assets to use in the
+exported app. Defaults to \code{\link[=assets_version]{assets_version()}}.}
 }
 \value{
 Nothing. The app is exported to \code{destdir}. Instructions for serving
