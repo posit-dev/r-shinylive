@@ -61,7 +61,8 @@ using <code>httpuv</code>.</p>
 <span>  subdir <span class="op">=</span> <span class="st">""</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="fu">is_interactive</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  wasm_packages <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  package_cache <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  package_cache <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  assets_version <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -96,6 +97,11 @@ part of the output app's static assets. Defaults to <code>TRUE</code>.</p></dd>
 <dt>package_cache</dt>
 <dd><p>Cache downloaded binary WebAssembly packages. Defaults
 to <code>TRUE</code>.</p></dd>
+
+
+<dt>assets_version</dt>
+<dd><p>The version of the Shinylive assets to use in the
+exported app. Defaults to <code><a href="assets.html">assets_version()</a></code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
