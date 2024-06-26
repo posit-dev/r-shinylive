@@ -34,7 +34,10 @@ part of the output app's static assets. Defaults to \code{TRUE}.}
 to \code{TRUE}.}
 
 \item{assets_version}{The version of the Shinylive assets to use in the
-exported app. Defaults to \code{\link[=assets_version]{assets_version()}}.}
+exported app. Defaults to \code{\link[=assets_version]{assets_version()}}. Note, not all custom assets
+versions may work with this release of \pkg{shinylive}. Please visit the
+\href{https://github.com/posit-dev/shinylive/releases}{shinylive asset releases}
+website to learn more information about the available \code{assets_version} values.}
 }
 \value{
 Nothing. The app is exported to \code{destdir}. Instructions for serving
