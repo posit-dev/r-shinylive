@@ -13,7 +13,8 @@
 #' @param package_cache Cache downloaded binary WebAssembly packages. Defaults
 #'    to `TRUE`.
 #' @param assets_version The version of the Shinylive assets to use in the
-#'    exported app. Defaults to [assets_version()].
+#'    exported app. Defaults to [assets_version()]. Note, not all custom assets
+#'    versions may work with this release of \pkg{shinylive}.
 #' @param ... Ignored
 #' @export
 #' @return Nothing. The app is exported to `destdir`. Instructions for serving
