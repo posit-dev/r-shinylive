@@ -70,7 +70,7 @@ This function exports a Shiny app to a directory, which can then be served
 using \code{httpuv}.
 }
 \examples{
-\dontshow{if (is_interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (rlang::is_interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 app_dir <- system.file("examples", "01_hello", package = "shiny")
 out_dir <- tempfile("shinylive-export")
 
