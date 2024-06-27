@@ -13,7 +13,8 @@ export(
   wasm_packages = TRUE,
   package_cache = TRUE,
   assets_version = NULL,
-  template_dir = NULL
+  template_dir = NULL,
+  template_params = list()
 )
 }
 \arguments{
@@ -44,6 +45,21 @@ values.}
 \item{template_dir}{Path to a custom template directory to use when exporting
 the shinylive app. The template can be copied from the shinylive assets
 using: \code{fs::path(shinylive:::assets_dir(), "export_template")}.}
+
+\item{template_params}{A list of parameters to pass to the template. The
+supported parameters depends on the template being used. Custom templates
+may support additional parameters (see \code{template_dir} for instructions on
+creating a custom template or to find the current shinylive assets'
+templates).
+
+With shinylive assets > 0.4.1, the default export template supports the
+following parameters:
+\enumerate{
+\item \code{title}: The title of the app. Defaults to \code{"Shiny app"}.
+\item \code{include_in_head}, \code{include_before_body}, \code{include_after_body}: Raw
+HTML to be included in the \verb{<head>}, just after the opening \verb{<body>},
+or just before the closing \verb{</body>} tag, respectively.
+}}
 }
 \value{
 Nothing. The app is exported to \code{destdir}. Instructions for serving
@@ -54,7 +70,7 @@ This function exports a Shiny app to a directory, which can then be served
 using \code{httpuv}.
 }
 \examples{
-\dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (is_interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 app_dir <- system.file("examples", "01_hello", package = "shiny")
 out_dir <- tempfile("shinylive-export")
 

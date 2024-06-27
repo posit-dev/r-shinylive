@@ -21,6 +21,19 @@
 #' @param template_dir Path to a custom template directory to use when exporting
 #'   the shinylive app. The template can be copied from the shinylive assets
 #'   using: `fs::path(shinylive:::assets_dir(), "export_template")`.
+#' @param template_params A list of parameters to pass to the template. The
+#'   supported parameters depends on the template being used. Custom templates
+#'   may support additional parameters (see `template_dir` for instructions on
+#'   creating a custom template or to find the current shinylive assets' 
+#'   templates).
+#'   
+#'   With shinylive assets > 0.4.1, the default export template supports the
+#'   following parameters:
+#' 
+#'   1. `title`: The title of the app. Defaults to `"Shiny app"`.
+#'   2. `include_in_head`, `include_before_body`, `include_after_body`: Raw
+#'      HTML to be included in the `<head>`, just after the opening `<body>`,
+#'      or just before the closing `</body>` tag, respectively.
 #' @param ... Ignored
 #' @export
 #' @return Nothing. The app is exported to `destdir`. Instructions for serving
@@ -45,7 +58,8 @@ export <- function(
     wasm_packages = TRUE,
     package_cache = TRUE,
     assets_version = NULL,
-    template_dir = NULL
+    template_dir = NULL,
+    template_params = list()
 ) {
   verbose_print <- if (verbose) message else list
   if (is.null(assets_version)) {
@@ -178,7 +192,8 @@ export <- function(
     app_info,
     destdir,
     html_source_dir = template_dir %||% fs::path(assets_path, "export_template"),
-    verbose = verbose
+    verbose = verbose,
+    template_params = template_params
   )
 
   verbose_print(

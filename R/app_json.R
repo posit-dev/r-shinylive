@@ -155,6 +155,7 @@ write_app_json <- function(
   app_info,
   destdir,
   html_source_dir,
+  template_params = list(),
   verbose = is_interactive()
 ) {
   verbose_print <- if (isTRUE(verbose)) message else list
@@ -175,13 +176,23 @@ write_app_json <- function(
   # the template parameters.
   template_html_files <- fs::dir_ls(html_source_dir, recurse = TRUE, glob = "**.html")
 
+  template_params <- rlang::dots_list(
+    # Forced parameters
+    REL_PATH = subdir_inverse,
+    APP_ENGINE = "r",
+    # User parameters
+    !!!template_params,
+    # Default parameters
+    title = "Shiny App",
+    .homonyms = "first"
+  )
+
   for (template_file in template_html_files) {
     file_content <- brio::read_file(template_file)
     
-    file_content_interp <- glue::glue(
+    file_content_interp <- glue::glue_data(
+      template_params,
       file_content,
-      REL_PATH = subdir_inverse,
-      APP_ENGINE = "r",
       .open = "{{",
       .close = "}}"
     )
