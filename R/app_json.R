@@ -151,7 +151,6 @@ read_app_files <- function(
 # """
 # Write index.html, edit/index.html, and app.json for an application in the destdir.
 # """
-#' @importFrom rlang is_interactive
 write_app_json <- function(
   app_info,
   destdir,

@@ -25,8 +25,7 @@
 #' @export
 #' @return Nothing. The app is exported to `destdir`. Instructions for serving
 #' the directory are printed to stdout.
-#' @importFrom rlang is_interactive
-#' @examplesIf interactive()
+#' @examplesIf is_interactive()
 #' app_dir <- system.file("examples", "01_hello", package = "shiny")
 #' out_dir <- tempfile("shinylive-export")
 #'

@@ -109,7 +109,6 @@
 #'     ]
 #'     ```
 #'
-#' @importFrom rlang is_interactive
 quarto_ext <- function(
     args = commandArgs(trailingOnly = TRUE),
     ...,
