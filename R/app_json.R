@@ -190,11 +190,10 @@ write_app_json <- function(
   for (template_file in template_html_files) {
     file_content <- brio::read_file(template_file)
     
-    file_content_interp <- glue::glue_data(
-      template_params,
-      file_content,
-      .open = "{{",
-      .close = "}}"
+    file_content_interp <- glue_template(
+      template = file_content, 
+      params = template_params,
+      file = template_file
     )
     
     dest_file <- fs::path(app_destdir, fs::path_rel(template_file, html_source_dir))
@@ -212,4 +211,35 @@ write_app_json <- function(
     pretty = FALSE
   )
   verbose_print(": ", fs::file_info(app_json_output_file)$size[1], " bytes")
+}
+
+glue_template <- function(template, params, file = NULL) {
+  params <- list2env(params)
+  transformer <- glue_template_transformer(file)
+
+  glue::glue(
+    template,
+    .envir = params,
+    .open = "{{",
+    .close = "}}",
+    .na = "",
+    .null = "",
+    .transformer = transformer
+  )
+}
+
+glue_template_transformer <- function(file) {
+  function(text, envir) {
+    text <- trimws(text)
+
+    if (!exists(text, envir = envir)) {
+      rlang::abort(paste0(
+        "The template parameter `{{ ", text, " }}` was used ", 
+        "in the export template in '", file, "', ", 
+        "but a value was not provided to `template_params`."
+      ))
+    }
+
+    get(text, envir = envir, inherits = FALSE)
+  }
 }
