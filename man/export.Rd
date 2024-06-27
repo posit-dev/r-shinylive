@@ -12,7 +12,8 @@ export(
   verbose = is_interactive(),
   wasm_packages = TRUE,
   package_cache = TRUE,
-  assets_version = NULL
+  assets_version = NULL,
+  template_dir = NULL
 )
 }
 \arguments{
@@ -37,7 +38,12 @@ to \code{TRUE}.}
 exported app. Defaults to \code{\link[=assets_version]{assets_version()}}. Note, not all custom assets
 versions may work with this release of \pkg{shinylive}. Please visit the
 \href{https://github.com/posit-dev/shinylive/releases}{shinylive asset releases}
-website to learn more information about the available \code{assets_version} values.}
+website to learn more information about the available \code{assets_version}
+values.}
+
+\item{template_dir}{Path to a custom template directory to use when exporting
+the shinylive app. The template can be copied from the shinylive assets
+using: \code{fs::path(shinylive:::assets_dir(), "export_template")}.}
 }
 \value{
 Nothing. The app is exported to \code{destdir}. Instructions for serving

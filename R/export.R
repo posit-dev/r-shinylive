@@ -7,16 +7,20 @@
 #' @param destdir Destination directory.
 #' @param subdir Subdirectory of `destdir` to write the app to.
 #' @param verbose Print verbose output. Defaults to `TRUE` if running
-#'    interactively.
+#'   interactively.
 #' @param wasm_packages Download and include binary WebAssembly packages as
-#'    part of the output app's static assets. Defaults to `TRUE`.
+#'   part of the output app's static assets. Defaults to `TRUE`.
 #' @param package_cache Cache downloaded binary WebAssembly packages. Defaults
-#'    to `TRUE`.
+#'   to `TRUE`.
 #' @param assets_version The version of the Shinylive assets to use in the
-#'    exported app. Defaults to [assets_version()]. Note, not all custom assets
-#'    versions may work with this release of \pkg{shinylive}. Please visit the
-#'    [shinylive asset releases](https://github.com/posit-dev/shinylive/releases)
-#'    website to learn more information about the available `assets_version` values.
+#'   exported app. Defaults to [assets_version()]. Note, not all custom assets
+#'   versions may work with this release of \pkg{shinylive}. Please visit the
+#'   [shinylive asset releases](https://github.com/posit-dev/shinylive/releases)
+#'   website to learn more information about the available `assets_version`
+#'   values.
+#' @param template_dir Path to a custom template directory to use when exporting
+#'   the shinylive app. The template can be copied from the shinylive assets
+#'   using: `fs::path(shinylive:::assets_dir(), "export_template")`.
 #' @param ... Ignored
 #' @export
 #' @return Nothing. The app is exported to `destdir`. Instructions for serving
@@ -41,7 +45,8 @@ export <- function(
     verbose = is_interactive(),
     wasm_packages = TRUE,
     package_cache = TRUE,
-    assets_version = NULL
+    assets_version = NULL,
+    template_dir = NULL
 ) {
   verbose_print <- if (verbose) message else list
   if (is.null(assets_version)) {
@@ -173,7 +178,7 @@ export <- function(
   write_app_json(
     app_info,
     destdir,
-    html_source_dir = fs::path(assets_path, "export_template"),
+    html_source_dir = template_dir %||% fs::path(assets_path, "export_template"),
     verbose = verbose
   )
 
