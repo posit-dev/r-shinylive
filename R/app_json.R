@@ -42,8 +42,9 @@ app_info_obj <- function(appdir, subdir, files) {
 #     they are in a subdir of the application.
 # """
 read_app_files <- function(
-    appdir,
-    destdir) {
+  appdir,
+  destdir
+) {
   exclude_names <- c("__pycache__", "venv", ".venv", "rsconnect")
   # exclude_names_map <- setNames(rep(TRUE, length(exclude_names)), exclude_names)
   is_excluded <- function(name) {

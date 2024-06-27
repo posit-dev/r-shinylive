@@ -1,9 +1,10 @@
 HTML_DEP_ITEM_CLASS <- "shinylive_html_dep"
 html_dep_obj <- function(
-    ...,
-    name,
-    path,
-    attribs = NULL) {
+  ...,
+  name,
+  path,
+  attribs = NULL
+) {
   stopifnot(length(list(...)) == 0)
   assert_nzchar_string(name)
   assert_nzchar_string(path)
@@ -23,9 +24,10 @@ html_dep_obj <- function(
 
 HTML_DEP_SERVICEWORKER_CLASS <- "shinylive_html_dep_serviceworker"
 html_dep_serviceworker_obj <- function(
-    ...,
-    source,
-    destination) {
+  ...,
+  source,
+  destination
+) {
   stopifnot(length(list(...)) == 0)
   assert_nzchar_string(source)
   assert_nzchar_string(destination)
@@ -40,15 +42,16 @@ html_dep_serviceworker_obj <- function(
 
 QUARTO_HTML_DEPENDENCY_CLASS <- "shinylive_quarto_html_dependency"
 quarto_html_dependency_obj <- function(
-    ...,
-    name,
-    version = NULL,
-    scripts = NULL,
-    stylesheets = NULL,
-    resources = NULL,
-    meta = NULL,
-    head = NULL,
-    serviceworkers = NULL) {
+  ...,
+  name,
+  version = NULL,
+  scripts = NULL,
+  stylesheets = NULL,
+  resources = NULL,
+  meta = NULL,
+  head = NULL,
+  serviceworkers = NULL
+) {
   stopifnot(length(list(...)) == 0)
   assert_nzchar_string(name)
   is.null(version) || assert_nzchar_string(version)
@@ -132,7 +135,8 @@ shinylive_common_dep_htmldep <- function(
   stylesheets <- NULL
   resources <- NULL
 
-  switch(dep_type,
+  switch(
+    dep_type,
     "python" = ,
     "r" = {
       # Language specific files are all resources
@@ -160,7 +164,8 @@ shinylive_common_dep_htmldep <- function(
         abs_common_files,
         basename(rel_common_files),
         f = function(rel_common_file, abs_common_file, common_file_basename) {
-          switch(common_file_basename,
+          switch(
+            common_file_basename,
             "run-python-blocks.js" = {
               run_python_blocks_dep <<-
                 html_dep_obj(
@@ -269,7 +274,8 @@ shinylive_common_files <- function(
   }
 
   common_files <-
-    switch(dep_type,
+    switch(
+      dep_type,
       "base" = {
         # Do copy any "top-level" python files as they are minimal
         c(
