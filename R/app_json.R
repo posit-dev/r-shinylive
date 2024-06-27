@@ -172,40 +172,24 @@ write_app_json <- function(
     subdir_inverse <- paste0(subdir_inverse, "/")
   }
 
+  # Then iterate over the HTML files in the template directory and interpolate
+  # the template parameters.
+  template_html_files <- fs::dir_ls(html_source_dir, recurse = TRUE, glob = "**.html")
 
-  for (copy_info in list(
-    list(
-      src = fs::path(html_source_dir, "index.html"),
-      dest = fs::path(app_destdir, "index.html")
-    ),
-    list(
-      src = fs::path(html_source_dir, "edit", "index.html"),
-      dest = fs::path(app_destdir, "edit", "index.html")
+  for (template_file in template_html_files) {
+    file_content <- brio::read_file(template_file)
+    
+    file_content_interp <- glue::glue(
+      file_content,
+      REL_PATH = subdir_inverse,
+      APP_ENGINE = "r",
+      .open = "{{",
+      .close = "}}"
     )
-  )) {
-    # Create destination directory
-    fs::dir_create(fs::path_dir(copy_info$dest))
-
-    # Read file
-    index_content <- brio::read_file(copy_info$src)
-    # Replace template info
-    index_content <- gsub(
-      pattern = "{{REL_PATH}}",
-      replacement = subdir_inverse,
-      index_content,
-      fixed = TRUE
-    )
-
-    # Set wasm engine
-    index_content <- gsub(
-      pattern = "{{APP_ENGINE}}",
-      replacement = "r",
-      index_content,
-      fixed = TRUE
-    )
-
-    # Save updated file contents
-    brio::write_file(index_content, copy_info$dest)
+    
+    dest_file <- fs::path(app_destdir, fs::path_rel(template_file, html_source_dir))
+    fs::dir_create(fs::path_dir(dest_file))
+    brio::write_file(file_content_interp, dest_file)
   }
 
   app_json_output_file <- fs::path(app_destdir, "app.json")
