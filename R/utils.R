@@ -67,9 +67,9 @@ drop_nulls_rec <- function(x) {
 # 2. Copy all files
 # IO operations are slow in R. It is faster to call `fs::file_copy()` with a large vector than many times with single values.
 create_copy_fn <- function(
-    overwrite = FALSE,
-    verbose_print = list # or `message`
-    ) {
+  overwrite = FALSE,
+  verbose_print = list # or `message`
+) {
   overwrite <- isTRUE(overwrite)
   stopifnot(is.function(verbose_print))
 
