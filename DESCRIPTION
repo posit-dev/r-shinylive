@@ -29,7 +29,8 @@ Imports:
     rappdirs,
     renv,
     rlang,
-    tools
+    tools,
+    whisker
 Suggests:
     httpuv (>= 1.6.12),
     pkgcache,
