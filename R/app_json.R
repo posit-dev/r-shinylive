@@ -234,11 +234,7 @@ glue_template_transformer <- function(file) {
     text <- trimws(text)
 
     if (!exists(text, envir = envir)) {
-      rlang::abort(paste0(
-        "The template parameter `{{ ", text, " }}` was used ", 
-        "in the export template in '", file, "', ", 
-        "but a value was not provided to `template_params`."
-      ))
+      return("")
     }
 
     get(text, envir = envir, inherits = FALSE)

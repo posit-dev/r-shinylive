@@ -1,7 +1,7 @@
-test_that("glue_template() errors if template param is not defined", {
-  expect_snapshot(
+test_that("glue_template() returns empty string if template param is not defined", {
+  expect_equal(
     glue_template("{{ not_defined }}", list(), "export_template/index.html"),
-    error = TRUE
+    glue::glue("")
   )
 })
 
