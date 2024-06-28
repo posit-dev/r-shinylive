@@ -175,7 +175,7 @@ write_app_json <- function(
 
   # Then iterate over the HTML files in the template directory and interpolate
   # the template parameters.
-  template_html_files <- fs::dir_ls(html_source_dir, recurse = TRUE, glob = "**.html")
+  template_html_files <- fs::dir_ls(html_source_dir, recurse = TRUE, type = "file")
 
   template_params <- rlang::dots_list(
     # Forced parameters
@@ -189,16 +189,18 @@ write_app_json <- function(
   )
 
   for (template_file in template_html_files) {
-    file_content <- brio::read_file(template_file)
-    
-    file_content_interp <- whisker::whisker.render(
-      template = file_content, 
-      data = template_params
-    )
-    
     dest_file <- fs::path(app_destdir, fs::path_rel(template_file, html_source_dir))
     fs::dir_create(fs::path_dir(dest_file))
-    brio::write_file(file_content_interp, dest_file)
+
+    if (fs::path_ext(template_file) == "html") {
+      file_content <- whisker::whisker.render(
+        template = brio::read_file(template_file), 
+        data = template_params
+      )
+      brio::write_file(file_content, dest_file)
+    } else {
+      fs::file_copy(template_file, dest_file)
+    }
   }
 
   app_json_output_file <- fs::path(app_destdir, "app.json")
