@@ -34,14 +34,14 @@
 #'   httpuv::runStaticServer(out_dir)
 #' }
 export <- function(
-    appdir,
-    destdir,
-    ...,
-    subdir = "",
-    verbose = is_interactive(),
-    wasm_packages = TRUE,
-    package_cache = TRUE,
-    assets_version = NULL
+  appdir,
+  destdir,
+  ...,
+  subdir = "",
+  verbose = is_interactive(),
+  wasm_packages = TRUE,
+  package_cache = TRUE,
+  assets_version = NULL
 ) {
   verbose_print <- if (verbose) message else list
   if (is.null(assets_version)) {

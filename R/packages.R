@@ -101,15 +101,21 @@ get_github_wasm_assets <- function(desc) {
 
   # Find a release for installed package's RemoteRef
   tags <- tryCatch(
-    gh::gh("/repos/{user}/{repo}/releases/tags/{ref}",
-      user = user, repo = repo, ref = ref
+    gh::gh(
+      "/repos/{user}/{repo}/releases/tags/{ref}",
+      user = user,
+      repo = repo,
+      ref = ref
     ),
     error = function(err) {
-      rlang::abort(c(
-        glue::glue("Can't find GitHub release for github::{user}/{repo}@{ref}"),
-        "!" = glue::glue("Ensure a GitHub release exists for the package repository reference: \"{ref}\"."),
-        "i" = "Alternatively, install a CRAN version of this package to use the default Wasm binary repository."
-      ), parent = err)
+      rlang::abort(
+        c(
+          glue::glue("Can't find GitHub release for github::{user}/{repo}@{ref}"),
+          "!" = glue::glue("Ensure a GitHub release exists for the package repository reference: \"{ref}\"."),
+          "i" = "Alternatively, install a CRAN version of this package to use the default Wasm binary repository."
+        ),
+        parent = err
+      )
     }
   )
 
@@ -207,7 +213,7 @@ prepare_wasm_metadata <- function(pkg, metadata, verbose) {
 # withr::with_envvar(list(SHINYLIVE_DOWNLOAD_WASM_CORE_PACKAGES = "bslib"), {CODE})
 env_download_wasm_core_packages <- function() {
   pkgs <- Sys.getenv("SHINYLIVE_DOWNLOAD_WASM_CORE_PACKAGES", "")
-  
+
   if (!nzchar(pkgs)) {
     return()
   }
@@ -217,11 +223,11 @@ env_download_wasm_core_packages <- function() {
 
 download_wasm_packages <- function(appdir, destdir, verbose, package_cache) {
   verbose_print <- if (verbose) message else list
-  
+
   # Core packages in base webR image that we don't need to download
   shiny_pkgs <- c("shiny", "bslib", "renv")
   shiny_pkgs <- resolve_dependencies(shiny_pkgs, verbose, local = FALSE)
-  
+
   # If a package appears in the download core allow list,
   # we remove it from the internal list of packages to skip downloading
   pkgs_download_core <- env_download_wasm_core_packages()

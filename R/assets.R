@@ -18,13 +18,14 @@
 #'
 #' All other methods return `invisible()`.
 assets_download <- function(
-    version = assets_version(),
-    ...,
-    # Note that this is the cache directory, which is the parent of the assets
-    # directory. The tarball will have the assets directory as the top-level
-    # subdir.
-    dir = assets_cache_dir(),
-    url = assets_bundle_url(version)) {
+  version = assets_version(),
+  ...,
+  # Note that this is the cache directory, which is the parent of the assets
+  # directory. The tarball will have the assets directory as the top-level
+  # subdir.
+  dir = assets_cache_dir(),
+  url = assets_bundle_url(version)
+) {
   tmp_targz <- tempfile(
     paste0("shinylive-", gsub(".", "_", version, fixed = TRUE), "-"),
     fileext = ".tar.gz"
@@ -87,20 +88,22 @@ assets_dir <- function(version = assets_version(), ..., dir = assets_cache_dir()
 }
 shinylive_prefix <- "shinylive-"
 assets_dir_impl <- function(
-    ...,
-    dir = assets_cache_dir(),
-    version = assets_version()) {
+  ...,
+  dir = assets_cache_dir(),
+  version = assets_version()
+) {
   stopifnot(length(list(...)) == 0)
   fs::path(dir, paste0(shinylive_prefix, version))
 }
 
 
 install_local_helper <- function(
-    ...,
-    assets_repo_dir,
-    install_fn = fs::file_copy,
-    dir = assets_cache_dir(),
-    version = package_json_version(assets_repo_dir)) {
+  ...,
+  assets_repo_dir,
+  install_fn = fs::file_copy,
+  dir = assets_cache_dir(),
+  version = package_json_version(assets_repo_dir)
+) {
   stopifnot(length(list(...)) == 0)
   stopifnot(fs::dir_exists(assets_repo_dir))
   repo_build_dir <- fs::path(assets_repo_dir, "build")
@@ -138,10 +141,11 @@ install_local_helper <- function(
 #' @return All method return `invisible()`.
 #' @export
 assets_install_copy <- function(
-    assets_repo_dir,
-    ...,
-    dir = assets_cache_dir(),
-    version = package_json_version(assets_repo_dir)) {
+  assets_repo_dir,
+  ...,
+  dir = assets_cache_dir(),
+  version = package_json_version(assets_repo_dir)
+) {
   install_local_helper(
     ...,
     install_fn = function(from, to) {
@@ -161,10 +165,11 @@ assets_install_copy <- function(
 #'    same as the source due to the symlink.
 #' @export
 assets_install_link <- function(
-    assets_repo_dir,
-    ...,
-    dir = assets_cache_dir(),
-    version = package_json_version(assets_repo_dir)) {
+  assets_repo_dir,
+  ...,
+  dir = assets_cache_dir(),
+  version = package_json_version(assets_repo_dir)
+) {
   install_local_helper(
     ...,
     install_fn = function(from, to) {
@@ -192,10 +197,11 @@ assets_install_link <- function(
 #'    If a local copy of shinylive is installed, its path will be returned.
 #' @export
 assets_ensure <- function(
-    version = assets_version(),
-    ...,
-    dir = assets_cache_dir(),
-    url = assets_bundle_url(version)) {
+  version = assets_version(),
+  ...,
+  dir = assets_cache_dir(),
+  url = assets_bundle_url(version)
+) {
   stopifnot(length(list(...)) == 0)
   if (!fs::dir_exists(dir)) {
     message("Creating assets cache directory ", dir)
@@ -228,8 +234,9 @@ assets_ensure <- function(
 #'    the one used by the current version of \pkg{shinylive}.
 #' @export
 assets_cleanup <- function(
-    ...,
-    dir = assets_cache_dir()) {
+  ...,
+  dir = assets_cache_dir()
+) {
   stopifnot(length(list(...)) == 0)
   versions <- vapply(
     assets_dirs(dir = dir),
@@ -269,9 +276,10 @@ assets_cleanup <- function(
 #' @param versions The assets versions to remove.
 #' @export
 assets_remove <- function(
-    versions,
-    ...,
-    dir = assets_cache_dir()) {
+  versions,
+  ...,
+  dir = assets_cache_dir()
+) {
   stopifnot(length(list(...)) == 0)
   stopifnot(length(versions) > 0 && is.character(versions))
 
@@ -291,8 +299,9 @@ assets_remove <- function(
 
 
 assets_dirs <- function(
-    ...,
-    dir = assets_cache_dir()) {
+  ...,
+  dir = assets_cache_dir()
+) {
   stopifnot(length(list(...)) == 0)
   if (!fs::dir_exists(dir)) {
     return(character(0))
@@ -373,8 +382,9 @@ assets_version <- function() {
 # same as `assets_download()` and `assets_ensure()`.
 # """
 check_assets_url <- function(
-    version = assets_version(),
-    url = assets_bundle_url(version)) {
+  version = assets_version(),
+  url = assets_bundle_url(version)
+) {
   req <- httr2::request(url)
   req <- httr2::req_method(req, "HEAD")
   resp <- httr2::req_perform(req)

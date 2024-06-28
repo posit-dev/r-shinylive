@@ -111,11 +111,11 @@
 #'
 #' @importFrom rlang is_interactive
 quarto_ext <- function(
-    args = commandArgs(trailingOnly = TRUE),
-    ...,
-    pretty = is_interactive(),
-    con = "stdin"
-  ) {
+  args = commandArgs(trailingOnly = TRUE),
+  ...,
+  pretty = is_interactive(),
+  con = "stdin"
+) {
   stopifnot(length(list(...)) == 0)
   # This method should not print anything to stdout. Instead, it should return a JSON string that will be printed by the extension.
   stopifnot(length(args) >= 1)
@@ -179,7 +179,8 @@ quarto_ext <- function(
   }
   stopifnot(length(args) >= 2)
 
-  ret <- switch(args[2],
+  ret <- switch(
+    args[2],
     "info" = {
       list(
         "version" = SHINYLIVE_R_VERSION,
@@ -240,7 +241,7 @@ build_app_resources <- function(app_json) {
     simplifyDataFrame = FALSE,
     simplifyMatrix = FALSE
   )
-  lapply(app, function (file) {
+  lapply(app, function(file) {
     file_path <- fs::path(appdir, file$name)
     if (file$type == "text") {
       writeLines(file$content, file_path)
