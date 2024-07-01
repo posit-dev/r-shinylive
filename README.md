@@ -73,9 +73,9 @@ For more information, see the [examples folder](https://github.com/posit-dev/r-s
 
 ## R package availability
 
-The `{shinylive}` web assets will statically inspect which packages are being used via `{renv}`.
+The `{shinylive}` web assets will statically inspect which packages are being used in your app.
 
-If you need a package that can not be found by `{renv}`, add an impossible-to-reach code within your Shiny application that has a library call to that R package. For example:
+If your app includes a package that is not automatically discovered, you can add an impossible-to-reach code within your Shiny application that has a library call to that R package. For example:
 
 ```r
 if (FALSE) {
