@@ -13,7 +13,6 @@ Shinylive is a new way to run Shiny entirely in the browser, without any need fo
 
 ## About Shinylive
 
-This repository contains an R package for exporting Shiny applications as Shinylive applications.
 The Shinylive project consists of four interdependent components that work together in several different contexts.
 
 1. Shinylive ([posit-dev/shinylive](https://github.com/posit-dev/shinylive)) is web library that runs Shiny applications in the browser. You can try it out online at [shinylive.io/r](https://shinylive.io/r) or [shinylive.io/py](https://shinylive.io/py).
