@@ -196,9 +196,12 @@ export <- function(
     template_params = template_params
   )
 
+  # Escape backslashes in destdir because Windows
+  destdir_esc <- gsub("\\\\", "\\\\\\\\", destdir)
+
   verbose_print(
     "\nRun the following in an R session to serve the app:\n",
-    "  httpuv::runStaticServer(\"", destdir, "\")\n"
+    "  httpuv::runStaticServer(\"", destdir_esc, "\")\n"
   )
 
   invisible()
