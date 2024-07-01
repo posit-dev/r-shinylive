@@ -37,10 +37,12 @@ jobs:
           python -m pip install --upgrade pip
 
       - name: Install py-shinylive
+        id: py-shinylive
         shell: bash
         run: |
           pip install shinylive
           # pip install https://github.com/posit-dev/py-shinylive/archive/split_api.zip
+          echo "version=$(shinylive assets version)" >> "$GITHUB_OUTPUT"
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
@@ -124,10 +126,14 @@ jobs:
           shinylive::assets_ensure()
 
           testthat::test_local()
+      
       # If this (^^) completes, it is a big success!
       # Run quarto test after testthat test
       - name: Test shinylive quarto extension can build
         uses: quarto-dev/quarto-actions/render@v2
+        env:
+          # Test r-shinylive against the same shinylive assets as py-shinylive
+          SHINYLIVE_ASSETS_VERSION: ${{ steps.py-shinylive.outputs.version }}
         with:
           path: local/quarto/
 
