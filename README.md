@@ -8,12 +8,23 @@
 
 <!-- [py-shinylive Documentation site](https://shiny.rstudio.com/py/docs/shinylive.html) -->
 
+The goal of the `{shinylive}` R package is to help you create Shinylive applications from your [Shiny for R](https://shiny.posit.co) applications.
+Shinylive is a new way to run Shiny entirely in the browser, without any need for a hosted server, using WebAssembly via the [webR](https://docs.r-wasm.org/webr/latest/) project.
 
-This repository contains an R package for exporting Shiny applications as Shinylive applications.
+## About Shinylive
 
-This repository is not the same as the https://github.com/posit-dev/shinylive repository. That repository is used to generate the Shinylive assets distribution, which is a bundle containing HTML, JavaScript, CSS, and wasm files. The R package in this repository downloads the assets and uses them to create Shinylive applications.
+The Shinylive project consists of four interdependent components that work together in several different contexts.
 
-Twin shinylive python package: https://github.com/posit-dev/py-shinylive
+1. Shinylive ([posit-dev/shinylive](https://github.com/posit-dev/shinylive)) is web assets library that runs Shiny applications in the browser. You can try it out online at [shinylive.io/r](https://shinylive.io/r) or [shinylive.io/py](https://shinylive.io/py).
+
+2. The `{shinylive}` R package ([posit-dev/r-shinylive](https://github.com/posit-dev/r-shinylive)) helps you export your Shiny applications from local files to a directory that can be hosted on a static web server. 
+
+   The R package also downloads the Shinylive web assets mentioned above and manages them in a local cache. These assets are included in the exported Shinylive applications and are used to run your Shiny app in the browser.
+
+3. The [shinylive Python package](https://shiny.posit.co/py/docs/shinylive.html) ([posit-dev/py-shinylive](https://github.com/posit-dev/py-shinylive)) serves the same role as `{shinylive}` but for Shiny for Python applications.
+
+4. The [shinylive Quarto extension](https://quarto-ext.github.io/shinylive/) ([quarto-ext/shinylive](https://github.com/quarto-ext/shinylive)) lets you write Shiny applications in [Quarto web documents and slides](https://quarto.org) and uses the R or Python package (or both) to translate `shinylive-r` or `shinylive-py` code blocks into Shinylive applications.
+
 
 ## Installation
 
@@ -32,7 +43,7 @@ pak::pak("posit-dev/r-shinylive")
 
 ## Usage
 
-(Optional) Create a basic shiny application in a new directory `myapp/`:
+To get started, we'll create a basic shiny application in a new directory `myapp/`. If you have an existing Shiny application, you can skip this step and replace `"myapp"` with the path to your existing app.
 
 ``` r
 # Copy "Hello World" from `{shiny}`
@@ -66,7 +77,11 @@ shinylive::export("myapp2", "site", subdir = "app2")
 
 ### GitHub Pages
 
-`posit-dev/r-shiny` has a workflow to automatically deploy your Shiny app from the root directory in your GitHub repository to its GitHub Pages. To add this workflow to your repository, call `usethis::use_github_action(url="https://github.com/posit-dev/r-shinylive/blob/actions-v1/examples/deploy-app.yaml")`.
+`posit-dev/r-shiny` has a workflow to automatically deploy your Shiny app from the root directory in your GitHub repository to its GitHub Pages. You can add this workflow to your repo with help from [usethis](https://usethis.r-lib.org/).
+
+```r
+usethis::use_github_action(url="https://github.com/posit-dev/r-shinylive/blob/actions-v1/examples/deploy-app.yaml")
+```
 
 For more information, see the [examples folder](https://github.com/posit-dev/r-shinylive/tree/actions-v1/examples).
 
