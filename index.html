@@ -119,8 +119,8 @@
 <div class="section level2">
 <h2 id="r-package-availability">R package availability<a class="anchor" aria-label="anchor" href="#r-package-availability"></a>
 </h2>
-<p>The <a href="https://posit-dev.github.io/r-shinylive/">shinylive</a> web assets will statically inspect which packages are being used via <a href="https://rstudio.github.io/renv/" class="external-link">renv</a>.</p>
-<p>If you need a package that can not be found by <a href="https://rstudio.github.io/renv/" class="external-link">renv</a>, add an impossible-to-reach code within your Shiny application that has a library call to that R package. For example:</p>
+<p>The <a href="https://posit-dev.github.io/r-shinylive/">shinylive</a> web assets will statically inspect which packages are being used in your app.</p>
+<p>If your app includes a package that is not automatically discovered, you can add an impossible-to-reach code within your Shiny application that has a library call to that R package. For example:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">HIDDEN_CRAN_PKG</span><span class="op">)</span></span>
