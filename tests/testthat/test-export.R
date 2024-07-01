@@ -66,3 +66,65 @@ test_that("export - server.R", {
     c("global.R", "ui.R", "server.R")
   )
 })
+
+test_that("export with template", {
+  maybe_skip_test()
+  skip_if(assets_version() <= "0.4.1")
+
+  # For local testing until next release after 0.4.1
+  # withr::local_envvar(list("SHINYLIVE_ASSETS_VERSION" = "0.4.1"))
+
+  assets_ensure()
+  
+  path_export <- test_path("apps", "export_template")
+
+  if (FALSE) {
+    # Run this manually to re-initialize the export template, but you'll need to
+    # add the template parameters tested below.
+    path_export_src <- fs::path(shinylive:::assets_dir(), "export_template")
+    fs::dir_copy(path_export_src, path_export, overwrite = TRUE)
+  }
+
+  # Create a temporary directory
+  out_dir <- file.path(tempfile(), "out")
+  on.exit(unlink_path(out_dir))
+
+  app_dir <- test_path("apps", "app-r")
+
+  expect_silent({
+    export(
+      app_dir,
+      out_dir,
+      template_dir = path_export,
+      template_params = list(
+        # Included in export template for > 0.4.1
+        title = "Shinylive Test App",
+        include_before_body = "<h1>Shinylive Test App</h1>",
+        include_after_body = "<footer>r-shinylive</footer>",
+        # Included in the customized export template in test suite
+        description = "My custom export template param test app"
+      )
+    )
+  })
+
+  index_content <- brio::read_file(fs::path(out_dir, "index.html"))
+  expect_match(
+    index_content,
+    "<title>Shinylive Test App</title>"
+  )
+  
+  expect_match(
+    index_content,
+    "<body>\\s+<h1>Shinylive Test App</h1>"
+  )
+
+  expect_match(
+    index_content,
+    "<footer>r-shinylive</footer>\\s+</body>"
+  )
+
+  expect_match(
+    index_content,
+    "<meta name=\"description\" content=\"My custom export template param test app\">"
+  )
+})

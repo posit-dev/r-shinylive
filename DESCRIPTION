@@ -1,27 +1,35 @@
 Package: shinylive
 Title: Run 'shiny' Applications in the Browser
 Version: 0.1.1.9000
-Authors@R:
-    c(
-        person("Barret", "Schloerke", , "barret@posit.co", role = c("aut", "cre"),
+Authors@R: c(
+    person("Barret", "Schloerke", , "barret@posit.co", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-9986-114X")),
-        person("Winston", "Chang", role = c("aut"), email = "winston@posit.co", comment = c(ORCID = "0000-0002-1576-2126")),
-        person("George", "Stagg", role = "ctb", email = "george.stagg@posit.co"),
-        person("Posit Software, PBC", role = c("cph", "fnd"))
-    )
-Description: Exporting 'shiny' applications with 'shinylive' allows you to run them entirely in a web browser, without the need for a separate R server. The traditional way of deploying 'shiny' applications involves in a separate server and client: the server runs R and 'shiny', and clients connect via the web browser. When an application is deployed with 'shinylive', R and 'shiny' run in the web browser (via 'webR'): the browser is effectively both the client and server for the application. This allows for your 'shiny' application exported by 'shinylive' to be hosted by a static web server.
+    person("Winston", "Chang", , "winston@posit.co", role = "aut",
+           comment = c(ORCID = "0000-0002-1576-2126")),
+    person("George", "Stagg", , "george.stagg@posit.co", role = "aut"),
+    person("Garrick", "Aden-Buie", , "garrick@posit.co", role = "aut",
+           comment = c(ORCID = "0000-0002-7111-0077")),
+    person("Posit Software, PBC", role = c("cph", "fnd"))
+  )
+Description: Exporting 'shiny' applications with 'shinylive' allows you to
+    run them entirely in a web browser, without the need for a separate R
+    server. The traditional way of deploying 'shiny' applications involves
+    in a separate server and client: the server runs R and 'shiny', and
+    clients connect via the web browser. When an application is deployed
+    with 'shinylive', R and 'shiny' run in the web browser (via 'webR'):
+    the browser is effectively both the client and server for the
+    application. This allows for your 'shiny' application exported by
+    'shinylive' to be hosted by a static web server.
 License: MIT + file LICENSE
-Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+URL: https://posit-dev.github.io/r-shinylive/,
+    https://github.com/posit-dev/r-shinylive
 BugReports: https://github.com/posit-dev/r-shinylive/issues
-URL: https://posit-dev.github.io/r-shinylive/, https://github.com/posit-dev/r-shinylive
 Imports:
     archive,
     brio,
     fs,
-    glue,
     gh,
+    glue,
     httr2 (>= 1.0.0),
     jsonlite,
     pkgdepends,
@@ -29,7 +37,8 @@ Imports:
     rappdirs,
     renv,
     rlang,
-    tools
+    tools,
+    whisker
 Suggests:
     httpuv (>= 1.6.12),
     pkgcache,
@@ -37,4 +46,7 @@ Suggests:
     testthat (>= 3.0.0)
 Config/Needs/website: tidyverse/tidytemplate
 Config/testthat/edition: 3
+Encoding: UTF-8
 Language: en-US
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2

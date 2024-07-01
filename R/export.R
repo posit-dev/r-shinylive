@@ -7,22 +7,38 @@
 #' @param destdir Destination directory.
 #' @param subdir Subdirectory of `destdir` to write the app to.
 #' @param verbose Print verbose output. Defaults to `TRUE` if running
-#'    interactively.
+#'   interactively.
 #' @param wasm_packages Download and include binary WebAssembly packages as
-#'    part of the output app's static assets. Defaults to `TRUE`.
+#'   part of the output app's static assets. Defaults to `TRUE`.
 #' @param package_cache Cache downloaded binary WebAssembly packages. Defaults
-#'    to `TRUE`.
+#'   to `TRUE`.
 #' @param assets_version The version of the Shinylive assets to use in the
-#'    exported app. Defaults to [assets_version()]. Note, not all custom assets
-#'    versions may work with this release of \pkg{shinylive}. Please visit the
-#'    [shinylive asset releases](https://github.com/posit-dev/shinylive/releases)
-#'    website to learn more information about the available `assets_version` values.
+#'   exported app. Defaults to [assets_version()]. Note, not all custom assets
+#'   versions may work with this release of \pkg{shinylive}. Please visit the
+#'   [shinylive asset releases](https://github.com/posit-dev/shinylive/releases)
+#'   website to learn more information about the available `assets_version`
+#'   values.
+#' @param template_dir Path to a custom template directory to use when exporting
+#'   the shinylive app. The template can be copied from the shinylive assets
+#'   using: `fs::path(shinylive:::assets_dir(), "export_template")`.
+#' @param template_params A list of parameters to pass to the template. The
+#'   supported parameters depends on the template being used. Custom templates
+#'   may support additional parameters (see `template_dir` for instructions on
+#'   creating a custom template or to find the current shinylive assets' 
+#'   templates).
+#'   
+#'   With shinylive assets > 0.4.1, the default export template supports the
+#'   following parameters:
+#' 
+#'   1. `title`: The title of the app. Defaults to `"Shiny app"`.
+#'   2. `include_in_head`, `include_before_body`, `include_after_body`: Raw
+#'      HTML to be included in the `<head>`, just after the opening `<body>`,
+#'      or just before the closing `</body>` tag, respectively.
 #' @param ... Ignored
 #' @export
 #' @return Nothing. The app is exported to `destdir`. Instructions for serving
 #' the directory are printed to stdout.
-#' @importFrom rlang is_interactive
-#' @examplesIf interactive()
+#' @examplesIf rlang::is_interactive()
 #' app_dir <- system.file("examples", "01_hello", package = "shiny")
 #' out_dir <- tempfile("shinylive-export")
 #'
@@ -41,7 +57,9 @@ export <- function(
   verbose = is_interactive(),
   wasm_packages = TRUE,
   package_cache = TRUE,
-  assets_version = NULL
+  assets_version = NULL,
+  template_dir = NULL,
+  template_params = list()
 ) {
   verbose_print <- if (verbose) message else list
   if (is.null(assets_version)) {
@@ -173,8 +191,9 @@ export <- function(
   write_app_json(
     app_info,
     destdir,
-    html_source_dir = fs::path(assets_path, "export_template"),
-    verbose = verbose
+    template_dir = template_dir %||% fs::path(assets_path, "export_template"),
+    verbose = verbose,
+    template_params = template_params
   )
 
   verbose_print(
