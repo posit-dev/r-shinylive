@@ -8,7 +8,7 @@ test_that("quarto_ext handles `extension info`", {
   }))
   info <- jsonlite::parse_json(txt)
   expect_equal(info$version, as.character(utils::packageVersion("shinylive")))
-  expect_equal(info$assets_version, SHINYLIVE_ASSETS_VERSION)
+  expect_equal(info$assets_version, assets_version())
 
   expect_true(
     is.list(info$scripts) &&

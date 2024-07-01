@@ -37,10 +37,12 @@ jobs:
           python -m pip install --upgrade pip
 
       - name: Install py-shinylive
+        id: py-shinylive
         shell: bash
         run: |
           pip install shinylive
           # pip install https://github.com/posit-dev/py-shinylive/archive/split_api.zip
+          echo "version=$(shinylive assets version)" >> "$GITHUB_OUTPUT"
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
@@ -58,6 +60,13 @@ jobs:
         with:
           needs: quarto
 
+      - name: Test shinylive quarto extension with py-shinylive assets version
+        uses: quarto-dev/quarto-actions/render@v2
+        env:
+          SHINYLIVE_ASSETS_VERSION: ${{ steps.py-shinylive.outputs.version }}
+        with:
+          path: local/quarto/
+
       - name: Check out 'posit-dev/shinylive' repo into './shinylive_assets'
         uses: actions/checkout@v4
         with:
@@ -72,10 +81,20 @@ jobs:
           make all
 
       - name: Link shinylive assets
+        id: r-linked-assets
         shell: Rscript {0}
         run: |
+          shinylive_local_version <- shinylive:::package_json_version("shinylive_assets")
+          shinylive::assets_remove(shinylive_local_version)
           shinylive::assets_install_copy("shinylive_assets")
           shinylive::assets_info()
+          cat(
+            "version=", shinylive_local_version,
+            file = Sys.getenv("GITHUB_OUTPUT"),
+            append = TRUE,
+            sep = ""
+          )
+
       - name: Update lua script for debugging
         shell: Rscript {0}
         run: |
@@ -104,6 +123,7 @@ jobs:
       - name: Run shinylive R package tests
         env:
           TEST_ASSETS: "TRUE"
+          SHINYLIVE_ASSETS_VERSION: ${{ steps.r-linked-assets.outputs.version }}
         shell: Rscript {0}
         run: |
           shinylive::assets_info()
@@ -114,10 +134,13 @@ jobs:
           shinylive::assets_ensure()
 
           testthat::test_local()
-      # If this (^^) completes, it is a big success!
-      # Run quarto test after testthat test
-      - name: Test shinylive quarto extension can build
+
+      - name: Test shinylive quarto extension with latest shinylive assets
         uses: quarto-dev/quarto-actions/render@v2
+        env:
+          # TODO: py-shinylive doesn't follow this envvar yet. If shinylive
+          # has a newer version, this action will fail.
+          SHINYLIVE_ASSETS_VERSION: ${{ steps.r-linked-assets.outputs.version }}
         with:
           path: local/quarto/
 
