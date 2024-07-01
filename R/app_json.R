@@ -155,14 +155,14 @@ read_app_files <- function(
 write_app_json <- function(
   app_info,
   destdir,
-  html_source_dir,
+  template_dir,
   template_params = list(),
   verbose = is_interactive()
 ) {
   verbose_print <- if (isTRUE(verbose)) message else list
   stopifnot(inherits(app_info, APP_INFO_CLASS))
   # stopifnot(fs::dir_exists(destdir))
-  stopifnot(fs::dir_exists(html_source_dir))
+  stopifnot(fs::dir_exists(template_dir))
 
   app_destdir <- fs::path(destdir, app_info$subdir)
 
@@ -175,7 +175,7 @@ write_app_json <- function(
 
   # Then iterate over the HTML files in the template directory and interpolate
   # the template parameters.
-  template_html_files <- fs::dir_ls(html_source_dir, recurse = TRUE, type = "file")
+  template_files <- fs::dir_ls(template_dir, recurse = TRUE, type = "file")
 
   template_params <- rlang::dots_list(
     # Forced parameters
@@ -188,8 +188,8 @@ write_app_json <- function(
     .homonyms = "first"
   )
 
-  for (template_file in template_html_files) {
-    dest_file <- fs::path(app_destdir, fs::path_rel(template_file, html_source_dir))
+  for (template_file in template_files) {
+    dest_file <- fs::path(app_destdir, fs::path_rel(template_file, template_dir))
     fs::dir_create(fs::path_dir(dest_file))
 
     if (fs::path_ext(template_file) == "html") {

@@ -191,7 +191,7 @@ export <- function(
   write_app_json(
     app_info,
     destdir,
-    html_source_dir = template_dir %||% fs::path(assets_path, "export_template"),
+    template_dir = template_dir %||% fs::path(assets_path, "export_template"),
     verbose = verbose,
     template_params = template_params
   )
