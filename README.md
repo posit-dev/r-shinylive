@@ -13,7 +13,8 @@ Shinylive is a new way to run Shiny entirely in the browser, without any need fo
 
 ## About Shinylive
 
-The Shinylive project consists of four interdependent components:
+This repository contains an R package for exporting Shiny applications as Shinylive applications.
+The Shinylive project consists of four interdependent components that work together in several different contexts.
 
 1. Shinylive ([posit-dev/shinylive](https://github.com/posit-dev/shinylive)) is web library that runs Shiny applications in the browser. You can try it out online at [shinylive.io/r](https://shinylive.io/r) or [shinylive.io/py](https://shinylive.io/py).
 
@@ -24,8 +25,6 @@ The Shinylive project consists of four interdependent components:
 3. The [shinylive Python package](https://shiny.posit.co/py/docs/shinylive.html) ([posit-dev/py-shinylive](https://github.com/posit-dev/py-shinylive)) serves the same role as `{shinylive}` but for Shiny for Python applications.
 
 4. The [shinylive Quarto extension](https://quarto-ext.github.io/shinylive/) ([quarto-ext/shinylive](https://github.com/quarto-ext/shinylive)) lets you write Shiny applications in Quarto documents and uses the R or Python package (or both) to translate `shinylive-r` or `shinylive-py` code blocks into Shinylive applications.
-
-This repository contains an R package for exporting Shiny applications as Shinylive applications.
 
 
 ## Installation
