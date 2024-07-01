@@ -84,15 +84,16 @@ jobs:
         id: r-linked-assets
         shell: Rscript {0}
         run: |
+          shinylive_local_version <- shinylive:::package_json_version("shinylive_assets")
+          shinylive::assets_remove(shinylive_local_version)
           shinylive::assets_install_copy("shinylive_assets")
           shinylive::assets_info()
           cat(
-            "version=", shinylive:::package_json_version("shinylive_assets"),
+            "version=", shinylive_local_version,
             file = Sys.getenv("GITHUB_OUTPUT"),
             append = TRUE,
             sep = ""
           )
-
 
       - name: Update lua script for debugging
         shell: Rscript {0}
@@ -133,15 +134,12 @@ jobs:
           shinylive::assets_ensure()
 
           testthat::test_local()
-      
-      - name: Link shinylive assets for py-shinylive
-        shell: bash
-        run: |
-          shinylive assets link-from-local shinylive_assets/build
 
       - name: Test shinylive quarto extension with latest shinylive assets
         uses: quarto-dev/quarto-actions/render@v2
         env:
+          # TODO: py-shinylive doesn't follow this envvar yet. If shinylive
+          # has a newer version, this action will fail.
           SHINYLIVE_ASSETS_VERSION: ${{ steps.r-linked-assets.outputs.version }}
         with:
           path: local/quarto/
