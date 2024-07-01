@@ -72,10 +72,19 @@ jobs:
           make all
 
       - name: Link shinylive assets
+        id: r-linked-assets
         shell: Rscript {0}
         run: |
           shinylive::assets_install_copy("shinylive_assets")
           shinylive::assets_info()
+          cat(
+            "version=", shinylive:::package_json_version("shinylive_assets"),
+            file = Sys.getenv("GITHUB_OUTPUT"),
+            append = TRUE,
+            sep = ""
+          )
+
+
       - name: Update lua script for debugging
         shell: Rscript {0}
         run: |
@@ -104,6 +113,7 @@ jobs:
       - name: Run shinylive R package tests
         env:
           TEST_ASSETS: "TRUE"
+          SHINYLIVE_ASSETS_VERSION: ${{ steps.r-linked-assets.outputs.version }}
         shell: Rscript {0}
         run: |
           shinylive::assets_info()
