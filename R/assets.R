@@ -342,7 +342,7 @@ assets_info <- function() {
     installed_versions <- "(None)"
   }
 
-  message(
+  cat(
     collapse(c(
       paste0("shinylive R package version:  ", SHINYLIVE_R_VERSION),
       paste0("shinylive web assets version: ", assets_version()),
