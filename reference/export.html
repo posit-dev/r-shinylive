@@ -62,7 +62,9 @@ using <code>httpuv</code>.</p>
 <span>  verbose <span class="op">=</span> <span class="fu">is_interactive</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  wasm_packages <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  package_cache <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  assets_version <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  assets_version <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  template_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  template_params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -104,7 +106,28 @@ to <code>TRUE</code>.</p></dd>
 exported app. Defaults to <code><a href="assets.html">assets_version()</a></code>. Note, not all custom assets
 versions may work with this release of <span class="pkg">shinylive</span>. Please visit the
 <a href="https://github.com/posit-dev/shinylive/releases" class="external-link">shinylive asset releases</a>
-website to learn more information about the available <code>assets_version</code> values.</p></dd>
+website to learn more information about the available <code>assets_version</code>
+values.</p></dd>
+
+
+<dt>template_dir</dt>
+<dd><p>Path to a custom template directory to use when exporting
+the shinylive app. The template can be copied from the shinylive assets
+using: <code>fs::path(shinylive:::assets_dir(), "export_template")</code>.</p></dd>
+
+
+<dt>template_params</dt>
+<dd><p>A list of parameters to pass to the template. The
+supported parameters depends on the template being used. Custom templates
+may support additional parameters (see <code>template_dir</code> for instructions on
+creating a custom template or to find the current shinylive assets'
+templates).</p>
+<p>With shinylive assets &gt; 0.4.1, the default export template supports the
+following parameters:</p><ol><li><p><code>title</code>: The title of the app. Defaults to <code>"Shiny app"</code>.</p></li>
+<li><p><code>include_in_head</code>, <code>include_before_body</code>, <code>include_after_body</code>: Raw
+HTML to be included in the <code>&lt;head&gt;</code>, just after the opening <code>&lt;body&gt;</code>,
+or just before the closing <code>&lt;/body&gt;</code> tag, respectively.</p></li>
+</ol></dd>
 
 </dl></div>
     <div class="section level2">
@@ -117,7 +140,7 @@ the directory are printed to stdout.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># interactive()</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># rlang::is_interactive()</span></span></span>
 <span class="r-in"><span><span class="va">app_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"examples"</span>, <span class="st">"01_hello"</span>, package <span class="op">=</span> <span class="st">"shiny"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">out_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="st">"shinylive-export"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
@@ -138,7 +161,7 @@ the directory are printed to stdout.</p>
    </div>
   <footer><div class="container">
   <div class="pkgdown-footer-left">
-  <p>Developed by <a href="http://schloerke.com" class="external-link">Barret Schloerke</a>, <a href="https://github.com/wch" class="external-link">Winston Chang</a>, <a href="https://www.posit.co" class="external-link"><img src="https://www.tidyverse.org/posit-logo.svg" alt="Posit" height="16" width="62" style="margin-bottom: 3px;"></a>.</p>
+  <p>Developed by <a href="http://schloerke.com" class="external-link">Barret Schloerke</a>, <a href="https://github.com/wch" class="external-link">Winston Chang</a>, George Stagg, Garrick Aden-Buie, <a href="https://www.posit.co" class="external-link"><img src="https://www.tidyverse.org/posit-logo.svg" alt="Posit" height="16" width="62" style="margin-bottom: 3px;"></a>.</p>
 </div>
 
 <div class="pkgdown-footer-right">

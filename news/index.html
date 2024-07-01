@@ -46,8 +46,14 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="shinylive-development-version">shinylive (development version)<a class="anchor" aria-label="anchor" href="#shinylive-development-version"></a></h2>
+<ul><li><p><code><a href="../reference/export.html">export()</a></code> gains an <code>assets_version</code> argument to choose the version of the Shinylive web assets to be used with the exported app. This is primarily useful for testing new versions of the Shinylive assets before they’re officially released via a package update. In CI and other automated workflow settings, the <code>SHINYLIVE_ASSETS_VERSION</code> environment variable can be used to set the assets version. (<a href="https://github.com/posit-dev/r-shinylive/issues/91" class="external-link">#91</a>)</p></li>
+<li>
+<p><code><a href="../reference/export.html">export()</a></code> gains <code>template_params</code> and <code>template_dir</code> arguments to control the template HTML files used in the export, allowing users to partially or completely customize the exported HTML. The export template is provided by the shinylive assets and may change from release-to-release. Use <code><a href="../reference/assets.html">assets_info()</a></code> to locate installed shinylive assets; the template files for a given release are in the <code>export_template</code> directory of the release. (<a href="https://github.com/posit-dev/r-shinylive/issues/96" class="external-link">#96</a>)</p>
 <ul><li>
-<code><a href="../reference/export.html">export()</a></code> gains an <code>assets_version</code> argument to choose the version of the Shinylive web assets to be used with the exported app. This is primarily useful for testing new versions of the Shinylive assets before they’re officially released via a package update. In CI and other automated workflow settings, the <code>SHINYLIVE_ASSETS_VERSION</code> environment variable can be used to set the assets version. (<a href="https://github.com/posit-dev/r-shinylive/issues/91" class="external-link">#91</a>)</li>
+<code>template_params</code> takes a list of parameters to be interpolated into the template. The default template include <code>title</code> (the title for the page with the exported app), <code>include_in_head</code> (HTML added to the <code>&lt;head&gt;</code> of the page), and <code>include_before_body</code> (HTML added just after <code>&lt;body&gt;</code>) and <code>include_after_body</code> (HTML added just after <code>&lt;/body&gt;</code>).</li>
+<li>
+<code>template_dir</code> is the directory containing the template files. The default is the <code>export_template</code> directory of the shinylive assets being used for the export. Use <code><a href="../reference/assets.html">assets_info()</a></code> to locate installed shinylive assets where you can find the default template files.</li>
+</ul></li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.1" id="shinylive-011">shinylive 0.1.1<a class="anchor" aria-label="anchor" href="#shinylive-011"></a></h2><p class="text-muted">CRAN release: 2023-12-04</p>
@@ -66,7 +72,7 @@
    </div>
   <footer><div class="container">
   <div class="pkgdown-footer-left">
-  <p>Developed by <a href="http://schloerke.com" class="external-link">Barret Schloerke</a>, <a href="https://github.com/wch" class="external-link">Winston Chang</a>, <a href="https://www.posit.co" class="external-link"><img src="https://www.tidyverse.org/posit-logo.svg" alt="Posit" height="16" width="62" style="margin-bottom: 3px;"></a>.</p>
+  <p>Developed by <a href="http://schloerke.com" class="external-link">Barret Schloerke</a>, <a href="https://github.com/wch" class="external-link">Winston Chang</a>, George Stagg, Garrick Aden-Buie, <a href="https://www.posit.co" class="external-link"><img src="https://www.tidyverse.org/posit-logo.svg" alt="Posit" height="16" width="62" style="margin-bottom: 3px;"></a>.</p>
 </div>
 
 <div class="pkgdown-footer-right">
