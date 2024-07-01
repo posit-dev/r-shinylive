@@ -23,7 +23,7 @@ The Shinylive project consists of four interdependent components that work toget
 
 3. The [shinylive Python package](https://shiny.posit.co/py/docs/shinylive.html) ([posit-dev/py-shinylive](https://github.com/posit-dev/py-shinylive)) serves the same role as `{shinylive}` but for Shiny for Python applications.
 
-4. The [shinylive Quarto extension](https://quarto-ext.github.io/shinylive/) ([quarto-ext/shinylive](https://github.com/quarto-ext/shinylive)) lets you write Shiny applications in Quarto documents and uses the R or Python package (or both) to translate `shinylive-r` or `shinylive-py` code blocks into Shinylive applications.
+4. The [shinylive Quarto extension](https://quarto-ext.github.io/shinylive/) ([quarto-ext/shinylive](https://github.com/quarto-ext/shinylive)) lets you write Shiny applications in [Quarto web documents and slides](https://quarto.org) and uses the R or Python package (or both) to translate `shinylive-r` or `shinylive-py` code blocks into Shinylive applications.
 
 
 ## Installation
