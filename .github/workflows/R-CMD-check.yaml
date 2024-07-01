@@ -127,12 +127,23 @@ jobs:
 
           testthat::test_local()
       
+      - name: Link shinylive assets for py-shinylive
+        shell: bash
+        run: |
+          shinylive assets link-from-local shinylive_assets/build
+      
       # If this (^^) completes, it is a big success!
       # Run quarto test after testthat test
-      - name: Test shinylive quarto extension can build
+      - name: Test shinylive quarto extension with latest shinylive assets
         uses: quarto-dev/quarto-actions/render@v2
         env:
-          # Test r-shinylive against the same shinylive assets as py-shinylive
+          SHINYLIVE_ASSETS_VERSION: ${{ steps.r-linked-assets.outputs.version }}
+        with:
+          path: local/quarto/
+
+      - name: Test shinylive quarto extension with py-shinylive assets version
+        uses: quarto-dev/quarto-actions/render@v2
+        env:
           SHINYLIVE_ASSETS_VERSION: ${{ steps.py-shinylive.outputs.version }}
         with:
           path: local/quarto/
