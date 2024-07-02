@@ -361,7 +361,21 @@ assets_info <- function() {
     sep = ""
   )
 
-  invisible()
+  versions <- vapply(
+    strsplit(installed_versions, "shinylive-", fixed = TRUE),
+    FUN.VALUE = character(1),
+    function(x) x[[2]]
+  )
+
+  data <- data.frame(
+    version = versions,
+    path = installed_versions,
+    is_assets_version = versions == assets_version()
+  )
+
+  class(data) <- c("tbl_df", "tbl", "data.frame")
+
+  invisible(data)
 }
 
 
