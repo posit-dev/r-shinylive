@@ -336,14 +336,19 @@ assets_dirs <- function(
 
 
 
-#' @describeIn assets Prints information about the local shinylive
-#'    assets that have been installed.
+#' @describeIn assets Prints information about the local shinylive assets that
+#'   have been installed. Invisibly returns a table of installed asset versions
+#'   and their associated paths.
+#' @param quiet In `assets_info()`, if `quiet = TRUE`, the function will not
+#'   print the assets information to the console.
 #' @export
-assets_info <- function() {
+assets_info <- function(quiet = FALSE) {
   installed_versions <- assets_dirs()
   if (length(installed_versions) == 0) {
     installed_versions <- "(None)"
   }
+
+  local_quiet(quiet)
 
   cli_text("shinylive R package version: {.field {SHINYLIVE_R_VERSION}}")
   cli_text("shinylive web assets version: {.field {assets_version()}}")
@@ -376,7 +381,7 @@ assets_info <- function() {
 
   class(data) <- c("tbl_df", "tbl", "data.frame")
 
-  invisible(data)
+  if (is_quiet()) data else invisible(data)
 }
 
 
