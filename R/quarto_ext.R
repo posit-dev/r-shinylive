@@ -120,13 +120,13 @@ quarto_ext <- function(
   stopifnot(length(args) >= 1)
 
   followup_statement <- function() {
-    paste0(
-      "Please update your `quarto-ext/shinylive` Quarto extension for the latest integration.\n",
-      "To update the shinylive extension, run this command in your Quarto project:\n",
-      "\tquarto add quarto-ext/shinylive\n",
-      "\n",
-      paste0("R shinylive package version:  ", SHINYLIVE_R_VERSION), "\n",
-      paste0("Supported assets version: ", assets_version())
+    c(
+      i = "Please update your {.href [quarto-ext/shinylive](https://github.com/quarto-ext/shinylive)} Quarto extension for the latest integration.",
+      i = "To update the shinylive extension, run this command in your Quarto project:",
+      "\t{.code quarto add quarto-ext/shinylive}",
+      "",
+      "R shinylive package version: {.field {SHINYLIVE_R_VERSION}}",
+      "Supported assets version: {.field {assets_version()}}"
     )
   }
 
@@ -137,44 +137,45 @@ quarto_ext <- function(
   }
 
   if (args[1] != "extension") {
-    stop(
-      "Unknown command: '", args[1], "'\n",
-      "Expected `extension` as first argument\n",
-      "\n",
+    cli::cli_abort(c(
+      "Unknown command: {.strong {args[1]}}. Expected {.var extension} as first argument",
+      "",
       followup_statement()
-    )
+    ))
   }
 
+  methods <- list(
+    "info" = "Package, version, asset version, and script paths information",
+    "base-htmldeps" = "Quarto html dependencies for the base shinylive integration",
+    "language-resources" = "R's resource files for the quarto html dependency named `shinylive`",
+    "app-resources" = "App-specific resource files for the quarto html dependency named `shinylive`"
+  )
 
-  if (
-    (not_enough_args <- length(args) < 2) ||
-      (invalid_arg <- !(args[2] %in% c(
-        "info",
-        "base-htmldeps",
-        "language-resources",
-        "app-resources"
-      )))
-  ) {
-    stop(
+  not_enough_args <- length(args) < 2
+  invalid_arg <- length(args) >= 2 && !(args[2] %in% names(methods))
+
+  if (not_enough_args || invalid_arg) {
+    msg_stop <- 
       if (not_enough_args) {
-        "Missing `extension` subcommand\n"
+        "Missing {.var extension} subcommand"
       } else if (invalid_arg) {
-        paste0("Unknown `extension` subcommand: '", args[2], "'\n")
-      },
-      "Known methods:\n",
-      paste0(
-        "    ",
-        c(
-          "info               - Package, version, asset version, and script paths information",
-          "base-htmldeps      - Quarto html dependencies for the base shinylive integration",
-          "language-resources - R's resource files for the quarto html dependency named `shinylive`",
-          "app-resources      - App-specific resource files for the quarto html dependency named `shinylive`"
-        ),
-        collapse = "\n"
-      ),
-      "\n\n",
+        "Unknown {.var extension} subcommand {.strong {args[2]}}"
+      }
+    
+    msg_methods <- c()
+    for (method in names(methods)) {
+      method_desc <- methods[[method]]
+      msg_methods <- c(msg_methods, paste(cli::style_bold(method), "-", method_desc))
+    }
+
+    cli::cli_abort(c(
+      msg_stop,
+      "",
+      cli::style_underline("Available methods"),
+      msg_methods,
+      "",
       followup_statement()
-    )
+    ))
   }
   stopifnot(length(args) >= 2)
 
@@ -253,7 +254,10 @@ build_app_resources <- function(app_json) {
   })
 
   # Download wasm binaries ready to embed into Quarto deps
-  download_wasm_packages(appdir, destdir, verbose = FALSE, package_cache = TRUE)
+  withr::with_options(
+    list(shinylive.quiet = TRUE),
+    download_wasm_packages(appdir, destdir, package_cache = TRUE)
+  )
 
   # Enumerate R package Wasm binaries and prepare the VFS images as html deps
   webr_dir <- fs::path(destdir, "shinylive", "webr")

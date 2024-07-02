@@ -30,7 +30,7 @@ collapse <- function(...) {
 package_json_version <- function(source_dir) {
   package_json_path <- fs::path(source_dir, "package.json")
   if (!fs::file_exists(package_json_path)) {
-    stop("package.json does not exist in ", source_dir)
+    cli::cli_abort("{.field package.json} does not exist in {.path {source_dir}}")
   }
 
   package_json <- jsonlite::read_json(package_json_path)
@@ -66,29 +66,25 @@ drop_nulls_rec <- function(x) {
 # 1. Mark all files to be copied
 # 2. Copy all files
 # IO operations are slow in R. It is faster to call `fs::file_copy()` with a large vector than many times with single values.
-create_copy_fn <- function(
-  overwrite = FALSE,
-  verbose_print = list # or `message`
-) {
+create_copy_fn <- function(overwrite = FALSE) {
   overwrite <- isTRUE(overwrite)
-  stopifnot(is.function(verbose_print))
 
   file_list <- list()
 
   mark_file <- function(src_file_path, dst_file_path) {
     if (file.exists(dst_file_path)) {
       if (!files_are_equal(src_file_path, dst_file_path)) {
-        message(
-          "\nSource and destination copies differ:", dst_file_path,
-          "\nThis is probably because your shinylive sources have been updated and differ from the copy in the exported app.",
-          "\nYou probably should remove the export directory and re-export the application."
-        )
+        cli::cli_inform(c(
+          x = "Source and destination copies differ for {.path {dst_file_path}}",
+          "!" = "This is probably because your shinylive sources have been updated and differ from the copy in the exported app.",
+          i = "You probably should remove the export directory and re-export the application."
+        ))
       }
       if (overwrite) {
-        verbose_print(paste0("\nRemoving ", dst_file_path))
+        # cli_alert_warning("Removing {.path {dst_file_print}}")
         unlink_path(dst_file_path)
       } else {
-        verbose_print(paste0("\nSkipping ", dst_file_path))
+        # cli_alert("Skipping {.path {dst_file_print}}")
         return()
       }
     } else {

@@ -115,10 +115,10 @@ read_app_files <- function(
 
         cur_basename <- basename(cur_path)
         if (cur_basename == "shinylive.js") {
-          message(
-            "Warning: Found shinylive.js in source directory '", curdur, "'.",
-            " Are you including a shinylive distribution in your app?"
-          )
+          cli::cli_warn(c(
+            "Warning: Found {.path shinylive.js} in source directory {.path {curdur}}.",
+            i = "Are you including a shinylive distribution in your app?"
+          ))
         }
 
         # Get file content
@@ -157,9 +157,10 @@ write_app_json <- function(
   destdir,
   template_dir,
   template_params = list(),
-  verbose = is_interactive()
+  quiet = getOption("shinylive.quiet", FALSE)
 ) {
-  verbose_print <- if (isTRUE(verbose)) message else list
+  local_quiet(quiet)
+
   stopifnot(inherits(app_info, APP_INFO_CLASS))
   # stopifnot(fs::dir_exists(destdir))
   stopifnot(fs::dir_exists(template_dir))
@@ -205,12 +206,15 @@ write_app_json <- function(
 
   app_json_output_file <- fs::path(app_destdir, "app.json")
 
-  verbose_print("Writing ", app_json_output_file, appendLF = FALSE)
+  cli_progress_step("Writing {.path {app_json_output_file}}")
   jsonlite::write_json(
     app_info$files,
     path = app_json_output_file,
     auto_unbox = TRUE,
     pretty = FALSE
   )
-  verbose_print(": ", fs::file_info(app_json_output_file)$size[1], " bytes")
+  cli_progress_done()
+  cli_alert_info("Wrote {.path {app_json_output_file}} ({fs::file_info(app_json_output_file)$size[1]} bytes)")
+  
+  invisible(app_json_output_file)
 }

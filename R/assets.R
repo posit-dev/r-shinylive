@@ -40,17 +40,17 @@ assets_download <- function(
     add = TRUE
   )
 
-  message("Downloading shinylive assets v", version, "...")
+  cli_progress_step("Downloading shinylive assets {.field v{version}}")
   req <- httr2::request(url)
   req <- httr2::req_progress(req)
   httr2::req_perform(req, path = tmp_targz)
-  message("") # Newline after progress bar
-
-  message("Unzipping to ", dir, "/")
+  
+  cli_progress_step("Unzipping shinylive assets to {.path {dir}}")
   fs::dir_create(dir)
   archive::archive_extract(tmp_targz, dir)
-
-  invisible()
+  
+  cli_progress_done()
+  invisible(dir)
 }
 
 
@@ -108,7 +108,10 @@ install_local_helper <- function(
   stopifnot(fs::dir_exists(assets_repo_dir))
   repo_build_dir <- fs::path(assets_repo_dir, "build")
   if (!fs::dir_exists(repo_build_dir)) {
-    stop("Assets repo build dir does not exist (`", repo_build_dir, "`).\nHave you called `make all` yet?")
+    cli::cli_abort(c(
+      "Assets repo build dir does not exist ({.path {repo_build_dir}}).",
+      i = "Have you called {.code make all} yet?"
+    ))
   }
   target_dir <- assets_dir_impl(dir = dir, version = version)
 
@@ -116,12 +119,12 @@ install_local_helper <- function(
   install_fn(repo_build_dir, target_dir)
 
   if (version != assets_version()) {
-    message(
-      "Warning: You are installing a local copy of shinylive assets that is not the same as the version used by the shinylive R package.",
-      "\nWarning: Unexpected behavior may occur!",
-      "\n\nNew assets version: ", version,
-      "\nSupported assets version: ", assets_version()
-    )
+    cli::cli_warn(c(
+      "You are installing a local copy of shinylive assets that is not the same as the version used by the shinylive R package.",
+      "Unexpected behavior may occur!",
+      x = "New assets version: {version}",
+      i = "Supported assets version: {assets_version()}"
+    ))
   }
 }
 
@@ -204,13 +207,13 @@ assets_ensure <- function(
 ) {
   stopifnot(length(list(...)) == 0)
   if (!fs::dir_exists(dir)) {
-    message("Creating assets cache directory ", dir)
+    cli_alert_info("Creating assets cache directory ", dir)
     fs::dir_create(dir)
   }
 
   assets_path <- assets_dir(version, dir = dir)
   if (!fs::dir_exists(assets_path)) {
-    message("`", assets_path, "` assets directory does not exist.")
+    cli_alert_warning("{.path {assets_path}} assets directory does not exist.")
     assets_download(url = url, version = version, dir = dir)
   }
 
@@ -246,7 +249,7 @@ assets_cleanup <- function(
     character(1)
   )
   if (assets_version() %in% versions) {
-    message("Keeping version ", assets_version())
+    cli_alert_info("Keeping version {assets_version()}")
     versions <- setdiff(versions, assets_version())
   }
 
@@ -286,10 +289,10 @@ assets_remove <- function(
   lapply(versions, function(version) {
     target_dir <- assets_dir_impl(dir = dir, version = version)
     if (fs::dir_exists(target_dir)) {
-      message("Removing ", target_dir)
+      cli_progress_step("Removing {.path {target_dir}}")
       unlink_path(target_dir)
     } else {
-      message(target_dir, " folder does not exist")
+      cli_alert_warning("{.path {target_dir}} folder does not exist")
     }
   })
 
@@ -333,33 +336,36 @@ assets_dirs <- function(
 
 
 
-#' @describeIn assets Prints information about the local shinylive
-#'    assets that have been installed.
+#' @describeIn assets Prints information about the local shinylive assets that
+#'   have been installed. Invisibly returns a table of installed asset versions
+#'   and their associated paths.
+#' @param quiet In `assets_info()`, if `quiet = TRUE`, the function will not
+#'   print the assets information to the console.
 #' @export
-assets_info <- function() {
+assets_info <- function(quiet = FALSE) {
   installed_versions <- assets_dirs()
   if (length(installed_versions) == 0) {
     installed_versions <- "(None)"
   }
 
-  cat(
-    collapse(c(
-      paste0("shinylive R package version:  ", SHINYLIVE_R_VERSION),
-      paste0("shinylive web assets version: ", assets_version()),
-      "",
-      "Local cached shinylive asset dir:",
-      collapse("    ", assets_cache_dir()),
-      "",
-      "Installed assets:",
-      if (assets_cache_dir_exists()) {
-        collapse("    ", installed_versions)
-      } else {
-        "    (Cache dir does not exist)"
-      },
-      ""
-    )),
-    sep = ""
-  )
+  local_quiet(quiet)
+
+  cli_text("shinylive R package version: {.field {SHINYLIVE_R_VERSION}}")
+  cli_text("shinylive web assets version: {.field {assets_version()}}")
+  cli_text("")
+  cli_text("Local cached shinylive asset dir:")
+  cli_bullets(c(">" = "{.path {assets_cache_dir()}}"))
+  cli_text("")
+  cli_text("Installed assets:")
+  if (assets_cache_dir_exists()) {
+    cli_installed <- c()
+    for (i in seq_along(installed_versions)) {
+      cli_installed <- c(cli_installed, c("*" = sprintf("{.path {installed_versions[%s]}}", i)))
+    }
+    cli_bullets(cli_installed)
+  } else {
+    cli_bullets("(Cache dir does not exist)")
+  }
 
   versions <- vapply(
     strsplit(installed_versions, "shinylive-", fixed = TRUE),
@@ -375,7 +381,7 @@ assets_info <- function() {
 
   class(data) <- c("tbl_df", "tbl", "data.frame")
 
-  invisible(data)
+  if (is_quiet()) data else invisible(data)
 }
 
 

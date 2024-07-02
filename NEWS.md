@@ -6,6 +6,10 @@
     * `template_params` takes a list of parameters to be interpolated into the template. The default template include `title` (the title for the page with the exported app), `include_in_head` (HTML added to the `<head>` of the page), and `include_before_body` (HTML added just after `<body>`) and `include_after_body` (HTML added just after `</body>`).
     * `template_dir` is the directory containing the template files. The default is the `export_template` directory of the shinylive assets being used for the export. Use `assets_info()` to locate installed shinylive assets where you can find the default template files.
 
+* shinylive now uses `{cli}` for console printing. Console output can be suppressed via the global R option by calling `options(shinylive.quiet = TRUE)`. (#104)
+
+* `export()` and `assets_info()` gain a `quiet` argument. In `export()`, `quiet` replaces the now-deprecated `verbose` option, which continues to work with a warning. (#104)
+
 # shinylive 0.1.1
 
 * Bump shinylive assets dependency to 0.2.3. (#38)

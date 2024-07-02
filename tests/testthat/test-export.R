@@ -1,3 +1,10 @@
+expect_silent_unattended <- function(expr) {
+  if (interactive()) {
+    return(expr)
+  }
+  expect_silent(expr)
+}
+
 test_that("export - app.R", {
   maybe_skip_test()
 
@@ -12,7 +19,7 @@ test_that("export - app.R", {
 
   app_dir <- test_path("apps", "app-r")
 
-  expect_silent({
+  expect_silent_unattended({
     export(app_dir, out_dir)
   })
 
@@ -26,7 +33,7 @@ test_that("export - app.R", {
   )
   expect_setequal(dir(file.path(out_dir, "edit")), asset_edit_files)
 
-  expect_silent({
+  expect_silent_unattended({
     export(app_dir, out_dir, subdir = "test_subdir")
   })
 
@@ -54,7 +61,7 @@ test_that("export - server.R", {
   app_dir <- test_path("apps", "server-r")
 
   # Verify global.R / ui.R / server.R app can be exported
-  expect_silent({
+  expect_silent_unattended({
     export(app_dir, out_dir)
   })
   
@@ -91,7 +98,7 @@ test_that("export with template", {
 
   app_dir <- test_path("apps", "app-r")
 
-  expect_silent({
+  expect_silent_unattended({
     export(
       app_dir,
       out_dir,

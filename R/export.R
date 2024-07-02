@@ -6,8 +6,10 @@
 #' @param appdir Directory containing the application.
 #' @param destdir Destination directory.
 #' @param subdir Subdirectory of `destdir` to write the app to.
-#' @param verbose Print verbose output. Defaults to `TRUE` if running
-#'   interactively.
+#' @param quiet Suppress console output during export. Follows the global
+#'   `shinylive.quiet` option or defaults to `FALSE` in interactive sessions if
+#'   not set.
+#' @param verbose Deprecated, please use `quiet` instead.
 #' @param wasm_packages Download and include binary WebAssembly packages as
 #'   part of the output app's static assets. Defaults to `TRUE`.
 #' @param package_cache Cache downloaded binary WebAssembly packages. Defaults
@@ -54,40 +56,51 @@ export <- function(
   destdir,
   ...,
   subdir = "",
-  verbose = is_interactive(),
+  quiet = getOption("shinylive.quiet", !is_interactive()),
+  verbose = NULL,
   wasm_packages = TRUE,
   package_cache = TRUE,
   assets_version = NULL,
   template_dir = NULL,
   template_params = list()
 ) {
-  verbose_print <- if (verbose) message else list
+  if (!is.null(verbose)) {
+    rlang::warn("The {.var verbose} argument is deprecated. Use {.var quiet} instead.")
+    if (missing(quiet)) {
+      quiet <- !verbose
+    }
+  }
+
+  local_quiet(quiet)
+  cli_alert_info("Exporting Shiny app from: {.path {appdir}}")
+  cli_alert("Destination: {.path {destdir}}")
+
   if (is.null(assets_version)) {
     assets_version <- assets_version()
   }
 
-  stopifnot(fs::is_dir(appdir))
+  if (!fs::is_dir(appdir)) {
+    cli::cli_abort("{.var appdir} must be a directory, but was provided {.path {appdir}}.")
+  }
   if (!(
     fs::file_exists(fs::path(appdir, "app.R")) ||
       fs::file_exists(fs::path(appdir, "server.R"))
   )) {
-    stop("Directory ", appdir, " does not contain an app.R or server.R file.")
+    cli::cli_abort("Directory {.path {appdir}} does not contain an app.R or server.R file.")
   }
 
   if (fs::is_absolute_path(subdir)) {
-    stop(
-      "export(subdir=) was supplied an absolute path (`", subdir, "`).",
-      " Only relative paths are allowed."
+    cli::cli_abort(
+      "{.var subdir} was supplied an absolute path ({.path {subdir}}), but only relative paths are allowed."
     )
   }
 
   if (!fs::dir_exists(destdir)) {
-    verbose_print("Creating ", destdir, "/")
     fs::dir_create(destdir)
   }
 
 
-  cp_funcs <- create_copy_fn(overwrite = FALSE, verbose_print = verbose_print)
+  cp_funcs <- create_copy_fn(overwrite = FALSE)
   mark_file <- cp_funcs$mark_file
   copy_files <- cp_funcs$copy_files
 
@@ -97,16 +110,15 @@ export <- function(
   # Copy the base dependencies for shinylive/ distribution. This does not
   # include the R package files.
   # =========================================================================
-  verbose_print(
-    "Copying base Shinylive files from ", assets_path, "/ to ", destdir, "/"
-  )
+  cli_progress_step("Copying base Shinylive files")
+
   # When exporting, we know it is only an R app. So remove python support
   base_files <- c(
     shinylive_common_files("base", version = assets_version),
     shinylive_common_files("r", version = assets_version)
   )
 
-  if (verbose) {
+  if (!is_quiet()) {
     p <- progress::progress_bar$new(
       format = "[:bar] :percent\n",
       total = length(base_files),
@@ -118,7 +130,7 @@ export <- function(
     file.path(assets_path, base_files),
     file.path(destdir, base_files),
     f = function(src_path, dest_path) {
-      if (verbose) {
+      if (!is_quiet()) {
         p$tick()
       }
       mark_file(src_path, dest_path)
@@ -136,6 +148,7 @@ export <- function(
   # })
   # Copy all files in one call
   copy_files()
+  cli_progress_done()
 
   # =========================================================================
   # Load each app's contents into a list[FileContentJson]
@@ -181,7 +194,7 @@ export <- function(
   # Copy app package dependencies as Wasm binaries
   # =========================================================================
   if (wasm_packages) {
-    download_wasm_packages(appdir, destdir, verbose, package_cache)
+    download_wasm_packages(appdir, destdir, package_cache)
   }
 
   # =========================================================================
@@ -192,17 +205,16 @@ export <- function(
     app_info,
     destdir,
     template_dir = template_dir %||% fs::path(assets_path, "export_template"),
-    verbose = verbose,
+    quiet = quiet,
     template_params = template_params
   )
 
   # Escape backslashes in destdir because Windows
   destdir_esc <- gsub("\\\\", "\\\\\\\\", destdir)
 
-  verbose_print(
-    "\nRun the following in an R session to serve the app:\n",
-    "  httpuv::runStaticServer(\"", destdir_esc, "\")\n"
-  )
+  cli_alert_success("Shinylive app export complete.")
+  cli_alert_info("Run the following in an R session to serve the app:")
+  cli_text('{.run httpuv::runStaticServer("{destdir_esc}")}')
 
-  invisible()
+  invisible(destdir)
 }

@@ -9,7 +9,8 @@ export(
   destdir,
   ...,
   subdir = "",
-  verbose = is_interactive(),
+  quiet = getOption("shinylive.quiet", !is_interactive()),
+  verbose = NULL,
   wasm_packages = TRUE,
   package_cache = TRUE,
   assets_version = NULL,
@@ -26,8 +27,11 @@ export(
 
 \item{subdir}{Subdirectory of \code{destdir} to write the app to.}
 
-\item{verbose}{Print verbose output. Defaults to \code{TRUE} if running
-interactively.}
+\item{quiet}{Suppress console output during export. Follows the global
+\code{shinylive.quiet} option or defaults to \code{FALSE} in interactive sessions if
+not set.}
+
+\item{verbose}{Deprecated, please use \code{quiet} instead.}
 
 \item{wasm_packages}{Download and include binary WebAssembly packages as
 part of the output app's static assets. Defaults to \code{TRUE}.}
