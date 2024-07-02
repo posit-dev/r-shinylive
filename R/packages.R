@@ -1,7 +1,7 @@
 # Resolve package list hard dependencies
-resolve_dependencies <- function(pkgs, verbose, local = TRUE) {
+resolve_dependencies <- function(pkgs, local = TRUE) {
   pkg_refs <- if (local) {
-    refs <- find.package(pkgs, lib.loc = NULL, quiet = FALSE, verbose)
+    refs <- find.package(pkgs, lib.loc = NULL, quiet = FALSE, !is_quiet())
     glue::glue("local::{refs}")
   } else {
     pkgs
@@ -21,9 +21,7 @@ get_default_wasm_assets <- function(desc) {
 
   info <- utils::available.packages(contriburl = contrib)
   if (!pkg %in% rownames(info)) {
-    rlang::warn(c(
-      glue::glue("Can't find \"{pkg}\" in webR binary repository.")
-    ))
+    cli::cli_warn("Can't find {.pkg {pkg}} in webR binary repository.")
     return(list())
   }
   ver <- info[pkg, "Version", drop = TRUE]
@@ -34,9 +32,9 @@ get_default_wasm_assets <- function(desc) {
   inst_ver <- package_version(desc$Version)
   repo_ver <- package_version(ver)
   if (inst_ver$major != repo_ver$major || inst_ver$minor != repo_ver$minor) {
-    rlang::warn(c(
-      glue::glue("Package version mismatch for \"{pkg}\", ensure the versions below are compatible."),
-      "!" = glue::glue("Installed version: {desc$Version}, WebAssembly version: {ver}."),
+    cli::cli_warn(c(
+      "Package version mismatch for {.pkg {pkg}}, ensure the versions below are compatible.",
+      "!" = "Installed version: {desc$Version}, WebAssembly version: {ver}.",
       "i" = "Install a package version matching the WebAssembly version to silence this error."
     ))
   }
@@ -61,9 +59,7 @@ get_r_universe_wasm_assets <- function(desc) {
 
   info <- utils::available.packages(contriburl = contrib)
   if (!pkg %in% rownames(info)) {
-    rlang::warn(c(
-      glue::glue("Can't find \"{pkg}\" in r-universe binary repository.")
-    ))
+    cli::cli_warn("Can't find {.pkg {pkg}} in r-universe binary repository.")
     return(list())
   }
   ver <- info[pkg, "Version", drop = TRUE]
@@ -74,9 +70,9 @@ get_r_universe_wasm_assets <- function(desc) {
   inst_ver <- package_version(desc$Version)
   repo_ver <- package_version(ver)
   if (inst_ver$major != repo_ver$major || inst_ver$minor != repo_ver$minor) {
-    rlang::warn(c(
-      glue::glue("Package version mismatch for \"{pkg}\", ensure the versions below are compatible."),
-      "!" = glue::glue("Installed version: {desc$Version}, WebAssembly version: {ver}."),
+    cli::cli_warn(c(
+      "Package version mismatch for {.pkg {pkg}}, ensure the versions below are compatible.",
+      "!" = "Installed version: {desc$Version}, WebAssembly version: {ver}.",
       "i" = "Install a package version matching the WebAssembly version to silence this error."
     ))
   }
@@ -108,10 +104,10 @@ get_github_wasm_assets <- function(desc) {
       ref = ref
     ),
     error = function(err) {
-      rlang::abort(
+      cli::cli_abort(
         c(
-          glue::glue("Can't find GitHub release for github::{user}/{repo}@{ref}"),
-          "!" = glue::glue("Ensure a GitHub release exists for the package repository reference: \"{ref}\"."),
+          "Can't find GitHub release for github::{user}/{repo}@{ref}",
+          "!" = "Ensure a GitHub release exists for the package repository reference: {.val {ref}}.",
           "i" = "Alternatively, install a CRAN version of this package to use the default Wasm binary repository."
         ),
         parent = err
@@ -131,10 +127,10 @@ get_github_wasm_assets <- function(desc) {
     # We are stricter here than with CRAN-like repositories, the asset bundle
     # `RemoteRef` must match exactly. This allows for the use of development
     # versions of packages through the GitHub pre-releases feature.
-    rlang::abort(c(
-      glue::glue("Can't find WebAssembly binary assets for github::{user}/{repo}@{ref}"),
-      "!" = glue::glue("Ensure WebAssembly binary assets are associated with the GitHub release \"{ref}\"."),
-      "i" = "WebAssembly binary assets can be built on release using GitHub Actions: https://github.com/r-wasm/actions",
+    cli::cli_abort(c(
+      "Can't find WebAssembly binary assets for github::{user}/{repo}@{ref}",
+      "!" = "Ensure WebAssembly binary assets are associated with the GitHub release {.val {ref}}.",
+      "i" = "WebAssembly binary assets can be built on release using GitHub Actions: {.url https://github.com/r-wasm/actions}",
       "i" = "Alternatively, install a CRAN version of this package to use the default Wasm binary repository."
     ))
   }
@@ -152,7 +148,7 @@ get_github_wasm_assets <- function(desc) {
 }
 
 # Lookup URL and metadata for Wasm binary package
-prepare_wasm_metadata <- function(pkg, metadata, verbose) {
+prepare_wasm_metadata <- function(pkg, metadata) {
   desc <- utils::packageDescription(pkg)
   repo <- desc$Repository
   prev_ref <- metadata$ref
@@ -165,9 +161,7 @@ prepare_wasm_metadata <- function(pkg, metadata, verbose) {
     metadata$ref <- glue::glue("{metadata$name}@{metadata$version}")
     metadata$type <- "base"
     metadata$cached <- prev_cached <- TRUE
-    if (verbose) {
-      message("Skipping base R package: ", metadata$ref)
-    }
+    cli_alert("Skipping base R package: {metadata$ref}")
     return(metadata)
   }
 
@@ -202,8 +196,8 @@ prepare_wasm_metadata <- function(pkg, metadata, verbose) {
       metadata$assets <- get_default_wasm_assets(desc)
       metadata$type <- "package"
     }
-  } else if (verbose) {
-    message("Skipping cached Wasm binary: ", metadata$ref)
+  } else {
+    cli_alert("Skipping cached Wasm binary: {metadata$ref}")
   }
 
   metadata
@@ -221,12 +215,10 @@ env_download_wasm_core_packages <- function() {
   strsplit(pkgs, "\\s*[ ,\n]\\s*")[[1]]
 }
 
-download_wasm_packages <- function(appdir, destdir, verbose, package_cache) {
-  verbose_print <- if (verbose) message else list
-
+download_wasm_packages <- function(appdir, destdir, package_cache) {
   # Core packages in base webR image that we don't need to download
   shiny_pkgs <- c("shiny", "bslib", "renv")
-  shiny_pkgs <- resolve_dependencies(shiny_pkgs, verbose, local = FALSE)
+  shiny_pkgs <- resolve_dependencies(shiny_pkgs, local = FALSE)
 
   # If a package appears in the download core allow list,
   # we remove it from the internal list of packages to skip downloading
@@ -236,15 +228,15 @@ download_wasm_packages <- function(appdir, destdir, verbose, package_cache) {
   }
 
   # App dependencies, ignoring base webR + shiny packages
-  pkgs_app <- unique(renv::dependencies(appdir, quiet = !verbose)$Package)
+  pkgs_app <- unique(renv::dependencies(appdir, quiet = is_quiet())$Package)
   pkgs_app <- setdiff(pkgs_app, shiny_pkgs)
 
   # Create empty R packages directory in app assets if not already there
   pkg_dir <- fs::path(destdir, "shinylive", "webr", "packages")
   fs::dir_create(pkg_dir, recurse = TRUE)
 
-  verbose_print(
-    "Downloading WebAssembly R package binaries to ", pkg_dir, "/"
+  cli_progress_step(
+    "Downloading WebAssembly R package binaries to {.path {pkg_dir}}"
   )
 
   # Load existing metadata from disk, from a previously deployed app
@@ -256,12 +248,12 @@ download_wasm_packages <- function(appdir, destdir, verbose, package_cache) {
   }
 
   if (length(pkgs_app) > 0) {
-    pkgs_app <- resolve_dependencies(pkgs_app, verbose)
+    pkgs_app <- resolve_dependencies(pkgs_app)
     pkgs_app <- setdiff(pkgs_app, shiny_pkgs)
     names(pkgs_app) <- pkgs_app
   }
 
-  if (verbose) {
+  if (!is_quiet()) {
     p <- progress::progress_bar$new(
       format = "[:bar] :percent\n",
       total = length(pkgs_app),
@@ -272,7 +264,7 @@ download_wasm_packages <- function(appdir, destdir, verbose, package_cache) {
 
   # Loop over packages and download them if not cached
   cur_metadata <- lapply(pkgs_app, function(pkg) {
-    if (verbose) p$tick()
+    if (!is_quiet()) p$tick()
 
     pkg_subdir <- fs::path(pkg_dir, pkg)
     fs::dir_create(pkg_subdir, recurse = TRUE)
@@ -283,7 +275,7 @@ download_wasm_packages <- function(appdir, destdir, verbose, package_cache) {
       list()
     }
     # Create package ref and lookup download URLs
-    meta <- prepare_wasm_metadata(pkg, prev_meta, verbose)
+    meta <- prepare_wasm_metadata(pkg, prev_meta)
 
     if (!meta$cached && length(meta$assets) > 0) {
       # Download Wasm binaries and copy to static assets dir
@@ -308,7 +300,10 @@ download_wasm_packages <- function(appdir, destdir, verbose, package_cache) {
   # Remove base packages from caching and metadata
   metadata <- Filter(function(item) item$type != "base", metadata)
 
-  verbose_print("Writing app metadata to ", metadata_file, appendLF = FALSE)
+  cli_progress_step("Writing app metadata to {.path {metadata_file}}")
   saveRDS(metadata, metadata_file)
-  verbose_print(": ", fs::file_info(metadata_file)$size[1], " bytes")
+  cli_progress_done()
+  cli_alert_info("Wrote {.path {metadata_file}} ({fs::file_info(metadata_file)$size[1]} bytes)")
+
+  invisible(metadata_file)
 }

@@ -27,6 +27,7 @@ BugReports: https://github.com/posit-dev/r-shinylive/issues
 Imports:
     archive,
     brio,
+    cli,
     fs,
     gh,
     glue,
@@ -38,7 +39,8 @@ Imports:
     renv,
     rlang,
     tools,
-    whisker
+    whisker,
+    withr
 Suggests:
     httpuv (>= 1.6.12),
     pkgcache,
