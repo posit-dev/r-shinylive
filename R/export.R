@@ -57,12 +57,12 @@ export <- function(
   ...,
   subdir = "",
   quiet = getOption("shinylive.quiet", !is_interactive()),
-  verbose = NULL,
   wasm_packages = TRUE,
   package_cache = TRUE,
   assets_version = NULL,
   template_dir = NULL,
-  template_params = list()
+  template_params = list(),
+  verbose = NULL
 ) {
   if (!is.null(verbose)) {
     rlang::warn("The {.var verbose} argument is deprecated. Use {.var quiet} instead.")
