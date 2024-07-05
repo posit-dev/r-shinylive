@@ -9,12 +9,13 @@ export(
   destdir,
   ...,
   subdir = "",
-  verbose = is_interactive(),
+  quiet = getOption("shinylive.quiet", !is_interactive()),
   wasm_packages = TRUE,
   package_cache = TRUE,
   assets_version = NULL,
   template_dir = NULL,
-  template_params = list()
+  template_params = list(),
+  verbose = NULL
 )
 }
 \arguments{
@@ -26,8 +27,9 @@ export(
 
 \item{subdir}{Subdirectory of \code{destdir} to write the app to.}
 
-\item{verbose}{Print verbose output. Defaults to \code{TRUE} if running
-interactively.}
+\item{quiet}{Suppress console output during export. Follows the global
+\code{shinylive.quiet} option or defaults to \code{FALSE} in interactive sessions if
+not set.}
 
 \item{wasm_packages}{Download and include binary WebAssembly packages as
 part of the output app's static assets. Defaults to \code{TRUE}.}
@@ -60,6 +62,8 @@ following parameters:
 HTML to be included in the \verb{<head>}, just after the opening \verb{<body>},
 or just before the closing \verb{</body>} tag, respectively.
 }}
+
+\item{verbose}{Deprecated, please use \code{quiet} instead.}
 }
 \value{
 Nothing. The app is exported to \code{destdir}. Instructions for serving

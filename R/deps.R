@@ -206,7 +206,7 @@ shinylive_common_dep_htmldep <- function(
 
       # Put load-shinylive-sw.js in the scripts first
       if (is.null(load_shinylive_dep)) {
-        stop("load-shinylive-sw.js not found in assets")
+        cli::cli_abort("{.path load-shinylive-sw.js} not found in assets")
       }
       scripts <- c(list(load_shinylive_dep), scripts)
 
@@ -216,7 +216,7 @@ shinylive_common_dep_htmldep <- function(
       }
     },
     {
-      stop("unknown dep_type: ", dep_type)
+      cli::cli_abort("Unknown {.var dep_type}: {.val dep_type}")
     }
   )
 
@@ -297,7 +297,7 @@ shinylive_common_files <- function(
         )
       },
       {
-        stop("unknown dep_type: ", dep_type)
+        cli::cli_abort("Unknown {.var dep_type}: {.val dep_type}")
       }
     )
 
