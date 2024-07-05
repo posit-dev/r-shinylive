@@ -54,6 +54,8 @@
 <li>
 <code>template_dir</code> is the directory containing the template files. The default is the <code>export_template</code> directory of the shinylive assets being used for the export. Use <code><a href="../reference/assets.html">assets_info()</a></code> to locate installed shinylive assets where you can find the default template files.</li>
 </ul></li>
+<li><p>shinylive now uses <a href="https://cli.r-lib.org" class="external-link">cli</a> for console printing. Console output can be suppressed via the global R option by calling <code>options(shinylive.quiet = TRUE)</code>. (<a href="https://github.com/posit-dev/r-shinylive/issues/104" class="external-link">#104</a>)</p></li>
+<li><p><code><a href="../reference/export.html">export()</a></code> and <code><a href="../reference/assets.html">assets_info()</a></code> gain a <code>quiet</code> argument. In <code><a href="../reference/export.html">export()</a></code>, <code>quiet</code> replaces the now-deprecated <code>verbose</code> option, which continues to work with a warning. (<a href="https://github.com/posit-dev/r-shinylive/issues/104" class="external-link">#104</a>)</p></li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.1" id="shinylive-011">shinylive 0.1.1<a class="anchor" aria-label="anchor" href="#shinylive-011"></a></h2><p class="text-muted">CRAN release: 2023-12-04</p>
