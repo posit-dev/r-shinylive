@@ -1,6 +1,6 @@
 ## Comments
 
-#### 2023-12-01
+#### 2024-07-19
 
 Some bug fixes and new features.
 
@@ -13,3 +13,7 @@ Barret
 ## R CMD check results
 
 0 errors | 0 warnings | 0 notes
+
+## Reverse dependencies
+
+No reverse dependencies.
