@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">shinylive</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,11 +29,11 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/posit-dev/r-shinylive/blob/rc-v0.2.0/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/posit-dev/r-shinylive/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.2.0" id="shinylive-020">shinylive 0.2.0<a class="anchor" aria-label="anchor" href="#shinylive-020"></a></h2>
+<h2 class="pkg-version" data-toc-text="development version" id="shinylive-development-version">shinylive (development version)<a class="anchor" aria-label="anchor" href="#shinylive-development-version"></a></h2>
 <ul><li><p>shinylive now uses <a href="https://github.com/posit-dev/shinylive/releases/tag/v0.5.0" class="external-link">shinylive web assets v0.5.0</a> by default, which bundles webR 0.4.0 with R 4.4.1. This update brings improved keyboard shortcuts for R users in the Shinylive editor, the ability to export a custom library of R packages with the exported app, and a few improvements to the Quarto integration. (<a href="https://github.com/posit-dev/r-shinylive/issues/108" class="external-link">#108</a>)</p></li>
 <li><p><code><a href="../reference/export.html">export()</a></code> gains an <code>assets_version</code> argument to choose the version of the Shinylive web assets to be used with the exported app. This is primarily useful for testing new versions of the Shinylive assets before they’re officially released via a package update. In CI and other automated workflow settings, the <code>SHINYLIVE_ASSETS_VERSION</code> environment variable can be used to set the assets version. (<a href="https://github.com/posit-dev/r-shinylive/issues/91" class="external-link">#91</a>)</p></li>
 <li>
