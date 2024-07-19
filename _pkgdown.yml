@@ -1,4 +1,8 @@
 url: https://posit-dev.github.io/r-shinylive/
+
+development:
+  mode: auto
+
 template:
   package: tidytemplate
   bootstrap: 5
