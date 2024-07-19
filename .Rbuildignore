@@ -13,3 +13,4 @@
 ^revdep$
 ^CRAN-SUBMISSION$
 ^examples$
+^\.Rproj\.user$
