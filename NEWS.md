@@ -1,6 +1,6 @@
 # shinylive (development version)
 
-* shinylive now uses [shinylive web assets v0.5.0](https://github.com/posit-dev/shinylive/releases/tag/v0.5.0) by default. This update brings improved keyboard shortcuts for R users in the Shinylive editor, the ability to export a static, custom library of R packages with the exported app, and a few improvements to the Quarto integration, along with an upgrade to webR 0.4.0 with R 4.4.1. (#108)
+* shinylive now uses [shinylive web assets v0.5.0](https://github.com/posit-dev/shinylive/releases/tag/v0.5.0) by default, which bundles webR 0.4.0 with R 4.4.1. This update brings improved keyboard shortcuts for R users in the Shinylive editor, the ability to export a custom library of R packages with the exported app, and a few improvements to the Quarto integration. (#108)
 
 * `export()` gains an `assets_version` argument to choose the version of the Shinylive web assets to be used with the exported app. This is primarily useful for testing new versions of the Shinylive assets before they're officially released via a package update. In CI and other automated workflow settings, the `SHINYLIVE_ASSETS_VERSION` environment variable can be used to set the assets version. (#91)
 
