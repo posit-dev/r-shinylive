@@ -26,42 +26,14 @@ check_repo_pkg_version <- function(desc, ver) {
   }
 }
 
-get_default_wasm_assets <- function(desc) {
+get_wasm_assets <- function(desc, repo) {
   pkg <- desc$Package
-  r_wasm <- "http://repo.r-wasm.org"
   r_short <- gsub("\\.[^.]+$", "", WEBR_R_VERSION)
-  contrib <- glue::glue("{r_wasm}/bin/emscripten/contrib/{r_short}")
+  contrib <- glue::glue("{repo}/bin/emscripten/contrib/{r_short}")
 
   info <- utils::available.packages(contriburl = contrib)
   if (!pkg %in% rownames(info)) {
-    cli::cli_warn("Can't find {.pkg {pkg}} in webR binary repository.")
-    return(list())
-  }
-
-  ver <- info[pkg, "Version", drop = TRUE]
-  check_repo_pkg_version(desc, ver)
-
-  list(
-    list(
-      filename = glue::glue("{pkg}_{ver}.data"),
-      url = glue::glue("{contrib}/{pkg}_{ver}.data")
-    ),
-    list(
-      filename = glue::glue("{pkg}_{ver}.js.metadata"),
-      url = glue::glue("{contrib}/{pkg}_{ver}.js.metadata")
-    )
-  )
-}
-
-get_r_universe_wasm_assets <- function(desc) {
-  pkg <- desc$Package
-  r_universe <- desc$Repository
-  r_short <- gsub("\\.[^.]+$", "", WEBR_R_VERSION)
-  contrib <- glue::glue("{r_universe}/bin/emscripten/contrib/{r_short}")
-
-  info <- utils::available.packages(contriburl = contrib)
-  if (!pkg %in% rownames(info)) {
-    cli::cli_warn("Can't find {.pkg {pkg}} in r-universe binary repository.")
+    cli::cli_warn("Can't find {.pkg {pkg}} in Wasm binary repository: {.url {repo}}")
     return(list())
   }
 
@@ -180,11 +152,11 @@ prepare_wasm_metadata <- function(pkg, metadata) {
       metadata$assets <- get_github_wasm_assets(desc)
       metadata$type <- "library"
     } else if (grepl("r-universe\\.dev$", repo)) {
-      metadata$assets <- get_r_universe_wasm_assets(desc)
+      metadata$assets <- get_wasm_assets(desc, repo = desc$Repository)
       metadata$type <- "package"
     } else {
       # Fallback to repo.r-wasm.org lookup for CRAN and anything else
-      metadata$assets <- get_default_wasm_assets(desc)
+      metadata$assets <- get_wasm_assets(desc, repo = "http://repo.r-wasm.org")
       metadata$type <- "package"
     }
   } else {
