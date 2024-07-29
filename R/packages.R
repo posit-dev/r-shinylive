@@ -11,21 +11,7 @@ resolve_dependencies <- function(pkgs, local = TRUE) {
   unique(inst$get_resolution()$package)
 }
 
-get_default_wasm_assets <- function(desc) {
-  pkg <- desc$Package
-  r_wasm <- "http://repo.r-wasm.org"
-  # TODO: Restore the use of short version, once webR with R 4.4.0 is released.
-  #       This function can then be merged with `get_r_universe_wasm_assets()`
-  r_short <- WEBR_R_VERSION
-  contrib <- glue::glue("{r_wasm}/bin/emscripten/contrib/{r_short}")
-
-  info <- utils::available.packages(contriburl = contrib)
-  if (!pkg %in% rownames(info)) {
-    cli::cli_warn("Can't find {.pkg {pkg}} in webR binary repository.")
-    return(list())
-  }
-  ver <- info[pkg, "Version", drop = TRUE]
-
+check_repo_pkg_version <- function(desc, ver) {
   # Show a warning if packages major.minor versions differ
   # We don't worry too much about patch, since webR versions of packages may be
   # patched at the repo for compatibility with Emscripten
@@ -38,44 +24,21 @@ get_default_wasm_assets <- function(desc) {
       "i" = "Install a package version matching the WebAssembly version to silence this error."
     ))
   }
-
-  list(
-    list(
-      filename = glue::glue("{pkg}_{ver}.data"),
-      url = glue::glue("{contrib}/{pkg}_{ver}.data")
-    ),
-    list(
-      filename = glue::glue("{pkg}_{ver}.js.metadata"),
-      url = glue::glue("{contrib}/{pkg}_{ver}.js.metadata")
-    )
-  )
 }
 
-get_r_universe_wasm_assets <- function(desc) {
+get_wasm_assets <- function(desc, repo) {
   pkg <- desc$Package
-  r_universe <- desc$Repository
   r_short <- gsub("\\.[^.]+$", "", WEBR_R_VERSION)
-  contrib <- glue::glue("{r_universe}/bin/emscripten/contrib/{r_short}")
+  contrib <- glue::glue("{repo}/bin/emscripten/contrib/{r_short}")
 
   info <- utils::available.packages(contriburl = contrib)
   if (!pkg %in% rownames(info)) {
-    cli::cli_warn("Can't find {.pkg {pkg}} in r-universe binary repository.")
+    cli::cli_warn("Can't find {.pkg {pkg}} in Wasm binary repository: {.url {repo}}")
     return(list())
   }
-  ver <- info[pkg, "Version", drop = TRUE]
 
-  # Show a warning if packages major.minor versions differ
-  # We don't worry too much about patch, since webR versions of packages may be
-  # patched at the repo for compatibility with Emscripten
-  inst_ver <- package_version(desc$Version)
-  repo_ver <- package_version(ver)
-  if (inst_ver$major != repo_ver$major || inst_ver$minor != repo_ver$minor) {
-    cli::cli_warn(c(
-      "Package version mismatch for {.pkg {pkg}}, ensure the versions below are compatible.",
-      "!" = "Installed version: {desc$Version}, WebAssembly version: {ver}.",
-      "i" = "Install a package version matching the WebAssembly version to silence this error."
-    ))
-  }
+  ver <- info[pkg, "Version", drop = TRUE]
+  check_repo_pkg_version(desc, ver)
 
   list(
     list(
@@ -189,11 +152,11 @@ prepare_wasm_metadata <- function(pkg, metadata) {
       metadata$assets <- get_github_wasm_assets(desc)
       metadata$type <- "library"
     } else if (grepl("r-universe\\.dev$", repo)) {
-      metadata$assets <- get_r_universe_wasm_assets(desc)
+      metadata$assets <- get_wasm_assets(desc, repo = desc$Repository)
       metadata$type <- "package"
     } else {
       # Fallback to repo.r-wasm.org lookup for CRAN and anything else
-      metadata$assets <- get_default_wasm_assets(desc)
+      metadata$assets <- get_wasm_assets(desc, repo = "http://repo.r-wasm.org")
       metadata$type <- "package"
     }
   } else {
