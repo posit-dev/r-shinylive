@@ -11,7 +11,7 @@ resolve_dependencies <- function(pkgs, local = TRUE) {
   unique(inst$get_resolution()$package)
 }
 
-check_repo_pkg_version <- function(desc, ver) {
+check_repo_pkg_version <- function(desc, ver, pkg) {
   # Show a warning if packages major.minor versions differ
   # We don't worry too much about patch, since webR versions of packages may be
   # patched at the repo for compatibility with Emscripten
@@ -38,7 +38,7 @@ get_wasm_assets <- function(desc, repo) {
   }
 
   ver <- info[pkg, "Version", drop = TRUE]
-  check_repo_pkg_version(desc, ver)
+  check_repo_pkg_version(desc, ver, pkg)
 
   list(
     list(
