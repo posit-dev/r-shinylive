@@ -14,6 +14,10 @@
 #'   part of the output app's static assets. Defaults to `TRUE`.
 #' @param package_cache Cache downloaded binary WebAssembly packages. Defaults
 #'   to `TRUE`.
+#' @param max_filesize Maximum file size for bundling of WebAssembly package
+#'   assets. Parsed by [fs::fs_bytes()]. Defaults to `"100M"`. The default
+#'   value can be changed by setting the environment variable
+#'   `SHINYLIVE_DEFAULT_MAX_FILESIZE`. Set to `Inf`, `NA` or `-1` to disable.
 #' @param assets_version The version of the Shinylive assets to use in the
 #'   exported app. Defaults to [assets_version()]. Note, not all custom assets
 #'   versions may work with this release of \pkg{shinylive}. Please visit the
@@ -59,6 +63,7 @@ export <- function(
   quiet = getOption("shinylive.quiet", !is_interactive()),
   wasm_packages = TRUE,
   package_cache = TRUE,
+  max_filesize = NULL,
   assets_version = NULL,
   template_dir = NULL,
   template_params = list(),
@@ -194,7 +199,7 @@ export <- function(
   # Copy app package dependencies as Wasm binaries
   # =========================================================================
   if (wasm_packages) {
-    download_wasm_packages(appdir, destdir, package_cache)
+    download_wasm_packages(appdir, destdir, package_cache, max_filesize)
   }
 
   # =========================================================================

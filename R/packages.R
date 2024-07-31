@@ -1,3 +1,10 @@
+SHINYLIVE_DEFAULT_MAX_FILESIZE <- "100MB"
+
+# Default maximum filesize for asset bundling
+default_max_filesize <- function() {
+  Sys.getenv("SHINYLIVE_DEFAULT_MAX_FILESIZE", SHINYLIVE_DEFAULT_MAX_FILESIZE)
+}
+
 # Resolve package list hard dependencies
 resolve_dependencies <- function(pkgs, local = TRUE) {
   pkg_refs <- if (local) {
@@ -178,7 +185,14 @@ env_download_wasm_core_packages <- function() {
   strsplit(pkgs, "\\s*[ ,\n]\\s*")[[1]]
 }
 
-download_wasm_packages <- function(appdir, destdir, package_cache) {
+download_wasm_packages <- function(appdir, destdir, package_cache, max_filesize = NULL) {
+  max_filesize_missing <- Sys.getenv("SHINYLIVE_DEFAULT_MAX_FILESIZE") == "" && is.null(max_filesize)
+  max_filesize_cli_fn <- if (max_filesize_missing) cli::cli_warn else cli::cli_abort
+
+  max_filesize <- max_filesize %||% default_max_filesize()
+  max_filesize <- if (is.na(max_filesize) || (max_filesize < 0)) Inf else max_filesize
+  max_filesize <- fs::fs_bytes(max_filesize)
+
   # Core packages in base webR image that we don't need to download
   shiny_pkgs <- c("shiny", "bslib", "renv")
   shiny_pkgs <- resolve_dependencies(shiny_pkgs, local = FALSE)
@@ -240,13 +254,31 @@ download_wasm_packages <- function(appdir, destdir, package_cache) {
     # Create package ref and lookup download URLs
     meta <- prepare_wasm_metadata(pkg, prev_meta)
 
-    if (!meta$cached && length(meta$assets) > 0) {
+    if (!meta$cached) {
       # Download Wasm binaries and copy to static assets dir
       for (file in meta$assets) {
-        utils::download.file(file$url, fs::path(pkg_subdir, file$filename))
+        path <- fs::path(pkg_subdir, file$filename)
+        utils::download.file(file$url, path)
+
+        # Disallow this package if an asset is too large
+        if (fs::file_size(path) > max_filesize) {
+          fs::dir_delete(pkg_subdir)
+          meta$assets = list()
+          max_filesize_cli_fn(c(
+            "!" = "The file size of package {.pkg {pkg}} is larger than the maximum allowed file size of {.strong {max_filesize}}.",
+            "!" = "This package will not be included as part of the WebAssembly asset bundle.",
+            "i" = "Set the maximum allowed size to {.code -1}, {.code Inf}, or {.code NA} to disable this check.",
+            "i" = if (max_filesize_missing) "Explicitly set the maximum allowed size to treat this as an error." else NULL
+          ))
+          break
+        }
       }
+
       meta$cached <- TRUE
-      meta$path <- glue::glue("packages/{pkg}/{meta$assets[[1]]$filename}")
+      meta$path <- NULL
+      if (length(meta$assets) > 0) {
+        meta$path <- glue::glue("packages/{pkg}/{meta$assets[[1]]$filename}")
+      }
     }
     meta
   })

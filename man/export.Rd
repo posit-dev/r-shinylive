@@ -12,6 +12,7 @@ export(
   quiet = getOption("shinylive.quiet", !is_interactive()),
   wasm_packages = TRUE,
   package_cache = TRUE,
+  max_filesize = NULL,
   assets_version = NULL,
   template_dir = NULL,
   template_params = list(),
@@ -36,6 +37,11 @@ part of the output app's static assets. Defaults to \code{TRUE}.}
 
 \item{package_cache}{Cache downloaded binary WebAssembly packages. Defaults
 to \code{TRUE}.}
+
+\item{max_filesize}{Maximum file size for bundling of WebAssembly package
+assets. Parsed by \code{\link[fs:fs_bytes]{fs::fs_bytes()}}. Defaults to \code{"100M"}. The default
+value can be changed by setting the environment variable
+\code{SHINYLIVE_DEFAULT_MAX_FILESIZE}. Set to \code{Inf}, \code{NA} or \code{-1} to disable.}
 
 \item{assets_version}{The version of the Shinylive assets to use in the
 exported app. Defaults to \code{\link[=assets_version]{assets_version()}}. Note, not all custom assets
