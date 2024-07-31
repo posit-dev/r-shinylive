@@ -185,7 +185,7 @@ env_download_wasm_core_packages <- function() {
   strsplit(pkgs, "\\s*[ ,\n]\\s*")[[1]]
 }
 
-download_wasm_packages <- function(appdir, destdir, package_cache, max_filesize = NULL) {
+download_wasm_packages <- function(appdir, destdir, package_cache, max_filesize) {
   max_filesize_missing <- Sys.getenv("SHINYLIVE_DEFAULT_MAX_FILESIZE") == "" && is.null(max_filesize)
   max_filesize_cli_fn <- if (max_filesize_missing) cli::cli_warn else cli::cli_abort
 
