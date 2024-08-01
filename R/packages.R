@@ -1,8 +1,8 @@
 SHINYLIVE_DEFAULT_MAX_FILESIZE <- "100MB"
 
-# Default maximum filesize for asset bundling
-default_max_filesize <- function() {
-  Sys.getenv("SHINYLIVE_DEFAULT_MAX_FILESIZE", SHINYLIVE_DEFAULT_MAX_FILESIZE)
+# Sys env maximum filesize for asset bundling
+sys_env_max_filesize <- function() {
+  Sys.getenv("SHINYLIVE_DEFAULT_MAX_FILESIZE", NULL)
 }
 
 # Resolve package list hard dependencies
@@ -186,12 +186,20 @@ env_download_wasm_core_packages <- function() {
 }
 
 download_wasm_packages <- function(appdir, destdir, package_cache, max_filesize) {
-  max_filesize_missing <- Sys.getenv("SHINYLIVE_DEFAULT_MAX_FILESIZE") == "" && is.null(max_filesize)
+  max_filesize_missing <- is.null(sys_env_max_filesize()) && is.null(max_filesize)
   max_filesize_cli_fn <- if (max_filesize_missing) cli::cli_warn else cli::cli_abort
 
-  max_filesize <- max_filesize %||% default_max_filesize()
+  max_filesize <- max_filesize %||% sys_env_max_filesize() %||% SHINYLIVE_DEFAULT_MAX_FILESIZE
   max_filesize <- if (is.na(max_filesize) || (max_filesize < 0)) Inf else max_filesize
+  max_filesize_val <- max_filesize
   max_filesize <- fs::fs_bytes(max_filesize)
+  if (is.na(max_filesize)) {
+    cli::cli_warn(c(
+      "!" = "Could not parse `max_filesize` value: {.code   max_filesize_val }",
+      "i" = "Setting to {.code SHINYLIVE_DEFAULT_MAX_FILESIZE }"
+    ))
+    max_filesize <- fs::fs_bytes(SHINYLIVE_DEFAULT_MAX_FILESIZE)
+  }
 
   # Core packages in base webR image that we don't need to download
   shiny_pkgs <- c("shiny", "bslib", "renv")
