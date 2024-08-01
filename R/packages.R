@@ -2,7 +2,8 @@ SHINYLIVE_DEFAULT_MAX_FILESIZE <- "100MB"
 
 # Sys env maximum filesize for asset bundling
 sys_env_max_filesize <- function() {
-  Sys.getenv("SHINYLIVE_DEFAULT_MAX_FILESIZE", NULL)
+  max_fs_env <- Sys.getenv("SHINYLIVE_DEFAULT_MAX_FILESIZE")
+  if (max_fs_env == "") NULL else max_fs_env
 }
 
 # Resolve package list hard dependencies
