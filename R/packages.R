@@ -196,8 +196,8 @@ download_wasm_packages <- function(appdir, destdir, package_cache, max_filesize)
   max_filesize <- fs::fs_bytes(max_filesize)
   if (is.na(max_filesize)) {
     cli::cli_warn(c(
-      "!" = "Could not parse `max_filesize` value: {.code   max_filesize_val }",
-      "i" = "Setting to {.code SHINYLIVE_DEFAULT_MAX_FILESIZE }"
+      "!" = "Could not parse `max_filesize` value: {.code {max_filesize_val}}",
+      "i" = "Setting to {.code {SHINYLIVE_DEFAULT_MAX_FILESIZE}}"
     ))
     max_filesize <- fs::fs_bytes(SHINYLIVE_DEFAULT_MAX_FILESIZE)
   }
