@@ -135,3 +135,49 @@ test_that("export with template", {
     "<meta name=\"description\" content=\"My custom export template param test app\">"
   )
 })
+
+test_that("export - include R package in wasm assets", {
+  maybe_skip_test()
+
+  assets_ensure()
+
+  # Ensure pkgcache metadata has been loaded
+  invisible(pkgcache::meta_cache_list())
+
+  # Create a temporary output directory
+  out_dir <- file.path(tempfile(), "out")
+  pkg_dir <- file.path(out_dir, "shinylive", "webr", "packages")
+
+  # A package with an external dependency
+  app_dir <- test_path("apps", "app-utf8")
+  asset_package <- c("utf8")
+
+  # Default filesize 100MB
+  expect_silent_unattended({
+    export(app_dir, out_dir)
+  })
+  expect_contains(dir(pkg_dir), c(asset_package))
+  unlink_path(out_dir)
+
+  # No maximum filesize
+  expect_silent_unattended({
+    export(app_dir, out_dir, max_filesize = Inf)
+  })
+  expect_contains(dir(pkg_dir), c(asset_package))
+  unlink_path(out_dir)
+
+  # Set a maximum filesize
+  expect_error({
+    export(app_dir, out_dir, max_filesize = "1K")
+  })
+  unlink_path(out_dir)
+
+  expect_error({
+    withr::with_envvar(
+      list("SHINYLIVE_DEFAULT_MAX_FILESIZE" = "1K"),
+      export(app_dir, out_dir)
+    )
+  })
+  unlink_path(out_dir)
+
+})
