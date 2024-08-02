@@ -1,5 +1,7 @@
 # shinylive (development version)
 
+* In CI and other automated workflow settings the `SHINYLIVE_WASM_PACKAGES` environment variable can now be used to control whether WebAssembly R package binaries are bundled with the exported shinylive app, in addition to the `wasm_packages` argument of the `export()` function. (#116)
+
 * shinylive now avoids bundling WebAssembly R package dependencies listed only in the `LinkingTo` section of required packages. With this change dependencies that are only required at build time are no longer included as part of the exported WebAssembly asset bundle. This reduces the total static asset size and improves the loading time of affected shinylive apps. (#115)
 
 # shinylive 0.2.0

@@ -1,9 +1,20 @@
 SHINYLIVE_DEFAULT_MAX_FILESIZE <- "100MB"
+SHINYLIVE_WASM_PACKAGES <- TRUE
 
 # Sys env maximum filesize for asset bundling
 sys_env_max_filesize <- function() {
   max_fs_env <- Sys.getenv("SHINYLIVE_DEFAULT_MAX_FILESIZE")
   if (max_fs_env == "") NULL else max_fs_env
+}
+
+sys_env_wasm_packages <- function() {
+  pkgs_env <- Sys.getenv("SHINYLIVE_WASM_PACKAGES", SHINYLIVE_WASM_PACKAGES)
+  pkgs_env <- switch(pkgs_env, "1" = TRUE, "0" = FALSE, pkgs_env)
+  wasm_packages <- as.logical(pkgs_env)
+  if (is.na(wasm_packages)) {
+    cli::cli_abort("Could not parse `wasm_packages` value: {.code {pkgs_env}}")
+  }
+  wasm_packages
 }
 
 # Resolve package list, dependencies listed in Depends and Imports

@@ -10,8 +10,11 @@
 #'   `shinylive.quiet` option or defaults to `FALSE` in interactive sessions if
 #'   not set.
 #' @param verbose Deprecated, please use `quiet` instead.
-#' @param wasm_packages Download and include binary WebAssembly packages as
-#'   part of the output app's static assets. Defaults to `TRUE`.
+#' @param wasm_packages Download and include binary WebAssembly packages as part
+#'   of the output app's static assets. Logical, defaults to `TRUE`. The default
+#'   value can be changed by setting the environment variable
+#'   `SHINYLIVE_WASM_PACKAGES` to `TRUE` or `1` to enable, `FALSE` or `0` to
+#'   disable.
 #' @param package_cache Cache downloaded binary WebAssembly packages. Defaults
 #'   to `TRUE`.
 #' @param max_filesize Maximum file size for bundling of WebAssembly package
@@ -61,7 +64,7 @@ export <- function(
   ...,
   subdir = "",
   quiet = getOption("shinylive.quiet", !is_interactive()),
-  wasm_packages = TRUE,
+  wasm_packages = NULL,
   package_cache = TRUE,
   max_filesize = NULL,
   assets_version = NULL,
@@ -83,6 +86,8 @@ export <- function(
   if (is.null(assets_version)) {
     assets_version <- assets_version()
   }
+
+  wasm_packages <- wasm_packages %||% sys_env_wasm_packages()
 
   if (!fs::is_dir(appdir)) {
     cli::cli_abort("{.var appdir} must be a directory, but was provided {.path {appdir}}.")
