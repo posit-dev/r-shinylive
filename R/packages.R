@@ -25,7 +25,8 @@ resolve_dependencies <- function(pkgs, local = TRUE) {
   } else {
     pkgs
   }
-  inst <- pkgdepends::new_pkg_deps(pkg_refs)
+  wasm_config <- list(dependencies = c("Depends", "Imports"))
+  inst <- pkgdepends::new_pkg_deps(pkg_refs, config = wasm_config)
   inst$resolve()
   unique(inst$get_resolution()$package)
 }
