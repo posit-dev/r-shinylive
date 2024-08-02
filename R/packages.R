@@ -6,7 +6,7 @@ sys_env_max_filesize <- function() {
   if (max_fs_env == "") NULL else max_fs_env
 }
 
-# Resolve package list hard dependencies
+# Resolve package list, dependencies listed in Depends and Imports
 resolve_dependencies <- function(pkgs, local = TRUE) {
   pkg_refs <- if (local) {
     refs <- find.package(pkgs, lib.loc = NULL, quiet = FALSE, !is_quiet())
@@ -14,7 +14,8 @@ resolve_dependencies <- function(pkgs, local = TRUE) {
   } else {
     pkgs
   }
-  inst <- pkgdepends::new_pkg_deps(pkg_refs)
+  wasm_config <- list(dependencies = c("Depends", "Imports"))
+  inst <- pkgdepends::new_pkg_deps(pkg_refs, config = wasm_config)
   inst$resolve()
   unique(inst$get_resolution()$package)
 }
