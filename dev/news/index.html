@@ -34,7 +34,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="shinylive-development-version">shinylive (development version)<a class="anchor" aria-label="anchor" href="#shinylive-development-version"></a></h2>
-<ul><li>shinylive now avoids bundling WebAssembly R package dependencies listed only in the <code>LinkingTo</code> section of required packages. With this change dependencies that are only required at build time are no longer included as part of the exported WebAssembly asset bundle. This reduces the total static asset size and improves the loading time of affected shinylive apps. (<a href="https://github.com/posit-dev/r-shinylive/issues/115" class="external-link">#115</a>)</li>
+<ul><li><p>In CI and other automated workflow settings the <code>SHINYLIVE_WASM_PACKAGES</code> environment variable can now be used to control whether WebAssembly R package binaries are bundled with the exported shinylive app, in addition to the <code>wasm_packages</code> argument of the <code><a href="../reference/export.html">export()</a></code> function. (<a href="https://github.com/posit-dev/r-shinylive/issues/116" class="external-link">#116</a>)</p></li>
+<li><p>shinylive now avoids bundling WebAssembly R package dependencies listed only in the <code>LinkingTo</code> section of required packages. With this change dependencies that are only required at build time are no longer included as part of the exported WebAssembly asset bundle. This reduces the total static asset size and improves the loading time of affected shinylive apps. (<a href="https://github.com/posit-dev/r-shinylive/issues/115" class="external-link">#115</a>)</p></li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="shinylive-020">shinylive 0.2.0<a class="anchor" aria-label="anchor" href="#shinylive-020"></a></h2><p class="text-muted">CRAN release: 2024-07-19</p>
