@@ -34,7 +34,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="shinylive-development-version">shinylive (development version)<a class="anchor" aria-label="anchor" href="#shinylive-development-version"></a></h2>
-</div>
+<ul><li>shinylive now avoids bundling WebAssembly R package dependencies listed only in the <code>LinkingTo</code> section of required packages. With this change dependencies that are only required at build time are no longer included as part of the exported WebAssembly asset bundle. This reduces the total static asset size and improves the loading time of affected shinylive apps. (<a href="https://github.com/posit-dev/r-shinylive/issues/115" class="external-link">#115</a>)</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="shinylive-020">shinylive 0.2.0<a class="anchor" aria-label="anchor" href="#shinylive-020"></a></h2><p class="text-muted">CRAN release: 2024-07-19</p>
 <ul><li><p>shinylive now uses <a href="https://github.com/posit-dev/shinylive/releases/tag/v0.5.0" class="external-link">shinylive web assets v0.5.0</a> by default, which bundles webR 0.4.0 with R 4.4.1. This update brings improved keyboard shortcuts for R users in the Shinylive editor, the ability to export a custom library of R packages with the exported app, and a few improvements to the Quarto integration. (<a href="https://github.com/posit-dev/r-shinylive/issues/108" class="external-link">#108</a>)</p></li>
