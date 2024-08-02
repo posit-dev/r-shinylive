@@ -253,11 +253,22 @@ build_app_resources <- function(app_json) {
     }
   })
 
-  # Download wasm binaries ready to embed into Quarto deps
-  withr::with_options(
-    list(shinylive.quiet = TRUE),
-    download_wasm_packages(appdir, destdir, package_cache = TRUE, max_filesize = NULL)
-  )
+  wasm_packages_val <- sys_env_wasm_packages()
+  wasm_packages <- as.logical(wasm_packages_val)
+  if (is.na(wasm_packages)) {
+    cli::cli_abort(c(
+      "x" = "Could not parse `wasm_packages` value: {.code {wasm_packages_val}}"
+    ))
+    wasm_packages <- SHINYLIVE_WASM_PACKAGES
+  }
+
+  if (wasm_packages) {
+    # Download wasm binaries ready to embed into Quarto deps
+    withr::with_options(
+      list(shinylive.quiet = TRUE),
+      download_wasm_packages(appdir, destdir, package_cache = TRUE, max_filesize = NULL)
+    )
+  }
 
   # Enumerate R package Wasm binaries and prepare the VFS images as html deps
   webr_dir <- fs::path(destdir, "shinylive", "webr")

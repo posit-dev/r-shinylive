@@ -1,4 +1,5 @@
 SHINYLIVE_DEFAULT_MAX_FILESIZE <- "100MB"
+SHINYLIVE_WASM_PACKAGES <- TRUE
 
 # Sys env maximum filesize for asset bundling
 sys_env_max_filesize <- function() {
@@ -6,7 +7,12 @@ sys_env_max_filesize <- function() {
   if (max_fs_env == "") NULL else max_fs_env
 }
 
-# Resolve package list hard dependencies
+sys_env_wasm_packages <- function() {
+  pkgs_env <- Sys.getenv("SHINYLIVE_WASM_PACKAGES", SHINYLIVE_WASM_PACKAGES)
+  switch(pkgs_env, "1" = TRUE, "0" = FALSE, pkgs_env)
+}
+
+# Resolve package list, dependencies listed in Depends and Imports
 resolve_dependencies <- function(pkgs, local = TRUE) {
   pkg_refs <- if (local) {
     refs <- find.package(pkgs, lib.loc = NULL, quiet = FALSE, !is_quiet())

@@ -152,6 +152,16 @@ test_that("export - include R package in wasm assets", {
   app_dir <- test_path("apps", "app-utf8")
   asset_package <- c("utf8")
 
+  # No external dependencies exported
+  expect_silent_unattended({
+    withr::with_envvar(
+      list("SHINYLIVE_WASM_PACKAGES" = "FALSE"),
+      export(app_dir, out_dir)
+    )
+  })
+  expect_length(dir(pkg_dir), 0)
+  unlink_path(out_dir)
+
   # Default filesize 100MB
   expect_silent_unattended({
     export(app_dir, out_dir)
