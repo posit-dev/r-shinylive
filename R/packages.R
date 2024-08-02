@@ -9,7 +9,12 @@ sys_env_max_filesize <- function() {
 
 sys_env_wasm_packages <- function() {
   pkgs_env <- Sys.getenv("SHINYLIVE_WASM_PACKAGES", SHINYLIVE_WASM_PACKAGES)
-  switch(pkgs_env, "1" = TRUE, "0" = FALSE, pkgs_env)
+  pkgs_env <- switch(pkgs_env, "1" = TRUE, "0" = FALSE, pkgs_env)
+  wasm_packages <- as.logical(pkgs_env)
+  if (is.na(wasm_packages)) {
+    cli::cli_abort("Could not parse `wasm_packages` value: {.code {pkgs_env}}")
+  }
+  wasm_packages
 }
 
 # Resolve package list, dependencies listed in Depends and Imports

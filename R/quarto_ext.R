@@ -253,15 +253,7 @@ build_app_resources <- function(app_json) {
     }
   })
 
-  wasm_packages_val <- sys_env_wasm_packages()
-  wasm_packages <- as.logical(wasm_packages_val)
-  if (is.na(wasm_packages)) {
-    cli::cli_abort(c(
-      "x" = "Could not parse `wasm_packages` value: {.code {wasm_packages_val}}"
-    ))
-    wasm_packages <- SHINYLIVE_WASM_PACKAGES
-  }
-
+  wasm_packages <- sys_env_wasm_packages()
   if (wasm_packages) {
     # Download wasm binaries ready to embed into Quarto deps
     withr::with_options(

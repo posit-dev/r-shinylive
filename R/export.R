@@ -87,14 +87,7 @@ export <- function(
     assets_version <- assets_version()
   }
 
-  wasm_packages_val <- wasm_packages %||% sys_env_wasm_packages()
-  wasm_packages <- as.logical(wasm_packages_val)
-  if (is.na(wasm_packages)) {
-    cli::cli_abort(c(
-      "x" = "Could not parse `wasm_packages` value: {.code {wasm_packages_val}}"
-    ))
-    wasm_packages <- SHINYLIVE_WASM_PACKAGES
-  }
+  wasm_packages <- wasm_packages %||% sys_env_wasm_packages()
 
   if (!fs::is_dir(appdir)) {
     cli::cli_abort("{.var appdir} must be a directory, but was provided {.path {appdir}}.")
