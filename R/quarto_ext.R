@@ -242,7 +242,16 @@ build_app_resources <- function(app_json) {
     simplifyMatrix = FALSE
   )
   lapply(app, function(file) {
-    file_path <- fs::path(appdir, file$name)
+    file_name <- fs::path_norm(file$name)
+    
+    if (grepl("^(/|[.]{2})", file_name)) {
+      cli::cli_abort(c(
+        "App file paths must be relative to the app directory",
+        x = "Invalid file path: {.path {file$name}}"
+      ))
+    }
+
+    file_path <- fs::path(appdir, file_name)
     fs::dir_create(fs::path_dir(file_path))
     
     if (file$type == "text") {
