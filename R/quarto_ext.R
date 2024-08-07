@@ -243,6 +243,8 @@ build_app_resources <- function(app_json) {
   )
   lapply(app, function(file) {
     file_path <- fs::path(appdir, file$name)
+    fs::dir_create(fs::path_dir(file_path))
+    
     if (file$type == "text") {
       writeLines(file$content, file_path)
     } else {
