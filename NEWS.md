@@ -4,6 +4,8 @@
 
 * shinylive now avoids bundling WebAssembly R package dependencies listed only in the `LinkingTo` section of required packages. With this change dependencies that are only required at build time are no longer included as part of the exported WebAssembly asset bundle. This reduces the total static asset size and improves the loading time of affected shinylive apps. (#115)
 
+* shinylive now supports adding files in virtual subdirectories in `shinylive-r` apps emebedded in Quarto documents. For example, `## file: R/load_data.R` in a `shinylive-r` chunk followed by the `load_data.R` code will create a file `load_data.R` in the `R` subdirectory of the exported app. (#119)
+
 # shinylive 0.2.0
 
 * shinylive now uses [shinylive web assets v0.5.0](https://github.com/posit-dev/shinylive/releases/tag/v0.5.0) by default, which bundles webR 0.4.0 with R 4.4.1. This update brings improved keyboard shortcuts for R users in the Shinylive editor, the ability to export a custom library of R packages with the exported app, and a few improvements to the Quarto integration. (#108)
