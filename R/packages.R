@@ -282,7 +282,7 @@ download_wasm_packages <- function(appdir, destdir, package_cache, max_filesize)
       # Download Wasm binaries and copy to static assets dir
       for (file in meta$assets) {
         path <- fs::path(pkg_subdir, file$filename)
-        utils::download.file(file$url, path)
+        utils::download.file(file$url, path, mode = "wb")
 
         # Disallow this package if an asset is too large
         if (fs::file_size(path) > max_filesize) {
