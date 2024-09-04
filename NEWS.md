@@ -1,6 +1,8 @@
 # shinylive (development version)
 
-* Updated default shinylive assets to [v0.6.0](https://github.com/posit-dev/shinylive/releases/tag/v0.6.0). (#120)
+* Updated default shinylive assets to [v0.7.0](https://github.com/posit-dev/shinylive/releases/tag/v0.7.0). (#120, #129)
+
+* Resources are now built relative to Quarto project root. (#130)
 
 * In CI and other automated workflow settings the `SHINYLIVE_WASM_PACKAGES` environment variable can now be used to control whether WebAssembly R package binaries are bundled with the exported shinylive app, in addition to the `wasm_packages` argument of the `export()` function. (#116)
 
