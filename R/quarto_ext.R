@@ -226,8 +226,9 @@ quarto_ext <- function(
 }
 
 build_app_resources <- function(app_json) {
-  appdir <- fs::path(".quarto", "_webr", "appdir")
-  destdir <- fs::path(".quarto", "_webr", "destdir")
+  projdir <- Sys.getenv("QUARTO_PROJECT_DIR", ".")
+  appdir <- fs::path(projdir, ".quarto", "_webr", "appdir")
+  destdir <- fs::path(projdir, ".quarto", "_webr", "destdir")
 
   # Build app directory, removing any previous app expanded there
   if (fs::dir_exists(appdir)) {
