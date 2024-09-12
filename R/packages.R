@@ -99,7 +99,7 @@ get_github_wasm_assets <- function(desc) {
 
   # Find GH release asset URLs for R library VFS image
   library_data <- Filter(function(item) {
-    item$name == "library.data"
+    grepl("library.data", item$name)
   }, tags$assets)
   library_metadata <- Filter(function(item) {
     item$name == "library.js.metadata"
