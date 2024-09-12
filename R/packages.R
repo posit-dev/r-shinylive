@@ -173,6 +173,10 @@ prepare_wasm_metadata <- function(pkg, metadata) {
     } else if (grepl("r-universe\\.dev$", repo)) {
       metadata$assets <- get_wasm_assets(desc, repo = desc$Repository)
       metadata$type <- "package"
+    } else if (grepl("Bioconductor", repo)) {
+      # Use r-universe for Bioconductor packages
+      metadata$assets <- get_wasm_assets(desc, repo = "https://bioc.r-universe.dev")
+      metadata$type <- "package"
     } else {
       # Fallback to repo.r-wasm.org lookup for CRAN and anything else
       metadata$assets <- get_wasm_assets(desc, repo = "http://repo.r-wasm.org")
