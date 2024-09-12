@@ -266,7 +266,7 @@ build_app_resources <- function(app_json) {
   })
 
   wasm_packages <- sys_env_wasm_packages()
-  if (wasm_packages) {
+  if (wasm_packages && wasm_packages_able(assets_version())) {
     # Download wasm binaries ready to embed into Quarto deps
     withr::with_options(
       list(shinylive.quiet = TRUE),
