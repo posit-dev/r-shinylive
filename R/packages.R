@@ -65,12 +65,8 @@ get_wasm_assets <- function(desc, repo) {
 
   list(
     list(
-      filename = glue::glue("{pkg}_{ver}.data"),
-      url = glue::glue("{contrib}/{pkg}_{ver}.data")
-    ),
-    list(
-      filename = glue::glue("{pkg}_{ver}.js.metadata"),
-      url = glue::glue("{contrib}/{pkg}_{ver}.js.metadata")
+      filename = glue::glue("{pkg}_{ver}.tgz"),
+      url = glue::glue("{contrib}/{pkg}_{ver}.tgz")
     )
   )
 }
