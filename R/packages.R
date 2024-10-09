@@ -65,12 +65,8 @@ get_wasm_assets <- function(desc, repo) {
 
   list(
     list(
-      filename = glue::glue("{pkg}_{ver}.data"),
-      url = glue::glue("{contrib}/{pkg}_{ver}.data")
-    ),
-    list(
-      filename = glue::glue("{pkg}_{ver}.js.metadata"),
-      url = glue::glue("{contrib}/{pkg}_{ver}.js.metadata")
+      filename = glue::glue("{pkg}_{ver}.tgz"),
+      url = glue::glue("{contrib}/{pkg}_{ver}.tgz")
     )
   )
 }
@@ -103,7 +99,7 @@ get_github_wasm_assets <- function(desc) {
 
   # Find GH release asset URLs for R library VFS image
   library_data <- Filter(function(item) {
-    item$name == "library.data"
+    grepl("library.data", item$name, fixed = TRUE)
   }, tags$assets)
   library_metadata <- Filter(function(item) {
     item$name == "library.js.metadata"
@@ -176,6 +172,10 @@ prepare_wasm_metadata <- function(pkg, metadata) {
       metadata$type <- "library"
     } else if (grepl("r-universe\\.dev$", repo)) {
       metadata$assets <- get_wasm_assets(desc, repo = desc$Repository)
+      metadata$type <- "package"
+    } else if (grepl("Bioconductor", repo)) {
+      # Use r-universe for Bioconductor packages
+      metadata$assets <- get_wasm_assets(desc, repo = "https://bioc.r-universe.dev")
       metadata$type <- "package"
     } else {
       # Fallback to repo.r-wasm.org lookup for CRAN and anything else

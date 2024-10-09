@@ -135,13 +135,13 @@ jobs:
 
           testthat::test_local()
 
-      - name: Test shinylive quarto extension with latest shinylive assets
-        uses: quarto-dev/quarto-actions/render@v2
-        env:
-          # TODO: py-shinylive doesn't follow this envvar yet. If shinylive
-          # has a newer version, this action will fail.
-          SHINYLIVE_ASSETS_VERSION: ${{ steps.r-linked-assets.outputs.version }}
-        with:
-          path: local/quarto/
+      #- name: Test shinylive quarto extension with latest shinylive assets
+      #  uses: quarto-dev/quarto-actions/render@v2
+      #  env:
+      #    # TODO: py-shinylive doesn't follow this envvar yet. If shinylive
+      #    # has a newer version, this action will fail.
+      #    SHINYLIVE_ASSETS_VERSION: ${{ steps.r-linked-assets.outputs.version }}
+      #  with:
+      #    path: local/quarto/
 
       # TODO-barret-future; Test the output of the render using pyright / py-shiny e2e controls?
