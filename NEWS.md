@@ -1,6 +1,6 @@
-# shinylive (development version)
+# shinylive 0.3.0
 
-* Updated default shinylive assets to [v0.7.0](https://github.com/posit-dev/shinylive/releases/tag/v0.7.0). (#120, #129)
+* Updated default shinylive assets to [v0.9.0](https://github.com/posit-dev/shinylive/releases/tag/v0.7.0). (#120, #129, )
 
 * Resources are now built relative to Quarto project root. (#130)
 
