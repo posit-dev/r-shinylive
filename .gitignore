@@ -9,3 +9,4 @@ local/quarto/*_files/
 local/quarto/*.js
 local/quarto/_extensions/
 .Rproj.user
+venv/
