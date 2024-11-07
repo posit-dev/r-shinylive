@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">shinylive</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,11 +29,19 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/posit-dev/r-shinylive/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/posit-dev/r-shinylive/blob/rc-v0.3.0/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.2.0" id="shinylive-020">shinylive 0.2.0<a class="anchor" aria-label="anchor" href="#shinylive-020"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.3.0" id="shinylive-030">shinylive 0.3.0<a class="anchor" aria-label="anchor" href="#shinylive-030"></a></h2>
+<ul><li><p>Updated default shinylive assets to <a href="https://github.com/posit-dev/shinylive/releases/tag/v0.7.0" class="external-link">v0.9.0</a>. (<a href="https://github.com/posit-dev/r-shinylive/issues/120" class="external-link">#120</a>, <a href="https://github.com/posit-dev/r-shinylive/issues/129" class="external-link">#129</a>, )</p></li>
+<li><p>Resources are now built relative to Quarto project root. (<a href="https://github.com/posit-dev/r-shinylive/issues/130" class="external-link">#130</a>)</p></li>
+<li><p>In CI and other automated workflow settings the <code>SHINYLIVE_WASM_PACKAGES</code> environment variable can now be used to control whether WebAssembly R package binaries are bundled with the exported shinylive app, in addition to the <code>wasm_packages</code> argument of the <code><a href="../reference/export.html">export()</a></code> function. (<a href="https://github.com/posit-dev/r-shinylive/issues/116" class="external-link">#116</a>)</p></li>
+<li><p>shinylive now avoids bundling WebAssembly R package dependencies listed only in the <code>LinkingTo</code> section of required packages. With this change dependencies that are only required at build time are no longer included as part of the exported WebAssembly asset bundle. This reduces the total static asset size and improves the loading time of affected shinylive apps. (<a href="https://github.com/posit-dev/r-shinylive/issues/115" class="external-link">#115</a>)</p></li>
+<li><p>shinylive now supports adding files in virtual subdirectories in <code>shinylive-r</code> apps emebedded in Quarto documents. For example, <code>## file: R/load_data.R</code> in a <code>shinylive-r</code> chunk followed by the <code>load_data.R</code> code will create a file <code>load_data.R</code> in the <code>R</code> subdirectory of the exported app. (<a href="https://github.com/posit-dev/r-shinylive/issues/119" class="external-link">#119</a>)</p></li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.0" id="shinylive-020">shinylive 0.2.0<a class="anchor" aria-label="anchor" href="#shinylive-020"></a></h2><p class="text-muted">CRAN release: 2024-07-19</p>
 <ul><li><p>shinylive now uses <a href="https://github.com/posit-dev/shinylive/releases/tag/v0.5.0" class="external-link">shinylive web assets v0.5.0</a> by default, which bundles webR 0.4.0 with R 4.4.1. This update brings improved keyboard shortcuts for R users in the Shinylive editor, the ability to export a custom library of R packages with the exported app, and a few improvements to the Quarto integration. (<a href="https://github.com/posit-dev/r-shinylive/issues/108" class="external-link">#108</a>)</p></li>
 <li><p><code><a href="../reference/export.html">export()</a></code> gains an <code>assets_version</code> argument to choose the version of the Shinylive web assets to be used with the exported app. This is primarily useful for testing new versions of the Shinylive assets before they’re officially released via a package update. In CI and other automated workflow settings, the <code>SHINYLIVE_ASSETS_VERSION</code> environment variable can be used to set the assets version. (<a href="https://github.com/posit-dev/r-shinylive/issues/91" class="external-link">#91</a>)</p></li>
 <li>
@@ -48,9 +56,9 @@
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.1" id="shinylive-011">shinylive 0.1.1<a class="anchor" aria-label="anchor" href="#shinylive-011"></a></h2><p class="text-muted">CRAN release: 2023-12-04</p>
-<ul><li>Bump shinylive assets dependency to 0.2.3. (<a href="https://github.com/posit-dev/r-shinylive/issues/38" class="external-link">#38</a>)</li>
-<li>Use <a href="https://github.com/rstudio/httpuv" class="external-link">httpuv</a> to serve static folder instead of plumber. (<a href="https://github.com/posit-dev/r-shinylive/issues/40" class="external-link">#40</a>)</li>
-<li>Use <a href="https://httr2.r-lib.org" class="external-link">httr2</a> to download assets from GitHub releases. (<a href="https://github.com/dgkf" class="external-link">@dgkf</a> <a href="https://github.com/posit-dev/r-shinylive/issues/30" class="external-link">#30</a>, <a href="https://github.com/posit-dev/r-shinylive/issues/39" class="external-link">#39</a>)</li>
+<ul><li><p>Bump shinylive assets dependency to 0.2.3. (<a href="https://github.com/posit-dev/r-shinylive/issues/38" class="external-link">#38</a>)</p></li>
+<li><p>Use <a href="https://github.com/rstudio/httpuv" class="external-link">httpuv</a> to serve static folder instead of plumber. (<a href="https://github.com/posit-dev/r-shinylive/issues/40" class="external-link">#40</a>)</p></li>
+<li><p>Use <a href="https://httr2.r-lib.org" class="external-link">httr2</a> to download assets from GitHub releases. (<a href="https://github.com/dgkf" class="external-link">@dgkf</a> <a href="https://github.com/posit-dev/r-shinylive/issues/30" class="external-link">#30</a>, <a href="https://github.com/posit-dev/r-shinylive/issues/39" class="external-link">#39</a>)</p></li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="shinylive-010">shinylive 0.1.0<a class="anchor" aria-label="anchor" href="#shinylive-010"></a></h2><p class="text-muted">CRAN release: 2023-10-11</p>
@@ -67,7 +75,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
   </div></footer></body></html>
