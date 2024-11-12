@@ -15,3 +15,5 @@
 ^examples$
 ^\.Rproj\.user$
 ^venv$
+^.venv$
+^_dev$
