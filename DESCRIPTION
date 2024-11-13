@@ -1,6 +1,6 @@
 Package: shinylive
 Title: Run 'shiny' Applications in the Browser
-Version: 0.3.0
+Version: 0.3.0.9000
 Authors@R: c(
     person("Barret", "Schloerke", , "barret@posit.co", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-9986-114X")),
