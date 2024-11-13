@@ -14,3 +14,7 @@
 ^CRAN-SUBMISSION$
 ^examples$
 ^\.Rproj\.user$
+^venv$
+^.venv$
+^_dev$
+^node_modules$
