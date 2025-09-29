@@ -1,6 +1,6 @@
 # shinylive (development version)
 
-* Updated default shinylive assets to [v0.10.5](https://github.com/posit-dev/shinylive/releases/tag/v0.10.5). (#165)
+* Updated default shinylive assets to [v0.10.6](https://github.com/posit-dev/shinylive/releases/tag/v0.10.6). (#165, #166)
 
 # shinylive 0.3.0
 
