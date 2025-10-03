@@ -45,7 +45,10 @@ test_that("export - app.R", {
     dir(file.path(out_dir, "test_subdir")),
     asset_app_files
   )
-  expect_setequal(dir(file.path(out_dir, "test_subdir", "edit")), asset_edit_files)
+  expect_setequal(
+    dir(file.path(out_dir, "test_subdir", "edit")),
+    asset_edit_files
+  )
 })
 
 
@@ -64,7 +67,7 @@ test_that("export - server.R", {
   expect_silent_unattended({
     export(app_dir, out_dir)
   })
-  
+
   # Verify global.R / ui.R / server.R exported files exist
   app_json <- jsonlite::read_json(file.path(out_dir, "app.json"))
   out_app_file_names <- vapply(app_json, `[[`, character(1), "name")
@@ -82,7 +85,7 @@ test_that("export with template", {
   # withr::local_envvar(list("SHINYLIVE_ASSETS_VERSION" = "0.4.1"))
 
   assets_ensure()
-  
+
   path_export <- test_path("apps", "export_template")
 
   if (FALSE) {
@@ -119,7 +122,7 @@ test_that("export with template", {
     index_content,
     "<title>Shinylive Test App</title>"
   )
-  
+
   expect_match(
     index_content,
     "<body>\\s+<h1>Shinylive Test App</h1>"
@@ -189,5 +192,4 @@ test_that("export - include R package in wasm assets", {
     )
   })
   unlink_path(out_dir)
-
 })

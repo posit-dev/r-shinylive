@@ -147,8 +147,6 @@ read_app_files <- function(
 }
 
 
-
-
 # """
 # Write index.html, edit/index.html, and app.json for an application in the destdir.
 # """
@@ -168,7 +166,10 @@ write_app_json <- function(
   app_destdir <- fs::path(destdir, app_info$subdir)
 
   # For a subdir like a/b/c, this will be ../../../
-  subdir_inverse <- paste0(rep("..", length(fs::path_split(app_info$subdir)[[1]])), collapse = "/")
+  subdir_inverse <- paste0(
+    rep("..", length(fs::path_split(app_info$subdir)[[1]])),
+    collapse = "/"
+  )
   if (subdir_inverse != "") {
     # Add trailing slash
     subdir_inverse <- paste0(subdir_inverse, "/")
@@ -190,12 +191,15 @@ write_app_json <- function(
   )
 
   for (template_file in template_files) {
-    dest_file <- fs::path(app_destdir, fs::path_rel(template_file, template_dir))
+    dest_file <- fs::path(
+      app_destdir,
+      fs::path_rel(template_file, template_dir)
+    )
     fs::dir_create(fs::path_dir(dest_file))
 
     if (fs::path_ext(template_file) == "html") {
       file_content <- whisker::whisker.render(
-        template = brio::read_file(template_file), 
+        template = brio::read_file(template_file),
         data = template_params
       )
       brio::write_file(file_content, dest_file)
@@ -214,7 +218,9 @@ write_app_json <- function(
     pretty = FALSE
   )
   cli_progress_done()
-  cli_alert_info("Wrote {.path {app_json_output_file}} ({fs::file_info(app_json_output_file)$size[1]} bytes)")
-  
+  cli_alert_info(
+    "Wrote {.path {app_json_output_file}} ({fs::file_info(app_json_output_file)$size[1]} bytes)"
+  )
+
   invisible(app_json_output_file)
 }

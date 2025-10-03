@@ -35,7 +35,6 @@ Imports:
     httr2 (>= 1.0.0),
     jsonlite,
     pkgdepends,
-    progress,
     rappdirs,
     renv,
     rlang,

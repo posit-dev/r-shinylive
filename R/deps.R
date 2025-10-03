@@ -78,7 +78,10 @@ quarto_html_dependency_obj <- function(
   )
 }
 
-shinylive_base_deps_htmldep <- function(sw_dir = NULL, version = assets_version()) {
+shinylive_base_deps_htmldep <- function(
+  sw_dir = NULL,
+  version = assets_version()
+) {
   list(
     serviceworker_dep(sw_dir, version = version),
     shinylive_common_dep_htmldep("base", version = version)
@@ -88,7 +91,10 @@ shinylive_r_resources <- function(version = assets_version()) {
   shinylive_common_dep_htmldep("r", version = version)$resources
 }
 # Not used in practice!
-shinylive_python_resources <- function(sw_dir = NULL, version = assets_version()) {
+shinylive_python_resources <- function(
+  sw_dir = NULL,
+  version = assets_version()
+) {
   shinylive_common_dep_htmldep("python", version = version)$resources
 }
 
@@ -103,14 +109,13 @@ serviceworker_dep <- function(sw_dir, version = assets_version()) {
         destination = "/shinylive-sw.js"
       )
     ),
-    meta =
-      if (!is.null(sw_dir)) {
-        # Add meta tag to tell load-shinylive-sw.js where to find
-        # shinylive-sw.js.
-        list("shinylive:serviceworker_dir" = sw_dir)
-      } else {
-        NULL
-      }
+    meta = if (!is.null(sw_dir)) {
+      # Add meta tag to tell load-shinylive-sw.js where to find
+      # shinylive-sw.js.
+      list("shinylive:serviceworker_dir" = sw_dir)
+    } else {
+      NULL
+    }
   )
 }
 
@@ -203,7 +208,6 @@ shinylive_common_dep_htmldep <- function(
         }
       )
 
-
       # Put load-shinylive-sw.js in the scripts first
       if (is.null(load_shinylive_dep)) {
         cli::cli_abort("{.path load-shinylive-sw.js} not found in assets")
@@ -282,7 +286,10 @@ shinylive_common_files <- function(
           # Do not include `./scripts` or `./export_template` in base deps
           asset_files_in_folder(NULL, recurse = FALSE),
           # Do not include `./shinylive/examples.json` in base deps
-          setdiff(asset_files_in_folder("shinylive", recurse = FALSE), "shinylive/examples.json")
+          setdiff(
+            asset_files_in_folder("shinylive", recurse = FALSE),
+            "shinylive/examples.json"
+          )
         )
       },
       "r" = {
@@ -292,8 +299,14 @@ shinylive_common_files <- function(
       },
       "python" = {
         c(
-          asset_files_in_folder(file.path("shinylive", "pyodide"), recurse = TRUE),
-          asset_files_in_folder(file.path("shinylive", "pyright"), recurse = TRUE)
+          asset_files_in_folder(
+            file.path("shinylive", "pyodide"),
+            recurse = TRUE
+          ),
+          asset_files_in_folder(
+            file.path("shinylive", "pyright"),
+            recurse = TRUE
+          )
         )
       },
       {

@@ -15,7 +15,10 @@ test_that("quarto_ext handles `extension info`", {
       length(info$scripts) == 1 &&
       nzchar(info$scripts$`codeblock-to-json`)
   )
-  expect_equal(info$scripts$`codeblock-to-json`, quarto_codeblock_to_json_path())
+  expect_equal(
+    info$scripts$`codeblock-to-json`,
+    quarto_codeblock_to_json_path()
+  )
 })
 
 
@@ -41,7 +44,11 @@ test_that("quarto_ext handles `extension base-htmldeps`", {
   expect_equal(shinylive_item$name, "shinylive")
   # Verify webr can NOT be found in resources
   shinylive_resources <- shinylive_item$resources
-  expect_false(any(grepl("webr", vapply(shinylive_resources, `[[`, character(1), "name"), fixed = TRUE)))
+  expect_false(any(grepl(
+    "webr",
+    vapply(shinylive_resources, `[[`, character(1), "name"),
+    fixed = TRUE
+  )))
 })
 test_that("quarto_ext handles `extension language-resources`", {
   maybe_skip_test()
@@ -54,7 +61,11 @@ test_that("quarto_ext handles `extension language-resources`", {
   resources <- jsonlite::parse_json(txt)
 
   # Verify webr folder in path
-  expect_true(any(grepl("webr", vapply(resources, `[[`, character(1), "name"), fixed = TRUE)))
+  expect_true(any(grepl(
+    "webr",
+    vapply(resources, `[[`, character(1), "name"),
+    fixed = TRUE
+  )))
 })
 
 
@@ -80,7 +91,11 @@ test_that("quarto_ext handles `extension app-resources`", {
   resources <- jsonlite::parse_json(txt)
 
   # Package metadata included in resources
-  expect_true(any(grepl("metadata.rds", vapply(resources, `[[`, character(1), "name"), fixed = TRUE)))
+  expect_true(any(grepl(
+    "metadata.rds",
+    vapply(resources, `[[`, character(1), "name"),
+    fixed = TRUE
+  )))
 })
 
 test_that("quarto_ext handles `extension app-resources` with additional binary files", {
@@ -107,5 +122,9 @@ test_that("quarto_ext handles `extension app-resources` with additional binary f
   resources <- jsonlite::parse_json(txt)
 
   # Package metadata included in resources
-  expect_true(any(grepl("metadata.rds", vapply(resources, `[[`, character(1), "name"), fixed = TRUE)))
+  expect_true(any(grepl(
+    "metadata.rds",
+    vapply(resources, `[[`, character(1), "name"),
+    fixed = TRUE
+  )))
 })

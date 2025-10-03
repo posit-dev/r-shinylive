@@ -155,17 +155,20 @@ quarto_ext <- function(
   invalid_arg <- length(args) >= 2 && !(args[2] %in% names(methods))
 
   if (not_enough_args || invalid_arg) {
-    msg_stop <- 
+    msg_stop <-
       if (not_enough_args) {
         "Missing {.var extension} subcommand"
       } else if (invalid_arg) {
         "Unknown {.var extension} subcommand {.strong {args[2]}}"
       }
-    
+
     msg_methods <- c()
     for (method in names(methods)) {
       method_desc <- methods[[method]]
-      msg_methods <- c(msg_methods, paste(cli::style_bold(method), "-", method_desc))
+      msg_methods <- c(
+        msg_methods,
+        paste(cli::style_bold(method), "-", method_desc)
+      )
     }
 
     cli::cli_abort(c(
@@ -216,7 +219,11 @@ quarto_ext <- function(
     }
   )
   ret_null_free <- drop_nulls_rec(ret)
-  ret_json <- jsonlite::toJSON(ret_null_free, pretty = pretty, auto_unbox = TRUE)
+  ret_json <- jsonlite::toJSON(
+    ret_null_free,
+    pretty = pretty,
+    auto_unbox = TRUE
+  )
   # Make sure the json is printed to stdout.
   # Do not rely on Rscript to print the last value.
   print(ret_json)
@@ -244,7 +251,7 @@ build_app_resources <- function(app_json) {
   )
   lapply(app, function(file) {
     file_name <- fs::path_norm(file$name)
-    
+
     if (grepl("^(/|[.]{2})", file_name)) {
       cli::cli_abort(c(
         "App file paths must be relative to the app directory",
@@ -254,7 +261,7 @@ build_app_resources <- function(app_json) {
 
     file_path <- fs::path(appdir, file_name)
     fs::dir_create(fs::path_dir(file_path))
-    
+
     if (file$type == "text") {
       writeLines(file$content, file_path)
     } else {
@@ -270,7 +277,12 @@ build_app_resources <- function(app_json) {
     # Download wasm binaries ready to embed into Quarto deps
     withr::with_options(
       list(shinylive.quiet = TRUE),
-      download_wasm_packages(appdir, destdir, package_cache = TRUE, max_filesize = NULL)
+      download_wasm_packages(
+        appdir,
+        destdir,
+        package_cache = TRUE,
+        max_filesize = NULL
+      )
     )
   }
 

@@ -9,10 +9,13 @@ server <- function(input, output, session) {
 
   output$search_values <- renderText({
     invalidateLater(1000)
-    paste(capture.output({
-      print(Sys.time())
-      str(getQueryString())
-    }), collapse = "\n")
+    paste(
+      capture.output({
+        print(Sys.time())
+        str(getQueryString())
+      }),
+      collapse = "\n"
+    )
   })
 }
 

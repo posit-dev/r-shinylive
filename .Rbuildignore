@@ -18,3 +18,5 @@
 ^.venv$
 ^_dev$
 ^node_modules$
+^[.]?air[.]toml$
+^\.vscode$
