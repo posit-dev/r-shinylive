@@ -44,11 +44,11 @@ assets_download <- function(
   req <- httr2::request(url)
   req <- httr2::req_progress(req)
   httr2::req_perform(req, path = tmp_targz)
-  
+
   cli_progress_step("Unzipping shinylive assets to {.path {dir}}")
   fs::dir_create(dir)
   archive::archive_extract(tmp_targz, dir)
-  
+
   cli_progress_done()
   invisible(dir)
 }
@@ -83,7 +83,11 @@ assets_cache_dir_exists <- function() {
 
 # Returns the directory containing cached Shinylive assets, for a particular
 # version of Shinylive.
-assets_dir <- function(version = assets_version(), ..., dir = assets_cache_dir()) {
+assets_dir <- function(
+  version = assets_version(),
+  ...,
+  dir = assets_cache_dir()
+) {
   assets_dir_impl(dir = assets_cache_dir(), version = version)
 }
 shinylive_prefix <- "shinylive-"
@@ -194,7 +198,6 @@ assets_install_link <- function(
 }
 
 
-
 #' @describeIn assets Ensures a local copy of shinylive is installed. If a local
 #'    copy of shinylive is not installed, it will be downloaded and installed.
 #'    If a local copy of shinylive is installed, its path will be returned.
@@ -221,7 +224,6 @@ assets_ensure <- function(
 }
 
 
-
 # """Removes local copies of shinylive web assets, except for the one used by the
 # current version of the shinylive python package.
 
@@ -231,7 +233,6 @@ assets_ensure <- function(
 #     The directory where shinylive is stored. If None, the default directory will
 #     be used.
 # """
-
 
 #' @describeIn assets Removes local copies of shinylive web assets, except for
 #'    the one used by the current version of \pkg{shinylive}.
@@ -259,7 +260,6 @@ assets_cleanup <- function(
 
   invisible()
 }
-
 
 
 # """Removes local copy of shinylive.
@@ -300,7 +300,6 @@ assets_remove <- function(
 }
 
 
-
 assets_dirs <- function(
   ...,
   dir = assets_cache_dir()
@@ -334,8 +333,6 @@ assets_dirs <- function(
 }
 
 
-
-
 #' @describeIn assets Prints information about the local shinylive assets that
 #'   have been installed. Invisibly returns a table of installed asset versions
 #'   and their associated paths.
@@ -360,7 +357,10 @@ assets_info <- function(quiet = FALSE) {
   if (assets_cache_dir_exists()) {
     cli_installed <- c()
     for (i in seq_along(installed_versions)) {
-      cli_installed <- c(cli_installed, c("*" = sprintf("{.path {installed_versions[%s]}}", i)))
+      cli_installed <- c(
+        cli_installed,
+        c("*" = sprintf("{.path {installed_versions[%s]}}", i))
+      )
     }
     cli_bullets(cli_installed)
   } else {
@@ -383,7 +383,6 @@ assets_info <- function(quiet = FALSE) {
 
   if (is_quiet()) data else invisible(data)
 }
-
 
 
 #' @describeIn assets Returns the version of the currently supported Shinylive

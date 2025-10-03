@@ -30,7 +30,9 @@ collapse <- function(...) {
 package_json_version <- function(source_dir) {
   package_json_path <- fs::path(source_dir, "package.json")
   if (!fs::file_exists(package_json_path)) {
-    cli::cli_abort("{.field package.json} does not exist in {.path {source_dir}}")
+    cli::cli_abort(
+      "{.field package.json} does not exist in {.path {source_dir}}"
+    )
   }
 
   package_json <- jsonlite::read_json(package_json_path)
@@ -53,7 +55,6 @@ drop_nulls_rec <- function(x) {
     x
   }
 }
-
 
 
 # """Returns a function that can be used as a copy_function for shutil.copytree.
