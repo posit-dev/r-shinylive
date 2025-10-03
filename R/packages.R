@@ -292,6 +292,7 @@ download_wasm_packages <- function(
   }
 
   if (!is_quiet()) {
+    withr::local_options(cli.progress_show_after = 1)
     pb <- cli::cli_progress_bar(
       format = "{cli::pb_spin} Downloading R packages {cli::pb_bar} {cli::pb_current}/{cli::pb_total} | ETA: {cli::pb_eta} | {.pkg {pkg}}",
       format_done = "{cli::col_green(cli::symbol$tick)} Downloaded WASM binaries for {cli::pb_total} packages [{cli::pb_elapsed}]",
