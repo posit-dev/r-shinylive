@@ -27,6 +27,13 @@ cli_alert_warning <- function(..., .envir = parent.frame()) {
   cli::cli_alert_warning(..., .envir = .envir)
 }
 
+cli_alert_danger <- function(..., .envir = parent.frame()) {
+  if (is_quiet()) {
+    return(invisible())
+  }
+  cli::cli_alert_danger(..., .envir = .envir)
+}
+
 cli_alert_success <- function(..., .envir = parent.frame()) {
   if (is_quiet()) {
     return(invisible())

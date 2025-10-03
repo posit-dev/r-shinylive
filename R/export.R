@@ -125,7 +125,6 @@ export <- function(
   # Copy the base dependencies for shinylive/ distribution. This does not
   # include the R package files.
   # =========================================================================
-  cli_progress_step("Copying base Shinylive files")
 
   # When exporting, we know it is only an R app. So remove python support
   base_files <- c(
@@ -134,23 +133,23 @@ export <- function(
   )
 
   if (!is_quiet()) {
-    p <- progress::progress_bar$new(
-      format = "[:bar] :percent\n",
+    cli::cli_progress_bar(
+      "Copying base Shinylive files",
       total = length(base_files),
-      clear = FALSE,
-      show_after = 0
+      type = "tasks"
     )
   }
-  Map(
-    file.path(assets_path, base_files),
-    file.path(destdir, base_files),
-    f = function(src_path, dest_path) {
-      if (!is_quiet()) {
-        p$tick()
-      }
-      mark_file(src_path, dest_path)
+
+  for (base_file in base_files) {
+    src_path <- file.path(assets_path, base_file)
+    dest_path <- file.path(destdir, base_file)
+
+    if (!is_quiet()) {
+      cli::cli_progress_update()
     }
-  )
+    mark_file(src_path, dest_path)
+  }
+
   # lapply(base_files, function(base_file) {
   #   src_path <- fs::path(assets_path, base_file)
   #   dest_path <- fs::path(destdir, base_file)
