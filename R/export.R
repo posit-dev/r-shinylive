@@ -33,12 +33,12 @@
 #' @param template_params A list of parameters to pass to the template. The
 #'   supported parameters depends on the template being used. Custom templates
 #'   may support additional parameters (see `template_dir` for instructions on
-#'   creating a custom template or to find the current shinylive assets' 
+#'   creating a custom template or to find the current shinylive assets'
 #'   templates).
-#'   
+#'
 #'   With shinylive assets > 0.4.1, the default export template supports the
 #'   following parameters:
-#' 
+#'
 #'   1. `title`: The title of the app. Defaults to `"Shiny app"`.
 #'   2. `include_in_head`, `include_before_body`, `include_after_body`: Raw
 #'      HTML to be included in the `<head>`, just after the opening `<body>`,
@@ -73,7 +73,9 @@ export <- function(
   verbose = NULL
 ) {
   if (!is.null(verbose)) {
-    rlang::warn("The {.var verbose} argument is deprecated. Use {.var quiet} instead.")
+    rlang::warn(
+      "The {.var verbose} argument is deprecated. Use {.var quiet} instead."
+    )
     if (missing(quiet)) {
       quiet <- !verbose
     }
@@ -90,13 +92,17 @@ export <- function(
   wasm_packages <- wasm_packages %||% sys_env_wasm_packages()
 
   if (!fs::is_dir(appdir)) {
-    cli::cli_abort("{.var appdir} must be a directory, but was provided {.path {appdir}}.")
+    cli::cli_abort(
+      "{.var appdir} must be a directory, but was provided {.path {appdir}}."
+    )
   }
-  if (!(
-    fs::file_exists(fs::path(appdir, "app.R")) ||
-      fs::file_exists(fs::path(appdir, "server.R"))
-  )) {
-    cli::cli_abort("Directory {.path {appdir}} does not contain an app.R or server.R file.")
+  if (
+    !(fs::file_exists(fs::path(appdir, "app.R")) ||
+      fs::file_exists(fs::path(appdir, "server.R")))
+  ) {
+    cli::cli_abort(
+      "Directory {.path {appdir}} does not contain an app.R or server.R file."
+    )
   }
 
   if (fs::is_absolute_path(subdir)) {
@@ -108,7 +114,6 @@ export <- function(
   if (!fs::dir_exists(destdir)) {
     fs::dir_create(destdir)
   }
-
 
   cp_funcs <- create_copy_fn(overwrite = FALSE)
   mark_file <- cp_funcs$mark_file

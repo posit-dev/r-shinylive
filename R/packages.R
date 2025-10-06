@@ -56,7 +56,9 @@ get_wasm_assets <- function(desc, repo) {
 
   info <- utils::available.packages(contriburl = contrib)
   if (!pkg %in% rownames(info)) {
-    cli::cli_warn("Can't find {.pkg {pkg}} in Wasm binary repository: {.url {repo}}")
+    cli::cli_warn(
+      "Can't find {.pkg {pkg}} in Wasm binary repository: {.url {repo}}"
+    )
     return(list())
   }
 
@@ -98,12 +100,18 @@ get_github_wasm_assets <- function(desc) {
   )
 
   # Find GH release asset URLs for R library VFS image
-  library_data <- Filter(function(item) {
-    grepl("library.data", item$name, fixed = TRUE)
-  }, tags$assets)
-  library_metadata <- Filter(function(item) {
-    item$name == "library.js.metadata"
-  }, tags$assets)
+  library_data <- Filter(
+    function(item) {
+      grepl("library.data", item$name, fixed = TRUE)
+    },
+    tags$assets
+  )
+  library_metadata <- Filter(
+    function(item) {
+      item$name == "library.js.metadata"
+    },
+    tags$assets
+  )
 
   if (length(library_data) == 0 || length(library_metadata) == 0) {
     # We are stricter here than with CRAN-like repositories, the asset bundle
@@ -175,7 +183,10 @@ prepare_wasm_metadata <- function(pkg, metadata) {
       metadata$type <- "package"
     } else if (grepl("Bioconductor", repo)) {
       # Use r-universe for Bioconductor packages
-      metadata$assets <- get_wasm_assets(desc, repo = "https://bioc.r-universe.dev")
+      metadata$assets <- get_wasm_assets(
+        desc,
+        repo = "https://bioc.r-universe.dev"
+      )
       metadata$type <- "package"
     } else {
       # Fallback to repo.r-wasm.org lookup for CRAN and anything else
@@ -201,12 +212,28 @@ env_download_wasm_core_packages <- function() {
   strsplit(pkgs, "\\s*[ ,\n]\\s*")[[1]]
 }
 
-download_wasm_packages <- function(appdir, destdir, package_cache, max_filesize) {
-  max_filesize_missing <- is.null(sys_env_max_filesize()) && is.null(max_filesize)
-  max_filesize_cli_fn <- if (max_filesize_missing) cli::cli_warn else cli::cli_abort
+download_wasm_packages <- function(
+  appdir,
+  destdir,
+  package_cache,
+  max_filesize
+) {
+  max_filesize_missing <- is.null(sys_env_max_filesize()) &&
+    is.null(max_filesize)
+  max_filesize_cli_fn <- if (max_filesize_missing) {
+    cli::cli_warn
+  } else {
+    cli::cli_abort
+  }
 
-  max_filesize <- max_filesize %||% sys_env_max_filesize() %||% SHINYLIVE_DEFAULT_MAX_FILESIZE
-  max_filesize <- if (is.na(max_filesize) || (max_filesize < 0)) Inf else max_filesize
+  max_filesize <- max_filesize %||%
+    sys_env_max_filesize() %||%
+    SHINYLIVE_DEFAULT_MAX_FILESIZE
+  max_filesize <- if (is.na(max_filesize) || (max_filesize < 0)) {
+    Inf
+  } else {
+    max_filesize
+  }
   max_filesize_val <- max_filesize
   max_filesize <- fs::fs_bytes(max_filesize)
   if (is.na(max_filesize)) {
@@ -241,7 +268,13 @@ download_wasm_packages <- function(appdir, destdir, package_cache, max_filesize)
   )
 
   # Load existing metadata from disk, from a previously deployed app
-  metadata_file <- fs::path(destdir, "shinylive", "webr", "packages", "metadata.rds")
+  metadata_file <- fs::path(
+    destdir,
+    "shinylive",
+    "webr",
+    "packages",
+    "metadata.rds"
+  )
   prev_metadata <- if (package_cache && fs::file_exists(metadata_file)) {
     readRDS(metadata_file)
   } else {
@@ -265,7 +298,9 @@ download_wasm_packages <- function(appdir, destdir, package_cache, max_filesize)
 
   # Loop over packages and download them if not cached
   cur_metadata <- lapply(pkgs_app, function(pkg) {
-    if (!is_quiet()) p$tick()
+    if (!is_quiet()) {
+      p$tick()
+    }
 
     pkg_subdir <- fs::path(pkg_dir, pkg)
     fs::dir_create(pkg_subdir, recurse = TRUE)
@@ -292,7 +327,11 @@ download_wasm_packages <- function(appdir, destdir, package_cache, max_filesize)
             "!" = "The file size of package {.pkg {pkg}} is larger than the maximum allowed file size of {.strong {max_filesize}}.",
             "!" = "This package will not be included as part of the WebAssembly asset bundle.",
             "i" = "Set the maximum allowed size to {.code -1}, {.code Inf}, or {.code NA} to disable this check.",
-            "i" = if (max_filesize_missing) "Explicitly set the maximum allowed size to treat this as an error." else NULL
+            "i" = if (max_filesize_missing) {
+              "Explicitly set the maximum allowed size to treat this as an error."
+            } else {
+              NULL
+            }
           ))
           break
         }
@@ -322,7 +361,9 @@ download_wasm_packages <- function(appdir, destdir, package_cache, max_filesize)
   cli_progress_step("Writing app metadata to {.path {metadata_file}}")
   saveRDS(metadata, metadata_file)
   cli_progress_done()
-  cli_alert_info("Wrote {.path {metadata_file}} ({fs::file_info(metadata_file)$size[1]} bytes)")
+  cli_alert_info(
+    "Wrote {.path {metadata_file}} ({fs::file_info(metadata_file)$size[1]} bytes)"
+  )
 
   invisible(metadata_file)
 }
