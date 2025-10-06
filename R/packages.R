@@ -297,7 +297,6 @@ download_wasm_packages <- function(
       format = "{cli::pb_spin} Downloading R packages {cli::pb_bar} {cli::pb_current}/{cli::pb_total} | ETA: {cli::pb_eta} | {.pkg {pkg}}",
       format_done = "{cli::col_green(cli::symbol$tick)} Downloaded WASM binaries for {cli::pb_total} packages [{cli::pb_elapsed}]",
       total = length(pkgs_app),
-      auto_terminate = FALSE,
       clear = FALSE
     )
   }
