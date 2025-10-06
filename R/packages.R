@@ -386,6 +386,6 @@ download_wasm_packages <- function(
 }
 
 pkg_wrap <- function(x) {
-  width <- getOption("shinylive.pkg_field_size", 20)
+  width <- getOption(".shinylive.pkg_field_size", 20)
   cli::ansi_align(x, width = width, align = "left")
 }
