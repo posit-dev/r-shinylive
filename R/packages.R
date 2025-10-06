@@ -41,11 +41,16 @@ check_repo_pkg_version <- function(desc, ver, pkg) {
   inst_ver <- package_version(desc$Version)
   repo_ver <- package_version(ver)
   if (inst_ver$major != repo_ver$major || inst_ver$minor != repo_ver$minor) {
+    cli_alert_warning(
+      "{.pkg {pkg_wrap(pkg)}} [{cli::col_red(ver)}] does not match local version {desc$Version}"
+    )
     cli::cli_warn(c(
       "Package version mismatch for {.pkg {pkg}}, ensure the versions below are compatible.",
       "!" = "Installed version: {desc$Version}, WebAssembly version: {ver}.",
       "i" = "Install a package version matching the WebAssembly version to silence this error."
     ))
+  } else if (!is_quiet()) {
+    cli_alert_success("{.pkg {pkg_wrap(pkg)}} [{ver}]")
   }
 }
 
@@ -56,6 +61,9 @@ get_wasm_assets <- function(desc, repo) {
 
   info <- utils::available.packages(contriburl = contrib)
   if (!pkg %in% rownames(info)) {
+    cli_alert_danger(
+      "{.pkg {pkg_wrap(pkg)}} not available in Wasm binary repository: {.url {repo}}"
+    )
     cli::cli_warn(
       "Can't find {.pkg {pkg}} in Wasm binary repository: {.url {repo}}"
     )
@@ -151,7 +159,9 @@ prepare_wasm_metadata <- function(pkg, metadata) {
     metadata$ref <- glue::glue("{metadata$name}@{metadata$version}")
     metadata$type <- "base"
     metadata$cached <- prev_cached <- TRUE
-    cli_alert("Skipping base R package: {metadata$ref}")
+    cli_alert(
+      "{pkg_wrap(metadata$name)} [{metadata$version}] skipping base R package"
+    )
     return(metadata)
   }
 
@@ -193,8 +203,6 @@ prepare_wasm_metadata <- function(pkg, metadata) {
       metadata$assets <- get_wasm_assets(desc, repo = "http://repo.r-wasm.org")
       metadata$type <- "package"
     }
-  } else {
-    cli_alert("Skipping cached Wasm binary: {metadata$ref}")
   }
 
   metadata
@@ -263,10 +271,6 @@ download_wasm_packages <- function(
   pkg_dir <- fs::path(destdir, "shinylive", "webr", "packages")
   fs::dir_create(pkg_dir, recurse = TRUE)
 
-  cli_progress_step(
-    "Downloading WebAssembly R package binaries to {.path {pkg_dir}}"
-  )
-
   # Load existing metadata from disk, from a previously deployed app
   metadata_file <- fs::path(
     destdir,
@@ -288,18 +292,27 @@ download_wasm_packages <- function(
   }
 
   if (!is_quiet()) {
-    p <- progress::progress_bar$new(
-      format = "[:bar] :percent\n",
+    withr::local_options(cli.progress_show_after = 1)
+    cli::cli_progress_bar(
+      format = "{cli::pb_spin} Downloading R packages {cli::pb_bar} {cli::pb_current}/{cli::pb_total} | ETA: {cli::pb_eta} | {.pkg {pkg}}",
+      format_done = "{cli::col_green(cli::symbol$tick)} Downloaded WASM binaries for {cli::pb_total} packages [{cli::pb_elapsed}]",
       total = length(pkgs_app),
-      clear = TRUE,
-      show_after = 0
+      auto_terminate = FALSE,
+      clear = FALSE
     )
   }
 
   # Loop over packages and download them if not cached
-  cur_metadata <- lapply(pkgs_app, function(pkg) {
+  cur_metadata <- vector("list", length(pkgs_app))
+  names(cur_metadata) <- names(pkgs_app)
+
+  withr::local_options(".shinylive.pkg_field_size" = max(nchar(pkgs_app)))
+
+  for (i in seq_along(pkgs_app)) {
+    pkg <- pkgs_app[i]
+
     if (!is_quiet()) {
-      p$tick()
+      cli::cli_progress_update()
     }
 
     pkg_subdir <- fs::path(pkg_dir, pkg)
@@ -317,7 +330,7 @@ download_wasm_packages <- function(
       # Download Wasm binaries and copy to static assets dir
       for (file in meta$assets) {
         path <- fs::path(pkg_subdir, file$filename)
-        utils::download.file(file$url, path, mode = "wb")
+        utils::download.file(file$url, path, mode = "wb", quiet = TRUE)
 
         # Disallow this package if an asset is too large
         if (fs::file_size(path) > max_filesize) {
@@ -343,8 +356,13 @@ download_wasm_packages <- function(
         meta$path <- glue::glue("packages/{pkg}/{meta$assets[[1]]$filename}")
       }
     }
-    meta
-  })
+
+    cur_metadata[[i]] <- meta
+  }
+
+  if (!is_quiet()) {
+    cli::cli_progress_done()
+  }
 
   # Merge metadata to protect previous cache
   pkgs <- unique(c(names(prev_metadata), names(cur_metadata)))
@@ -366,4 +384,9 @@ download_wasm_packages <- function(
   )
 
   invisible(metadata_file)
+}
+
+pkg_wrap <- function(x) {
+  width <- getOption(".shinylive.pkg_field_size", 20)
+  cli::ansi_align(x, width = width, align = "left")
 }
