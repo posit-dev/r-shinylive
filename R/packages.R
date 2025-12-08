@@ -200,7 +200,7 @@ prepare_wasm_metadata <- function(pkg, metadata) {
       metadata$type <- "package"
     } else {
       # Fallback to repo.r-wasm.org lookup for CRAN and anything else
-      metadata$assets <- get_wasm_assets(desc, repo = "http://repo.r-wasm.org")
+      metadata$assets <- get_wasm_assets(desc, repo = "https://repo.r-wasm.org")
       metadata$type <- "package"
     }
   }
