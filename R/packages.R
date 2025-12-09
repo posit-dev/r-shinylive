@@ -266,6 +266,7 @@ download_wasm_packages <- function(
   # App dependencies, ignoring base webR + shiny packages
   pkgs_app <- unique(renv::dependencies(appdir, quiet = is_quiet())$Package)
   pkgs_app <- setdiff(pkgs_app, shiny_pkgs)
+  has_dependencies <- length(pkgs_app) > 0
 
   # Create empty R packages directory in app assets if not already there
   pkg_dir <- fs::path(destdir, "shinylive", "webr", "packages")
@@ -285,7 +286,7 @@ download_wasm_packages <- function(
     list()
   }
 
-  if (length(pkgs_app) > 0) {
+  if (has_dependencies) {
     pkgs_app <- resolve_dependencies(pkgs_app)
     pkgs_app <- setdiff(pkgs_app, shiny_pkgs)
     names(pkgs_app) <- pkgs_app
@@ -305,8 +306,9 @@ download_wasm_packages <- function(
   # Loop over packages and download them if not cached
   cur_metadata <- vector("list", length(pkgs_app))
   names(cur_metadata) <- names(pkgs_app)
-
-  withr::local_options(".shinylive.pkg_field_size" = max(nchar(pkgs_app)))
+  if (has_dependencies) {
+    withr::local_options(".shinylive.pkg_field_size" = max(nchar(pkgs_app)))
+  }
 
   for (i in seq_along(pkgs_app)) {
     pkg <- pkgs_app[i]
