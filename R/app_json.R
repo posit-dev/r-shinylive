@@ -84,7 +84,9 @@ read_app_files <- function(
     # `dir()` is 10x faster than `fs::dir_ls()`
     cur_paths <- dir(curdur, full.names = TRUE)
     # Stable sort
-    cur_paths <- sort(cur_paths, method = "radix")
+    # radix sort only works with utf8, latin1 or bythe character vectors
+    # just for the ordering we use utf8
+    cur_paths <- cur_paths[order(enc2utf8(cur_paths), method = "radix")]
 
     cur_paths_basename <- basename(cur_paths)
     # Move `app.R`, `ui.R`, `server.R` to first in list
