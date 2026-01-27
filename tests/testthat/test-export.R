@@ -193,3 +193,25 @@ test_that("export - include R package in wasm assets", {
   })
   unlink_path(out_dir)
 })
+
+test_that("export - non utf8 paths", {
+  maybe_skip_test()
+
+  assets_ensure()
+
+  # Ensure pkgcache metadata has been loaded
+  invisible(pkgcache::meta_cache_list())
+
+  tmp_path <- tempfile()
+  on.exit(unlink_path(tmp_path), add = TRUE)
+  app_dir <- file.path(tmp_path, "• app")
+  out_dir <- file.path(tmp_path, "out")
+  fs::dir_create(app_dir)
+  fs::file_copy(
+    file.path(test_path("apps", "app-r"), "app.R"),
+    file.path(app_dir, "app.R")
+  )
+  expect_silent({
+    export(app_dir, out_dir)
+  })
+})
