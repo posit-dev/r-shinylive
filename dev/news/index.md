@@ -110,7 +110,7 @@ CRAN release: 2023-12-04
 - Bump shinylive assets dependency to 0.2.3.
   ([\#38](https://github.com/posit-dev/r-shinylive/issues/38))
 
-- Use [httpuv](https://github.com/rstudio/httpuv) to serve static folder
+- Use [httpuv](https://rstudio.github.io/httpuv/) to serve static folder
   instead of plumber.
   ([\#40](https://github.com/posit-dev/r-shinylive/issues/40))
 

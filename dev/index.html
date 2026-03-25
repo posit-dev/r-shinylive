@@ -99,7 +99,7 @@
 <code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/export.html">export</a></span><span class="op">(</span><span class="st">"myapp"</span>, <span class="st">"site"</span><span class="op">)</span></span></code></pre></div>
 <p>Then you can preview the application by running a web server and visiting it in a browser:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">httpuv</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/httpuv/man/runStaticServer.html" class="external-link">runStaticServer</a></span><span class="op">(</span><span class="st">"site/"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">httpuv</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/httpuv/reference/runStaticServer.html" class="external-link">runStaticServer</a></span><span class="op">(</span><span class="st">"site/"</span><span class="op">)</span></span></code></pre></div>
 <p>At this point, you can deploy the <code>site/</code> directory to any static web hosting service.</p>
 <div class="section level3">
 <h3 id="multiple-applications">Multiple applications<a class="anchor" aria-label="anchor" href="#multiple-applications"></a>
@@ -226,7 +226,7 @@
 </h3>
 <p>Export a local app to a directory and run it:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/httpuv" class="external-link">httpuv</a></span><span class="op">)</span> <span class="co"># &gt;= 1.6.12</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rstudio.github.io/httpuv/" class="external-link">httpuv</a></span><span class="op">)</span> <span class="co"># &gt;= 1.6.12</span></span>
 <span><span class="fu">pkgload</span><span class="fu">::</span><span class="fu"><a href="https://pkgload.r-lib.org/reference/load_all.html" class="external-link">load_all</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Delete prior</span></span>
@@ -234,7 +234,7 @@
 <span><span class="fu"><a href="reference/export.html">export</a></span><span class="op">(</span><span class="st">"local/shiny-apps/simple-r"</span>, <span class="st">"local/shiny-apps-out"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Host the local directory</span></span>
-<span><span class="fu">httpuv</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/httpuv/man/runStaticServer.html" class="external-link">runStaticServer</a></span><span class="op">(</span><span class="st">"local/shiny-apps-out/"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">httpuv</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/httpuv/reference/runStaticServer.html" class="external-link">runStaticServer</a></span><span class="op">(</span><span class="st">"local/shiny-apps-out/"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 </div>
