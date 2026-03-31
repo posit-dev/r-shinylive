@@ -2,6 +2,8 @@
 
 ## shinylive 0.4.0
 
+CRAN release: 2026-03-31
+
 ### Lifecycle changes
 
 - `export(verbose=)` now signals its deprecation warning using

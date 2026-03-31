@@ -20,7 +20,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/posit-dev/r-shinylive/blob/rc-v0.4.0/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/posit-dev/r-shinylive/blob/main/DESCRIPTION)
 
 Schloerke B, Chang W, Stagg G, Aden-Buie G (2026). *shinylive: Run
 'shiny' Applications in the Browser*. R package version 0.4.0,
