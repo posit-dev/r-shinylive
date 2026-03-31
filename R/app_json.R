@@ -13,10 +13,8 @@ file_content_obj <- function(name, content, type = c("text", "binary")) {
 
 APP_INFO_CLASS <- "shinylive_app_info"
 app_info_obj <- function(appdir, subdir, files) {
-  stopifnot(inherits(files, "list"))
-  lapply(files, function(file) {
-    stopifnot(inherits(file, FILE_CONTENT_CLASS))
-  })
+  assert_list(files, arg = "files")
+  assert_list_items(files, FILE_CONTENT_CLASS, arg = "files")
   structure(
     list(
       appdir = appdir,
@@ -66,7 +64,11 @@ read_app_files <- function(
   }
 
   inspect_dir <- function(curdur) {
-    stopifnot(fs::is_dir(curdur))
+    if (!fs::is_dir(curdur)) {
+      cli::cli_abort(
+        "{.arg curdur} must be an existing directory: {.path {curdur}}"
+      )
+    }
 
     # Check for excluded dirs
     curdur_basename <- basename(curdur)
@@ -161,9 +163,15 @@ write_app_json <- function(
 ) {
   local_quiet(quiet)
 
-  stopifnot(inherits(app_info, APP_INFO_CLASS))
+  if (!inherits(app_info, APP_INFO_CLASS)) {
+    cli::cli_abort("{.arg app_info} must be a {.cls {APP_INFO_CLASS}} object.")
+  }
   # stopifnot(fs::dir_exists(destdir))
-  stopifnot(fs::dir_exists(template_dir))
+  if (!fs::dir_exists(template_dir)) {
+    cli::cli_abort(
+      "{.arg template_dir} must be an existing directory: {.path {template_dir}}"
+    )
+  }
 
   app_destdir <- fs::path(destdir, app_info$subdir)
 

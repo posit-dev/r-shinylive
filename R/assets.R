@@ -96,7 +96,7 @@ assets_dir_impl <- function(
   dir = assets_cache_dir(),
   version = assets_version()
 ) {
-  stopifnot(length(list(...)) == 0)
+  rlang::check_dots_empty()
   fs::path(dir, paste0(shinylive_prefix, version))
 }
 
@@ -108,8 +108,12 @@ install_local_helper <- function(
   dir = assets_cache_dir(),
   version = package_json_version(assets_repo_dir)
 ) {
-  stopifnot(length(list(...)) == 0)
-  stopifnot(fs::dir_exists(assets_repo_dir))
+  rlang::check_dots_empty()
+  if (!fs::dir_exists(assets_repo_dir)) {
+    cli::cli_abort(
+      "Assets repo directory does not exist: {.path {assets_repo_dir}}"
+    )
+  }
   repo_build_dir <- fs::path(assets_repo_dir, "build")
   if (!fs::dir_exists(repo_build_dir)) {
     cli::cli_abort(c(
@@ -208,7 +212,7 @@ assets_ensure <- function(
   dir = assets_cache_dir(),
   url = assets_bundle_url(version)
 ) {
-  stopifnot(length(list(...)) == 0)
+  rlang::check_dots_empty()
   if (!fs::dir_exists(dir)) {
     cli_alert_info("Creating assets cache directory ", dir)
     fs::dir_create(dir)
@@ -241,7 +245,7 @@ assets_cleanup <- function(
   ...,
   dir = assets_cache_dir()
 ) {
-  stopifnot(length(list(...)) == 0)
+  rlang::check_dots_empty()
   versions <- vapply(
     assets_dirs(dir = dir),
     function(ver_path) {
@@ -283,8 +287,10 @@ assets_remove <- function(
   ...,
   dir = assets_cache_dir()
 ) {
-  stopifnot(length(list(...)) == 0)
-  stopifnot(length(versions) > 0 && is.character(versions))
+  rlang::check_dots_empty()
+  if (!is.character(versions) || length(versions) == 0) {
+    cli::cli_abort("{.arg versions} must be a non-empty character vector.")
+  }
 
   lapply(versions, function(version) {
     target_dir <- assets_dir_impl(dir = dir, version = version)
@@ -304,7 +310,7 @@ assets_dirs <- function(
   ...,
   dir = assets_cache_dir()
 ) {
-  stopifnot(length(list(...)) == 0)
+  rlang::check_dots_empty()
   if (!fs::dir_exists(dir)) {
     return(character(0))
   }

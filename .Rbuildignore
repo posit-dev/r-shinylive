@@ -20,3 +20,5 @@
 ^node_modules$
 ^[.]?air[.]toml$
 ^\.vscode$
+^\.context$
+^\.git$

@@ -1,3 +1,10 @@
+test_that("export(verbose=) is deprecated", {
+  app_dir <- test_path("apps", "app-r")
+  lifecycle::expect_deprecated(
+    try(export(app_dir, tempfile(), verbose = TRUE), silent = TRUE)
+  )
+})
+
 expect_silent_unattended <- function(expr) {
   if (interactive()) {
     return(expr)
@@ -180,17 +187,19 @@ test_that("export - include R package in wasm assets", {
   unlink_path(out_dir)
 
   # Set a maximum filesize
-  expect_error({
-    export(app_dir, out_dir, max_filesize = "1K")
-  })
+  expect_error(
+    export(app_dir, out_dir, max_filesize = "1K"),
+    class = "rlang_error"
+  )
   unlink_path(out_dir)
 
-  expect_error({
+  expect_error(
     withr::with_envvar(
       list("SHINYLIVE_DEFAULT_MAX_FILESIZE" = "1K"),
       export(app_dir, out_dir)
-    )
-  })
+    ),
+    class = "rlang_error"
+  )
   unlink_path(out_dir)
 })
 

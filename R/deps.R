@@ -5,7 +5,7 @@ html_dep_obj <- function(
   path,
   attribs = NULL
 ) {
-  stopifnot(length(list(...)) == 0)
+  rlang::check_dots_empty()
   assert_nzchar_string(name)
   assert_nzchar_string(path)
   is.null(attribs) || assert_list(attribs)
@@ -28,7 +28,7 @@ html_dep_serviceworker_obj <- function(
   source,
   destination
 ) {
-  stopifnot(length(list(...)) == 0)
+  rlang::check_dots_empty()
   assert_nzchar_string(source)
   assert_nzchar_string(destination)
   structure(
@@ -52,7 +52,7 @@ quarto_html_dependency_obj <- function(
   head = NULL,
   serviceworkers = NULL
 ) {
-  stopifnot(length(list(...)) == 0)
+  rlang::check_dots_empty()
   assert_nzchar_string(name)
   is.null(version) || assert_nzchar_string(version)
   is.null(scripts) || assert_list_items(scripts, HTML_DEP_ITEM_CLASS)

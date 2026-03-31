@@ -115,9 +115,11 @@ quarto_ext <- function(
   pretty = is_interactive(),
   con = "stdin"
 ) {
-  stopifnot(length(list(...)) == 0)
+  rlang::check_dots_empty()
   # This method should not print anything to stdout. Instead, it should return a JSON string that will be printed by the extension.
-  stopifnot(length(args) >= 1)
+  if (length(args) < 1) {
+    cli::cli_abort("{.arg args} must have at least one element.")
+  }
 
   followup_statement <- function() {
     c(
@@ -180,7 +182,6 @@ quarto_ext <- function(
       followup_statement()
     ))
   }
-  stopifnot(length(args) >= 2)
 
   ret <- switch(
     args[2],
@@ -197,11 +198,11 @@ quarto_ext <- function(
       sw_dir_pos <- which(args == "--sw-dir")
       if (length(sw_dir_pos) == 1) {
         if (sw_dir_pos == length(args)) {
-          stop("expected `--sw-dir` argument value")
+          cli::cli_abort("Expected {.arg --sw-dir} argument value.")
         }
         sw_dir <- args[sw_dir_pos + 1]
       } else {
-        stop("expected `--sw-dir` argument")
+        cli::cli_abort("Expected {.arg --sw-dir} argument.")
       }
       # Language agnostic files
       shinylive_base_deps_htmldep(sw_dir)
@@ -215,7 +216,7 @@ quarto_ext <- function(
       build_app_resources(app_json)
     },
     {
-      stop("Not implemented `extension` type: ", args[2])
+      cli::cli_abort("Not implemented {.arg extension} type: {.val {args[2]}}.")
     }
   )
   ret_null_free <- drop_nulls_rec(ret)
