@@ -18,7 +18,7 @@ export(
   assets_version = NULL,
   template_dir = NULL,
   template_params = list(),
-  verbose = NULL
+  verbose = deprecated()
 )
 ```
 
@@ -100,7 +100,7 @@ export(
 
 - verbose:
 
-  Deprecated, please use `quiet` instead.
+  **\[deprecated\]** Use `quiet` instead.
 
 ## Value
 

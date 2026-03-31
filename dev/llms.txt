@@ -31,7 +31,7 @@ work together in several different contexts.
     Shiny app in the browser.
 
 3.  The [shinylive Python
-    package](https://shiny.posit.co/py/docs/shinylive.html)
+    package](https://shiny.posit.co/py/get-started/shinylive.html)
     ([posit-dev/py-shinylive](https://github.com/posit-dev/py-shinylive))
     serves the same role as
     [shinylive](https://posit-dev.github.io/r-shinylive/) but for Shiny
