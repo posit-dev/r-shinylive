@@ -1,5 +1,8 @@
 assert_nzchar_string <- function(x, arg = rlang::caller_arg(x), call = rlang::caller_env()) {
-  rlang::check_string(x, allow_empty = FALSE, arg = arg, call = call)
+  if (!is.character(x) || length(x) != 1 || !nzchar(x)) {
+    cli::cli_abort("{.arg {arg}} must be a non-empty string.", call = call)
+  }
+  invisible(TRUE)
 }
 assert_list_items <- function(x, item_class, arg = rlang::caller_arg(x), call = rlang::caller_env()) {
   if (!is.list(x) || !all(vapply(x, inherits, logical(1), item_class))) {

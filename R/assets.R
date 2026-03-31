@@ -286,8 +286,7 @@ assets_remove <- function(
   dir = assets_cache_dir()
 ) {
   rlang::check_dots_empty()
-  check_character(versions, allow_null = FALSE)
-  if (length(versions) == 0) {
+  if (!is.character(versions) || length(versions) == 0) {
     cli::cli_abort("{.arg versions} must be a non-empty character vector.")
   }
 
