@@ -16,7 +16,7 @@ export(
   assets_version = NULL,
   template_dir = NULL,
   template_params = list(),
-  verbose = NULL
+  verbose = deprecated()
 )
 }
 \arguments{
@@ -72,7 +72,7 @@ HTML to be included in the \verb{<head>}, just after the opening \verb{<body>},
 or just before the closing \verb{</body>} tag, respectively.
 }}
 
-\item{verbose}{Deprecated, please use \code{quiet} instead.}
+\item{verbose}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{quiet} instead.}
 }
 \value{
 Nothing. The app is exported to \code{destdir}. Instructions for serving

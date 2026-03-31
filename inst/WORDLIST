@@ -2,9 +2,9 @@ Buie
 CLI
 CMD
 JS
-JSON
 ORCID
 PBC
+ROR
 WebAssembly
 api
 dev
@@ -17,8 +17,6 @@ precompiled
 py
 pyodide
 pyright
-repo
-stdout
 stylesheets
 symlink
 toolchain

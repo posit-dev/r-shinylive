@@ -9,7 +9,7 @@
 #' @param quiet Suppress console output during export. Follows the global
 #'   `shinylive.quiet` option or defaults to `FALSE` in interactive sessions if
 #'   not set.
-#' @param verbose Deprecated, please use `quiet` instead.
+#' @param verbose `r lifecycle::badge('deprecated')` Use `quiet` instead.
 #' @param wasm_packages Download and include binary WebAssembly packages as part
 #'   of the output app's static assets. Logical, defaults to `TRUE`. The default
 #'   value can be changed by setting the environment variable
@@ -70,12 +70,10 @@ export <- function(
   assets_version = NULL,
   template_dir = NULL,
   template_params = list(),
-  verbose = NULL
+  verbose = deprecated()
 ) {
-  if (!is.null(verbose)) {
-    rlang::warn(
-      "The {.var verbose} argument is deprecated. Use {.var quiet} instead."
-    )
+  if (!missing(verbose)) {
+    lifecycle::deprecate_warn("0.2.0", "export(verbose)", "export(quiet)")
     if (missing(quiet)) {
       quiet <- !verbose
     }
