@@ -8,10 +8,10 @@
 <title>Run shiny Applications in the Browser • shinylive</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/Source_Sans_Pro-0.4.9/font.css" rel="stylesheet">
-<link href="deps/Source_Code_Pro-0.4.9/font.css" rel="stylesheet">
-<link href="deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/Source_Sans_Pro-0.4.10/font.css" rel="stylesheet">
+<link href="deps/Source_Code_Pro-0.4.10/font.css" rel="stylesheet">
+<link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Run shiny Applications in the Browser">
 <meta name="description" content="Exporting shiny applications with shinylive allows you to run them entirely in a web browser, without the need for a separate R server. The traditional way of deploying shiny applications involves in a separate server and client: the server runs R and shiny, and clients connect via the web browser. When an application is deployed with shinylive, R and shiny run in the web browser (via webR): the browser is effectively both the client and server for the application. This allows for your shiny application exported by shinylive to be hosted by a static web server.">
 <meta property="og:description" content="Exporting shiny applications with shinylive allows you to run them entirely in a web browser, without the need for a separate R server. The traditional way of deploying shiny applications involves in a separate server and client: the server runs R and shiny, and clients connect via the web browser. When an application is deployed with shinylive, R and shiny run in the web browser (via webR): the browser is effectively both the client and server for the application. This allows for your shiny application exported by shinylive to be hosted by a static web server.">
@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="index.html">shinylive</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -70,7 +70,7 @@
 <p>The <a href="https://posit-dev.github.io/r-shinylive/">shinylive</a> R package (<a href="https://github.com/posit-dev/r-shinylive" class="external-link">posit-dev/r-shinylive</a>) helps you export your Shiny applications from local files to a directory that can be hosted on a static web server.</p>
 <p>The R package also downloads the Shinylive web assets mentioned above and manages them in a local cache. These assets are included in the exported Shinylive applications and are used to run your Shiny app in the browser.</p>
 </li>
-<li><p>The <a href="https://shiny.posit.co/py/docs/shinylive.html" class="external-link">shinylive Python package</a> (<a href="https://github.com/posit-dev/py-shinylive" class="external-link">posit-dev/py-shinylive</a>) serves the same role as <a href="https://posit-dev.github.io/r-shinylive/">shinylive</a> but for Shiny for Python applications.</p></li>
+<li><p>The <a href="https://shiny.posit.co/py/get-started/shinylive.html" class="external-link">shinylive Python package</a> (<a href="https://github.com/posit-dev/py-shinylive" class="external-link">posit-dev/py-shinylive</a>) serves the same role as <a href="https://posit-dev.github.io/r-shinylive/">shinylive</a> but for Shiny for Python applications.</p></li>
 <li><p>The <a href="https://quarto-ext.github.io/shinylive/" class="external-link">shinylive Quarto extension</a> (<a href="https://github.com/quarto-ext/shinylive" class="external-link">quarto-ext/shinylive</a>) lets you write Shiny applications in <a href="https://quarto.org" class="external-link">Quarto web documents and slides</a> and uses the R or Python package (or both) to translate <code>shinylive-r</code> or <code>shinylive-py</code> code blocks into Shinylive applications.</p></li>
 </ol>
 </div>
@@ -98,7 +98,7 @@
 <code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/export.html">export</a></span><span class="op">(</span><span class="st">"myapp"</span>, <span class="st">"site"</span><span class="op">)</span></span></code></pre></div>
 <p>Then you can preview the application by running a web server and visiting it in a browser:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">httpuv</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/httpuv/man/runStaticServer.html" class="external-link">runStaticServer</a></span><span class="op">(</span><span class="st">"site/"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">httpuv</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/httpuv/reference/runStaticServer.html" class="external-link">runStaticServer</a></span><span class="op">(</span><span class="st">"site/"</span><span class="op">)</span></span></code></pre></div>
 <p>At this point, you can deploy the <code>site/</code> directory to any static web hosting service.</p>
 <div class="section level3">
 <h3 id="multiple-applications">Multiple applications<a class="anchor" aria-label="anchor" href="#multiple-applications"></a>
@@ -225,7 +225,7 @@
 </h3>
 <p>Export a local app to a directory and run it:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/httpuv" class="external-link">httpuv</a></span><span class="op">)</span> <span class="co"># &gt;= 1.6.12</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rstudio.github.io/httpuv/" class="external-link">httpuv</a></span><span class="op">)</span> <span class="co"># &gt;= 1.6.12</span></span>
 <span><span class="fu">pkgload</span><span class="fu">::</span><span class="fu"><a href="https://pkgload.r-lib.org/reference/load_all.html" class="external-link">load_all</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Delete prior</span></span>
@@ -233,7 +233,7 @@
 <span><span class="fu"><a href="reference/export.html">export</a></span><span class="op">(</span><span class="st">"local/shiny-apps/simple-r"</span>, <span class="st">"local/shiny-apps-out"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Host the local directory</span></span>
-<span><span class="fu">httpuv</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/httpuv/man/runStaticServer.html" class="external-link">runStaticServer</a></span><span class="op">(</span><span class="st">"local/shiny-apps-out/"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">httpuv</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/httpuv/reference/runStaticServer.html" class="external-link">runStaticServer</a></span><span class="op">(</span><span class="st">"local/shiny-apps-out/"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 </div>
@@ -254,6 +254,12 @@
 </ul>
 </div>
 
+<div class="community">
+<h2 data-toc-skip>Community</h2>
+<ul class="list-unstyled">
+<li><a href="CODE_OF_CONDUCT.html">Code of conduct</a></li>
+</ul>
+</div>
 
 <div class="citation">
 <h2 data-toc-skip>Citation</h2>
@@ -266,13 +272,14 @@
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
 <li>
-<a href="http://schloerke.com" class="external-link">Barret Schloerke</a> <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0001-9986-114X" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<a href="http://schloerke.com" class="external-link">Barret Schloerke</a> <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0001-9986-114X" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 <li>
-<a href="https://github.com/wch" class="external-link">Winston Chang</a> <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0002-1576-2126" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
-<li>George Stagg <br><small class="roles"> Author </small>  </li>
-<li>Garrick Aden-Buie <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0002-7111-0077" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<a href="https://github.com/wch" class="external-link">Winston Chang</a> <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0002-1576-2126" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
+<li>George Stagg <br><small class="roles"> Author </small>   </li>
 <li>
-<a href="https://www.posit.co" class="external-link"><img src="https://www.tidyverse.org/posit-logo.svg" alt="Posit" height="16" width="62" style="margin-bottom: 3px;"></a> <br><small class="roles"> Copyright holder, funder </small>  </li>
+<a href="https://garrickadenbuie.com" class="external-link">Garrick Aden-Buie</a> <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0002-7111-0077" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
+<li>
+<a href="https://www.posit.co" class="external-link"><img src="https://www.tidyverse.org/posit-logo.svg" alt="Posit" height="16" width="62" style="margin-bottom: 3px;"></a> <br><small class="roles"> Copyright holder, funder </small>  <a href="https://ror.org/03wc8by49" class="external-link"><img src="https://raw.githubusercontent.com/ror-community/ror-logos/main/ror-icon-rgb.svg" class="ror" alt="ROR"></a> </li>
 </ul>
 </div>
 
@@ -285,11 +292,11 @@
    </div>
   <footer><div class="container">
   <div class="pkgdown-footer-left">
-  <p>Developed by <a href="http://schloerke.com" class="external-link">Barret Schloerke</a>, <a href="https://github.com/wch" class="external-link">Winston Chang</a>, George Stagg, Garrick Aden-Buie, <a href="https://www.posit.co" class="external-link"><img src="https://www.tidyverse.org/posit-logo.svg" alt="Posit" height="16" width="62" style="margin-bottom: 3px;"></a>.</p>
+  <p>Developed by <a href="http://schloerke.com" class="external-link">Barret Schloerke</a>, <a href="https://github.com/wch" class="external-link">Winston Chang</a>, George Stagg, <a href="https://garrickadenbuie.com" class="external-link">Garrick Aden-Buie</a>, <a href="https://www.posit.co" class="external-link"><img src="https://www.tidyverse.org/posit-logo.svg" alt="Posit" height="16" width="62" style="margin-bottom: 3px;"></a>.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
   </div></footer>
