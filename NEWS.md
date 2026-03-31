@@ -1,6 +1,26 @@
-# shinylive (development version)
+# shinylive 0.4.0
 
-* Updated default shinylive assets to [v0.10.6](https://github.com/posit-dev/shinylive/releases/tag/v0.10.6). (#165, #166)
+## Lifecycle changes
+
+* `export(verbose=)` now signals its deprecation warning using
+  `lifecycle::deprecate_warn()`. `verbose` was soft-deprecated in
+  shinylive 0.2.0 in favor of `quiet` (#182).
+
+## New features
+
+* `export()` now displays `{cli}` progress bars when downloading
+  WebAssembly packages (#169).
+
+## Bug fixes and minor improvements
+
+* Updated default shinylive assets to
+  [v0.10.8](https://github.com/posit-dev/shinylive/releases/tag/v0.10.8)
+  (#165, #166, #177).
+
+* `export()` no longer produces an encoding error when exporting certain
+  apps (#118, #172), now uses HTTPS when downloading WebAssembly packages
+  (#171), and no longer warns when an app has zero package dependencies
+  (#172).
 
 # shinylive 0.3.0
 
