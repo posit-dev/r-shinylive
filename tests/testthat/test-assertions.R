@@ -45,12 +45,18 @@ test_that("assert_list_items accepts list with correct class", {
 # -- app_json.R --
 
 test_that("app_info_obj rejects non-list files", {
-  expect_error(app_info_obj("dir", "sub", files = "not_a_list"), class = "rlang_error")
+  expect_error(
+    app_info_obj("dir", "sub", files = "not_a_list"),
+    class = "rlang_error"
+  )
 })
 
 test_that("app_info_obj rejects files with wrong class", {
   bad_files <- list(list(name = "a", content = "b", type = "text"))
-  expect_error(app_info_obj("dir", "sub", files = bad_files), class = "rlang_error")
+  expect_error(
+    app_info_obj("dir", "sub", files = bad_files),
+    class = "rlang_error"
+  )
 })
 
 test_that("app_info_obj accepts valid files", {

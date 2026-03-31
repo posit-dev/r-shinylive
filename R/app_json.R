@@ -65,7 +65,9 @@ read_app_files <- function(
 
   inspect_dir <- function(curdur) {
     if (!fs::is_dir(curdur)) {
-      cli::cli_abort("{.arg curdur} must be an existing directory: {.path {curdur}}")
+      cli::cli_abort(
+        "{.arg curdur} must be an existing directory: {.path {curdur}}"
+      )
     }
 
     # Check for excluded dirs
@@ -166,7 +168,9 @@ write_app_json <- function(
   }
   # stopifnot(fs::dir_exists(destdir))
   if (!fs::dir_exists(template_dir)) {
-    cli::cli_abort("{.arg template_dir} must be an existing directory: {.path {template_dir}}")
+    cli::cli_abort(
+      "{.arg template_dir} must be an existing directory: {.path {template_dir}}"
+    )
   }
 
   app_destdir <- fs::path(destdir, app_info$subdir)

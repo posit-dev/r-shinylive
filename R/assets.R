@@ -110,7 +110,9 @@ install_local_helper <- function(
 ) {
   rlang::check_dots_empty()
   if (!fs::dir_exists(assets_repo_dir)) {
-    cli::cli_abort("Assets repo directory does not exist: {.path {assets_repo_dir}}")
+    cli::cli_abort(
+      "Assets repo directory does not exist: {.path {assets_repo_dir}}"
+    )
   }
   repo_build_dir <- fs::path(assets_repo_dir, "build")
   if (!fs::dir_exists(repo_build_dir)) {

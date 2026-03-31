@@ -1,10 +1,19 @@
-assert_nzchar_string <- function(x, arg = rlang::caller_arg(x), call = rlang::caller_env()) {
+assert_nzchar_string <- function(
+  x,
+  arg = rlang::caller_arg(x),
+  call = rlang::caller_env()
+) {
   if (!is.character(x) || length(x) != 1 || !nzchar(x)) {
     cli::cli_abort("{.arg {arg}} must be a non-empty string.", call = call)
   }
   invisible(TRUE)
 }
-assert_list_items <- function(x, item_class, arg = rlang::caller_arg(x), call = rlang::caller_env()) {
+assert_list_items <- function(
+  x,
+  item_class,
+  arg = rlang::caller_arg(x),
+  call = rlang::caller_env()
+) {
   if (!is.list(x) || !all(vapply(x, inherits, logical(1), item_class))) {
     cli::cli_abort(
       "{.arg {arg}} must be a list of {.cls {item_class}} objects.",
@@ -13,9 +22,16 @@ assert_list_items <- function(x, item_class, arg = rlang::caller_arg(x), call = 
   }
   invisible(TRUE)
 }
-assert_list <- function(x, arg = rlang::caller_arg(x), call = rlang::caller_env()) {
+assert_list <- function(
+  x,
+  arg = rlang::caller_arg(x),
+  call = rlang::caller_env()
+) {
   if (!is.list(x)) {
-    cli::cli_abort("{.arg {arg}} must be a list, not {.obj_type_friendly {x}}.", call = call)
+    cli::cli_abort(
+      "{.arg {arg}} must be a list, not {.obj_type_friendly {x}}.",
+      call = call
+    )
   }
   invisible(TRUE)
 }
