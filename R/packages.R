@@ -307,7 +307,9 @@ download_wasm_packages <- function(
   cur_metadata <- vector("list", length(pkgs_app))
   names(cur_metadata) <- names(pkgs_app)
   if (has_dependencies) {
-    withr::local_options(".shinylive.pkg_field_size" = max(nchar(pkgs_app)))
+    withr::local_options(
+      ".shinylive.pkg_field_size" = max(c(0, nchar(pkgs_app)))
+    )
   }
 
   for (i in seq_along(pkgs_app)) {
