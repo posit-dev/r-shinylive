@@ -2,10 +2,40 @@
 
 ## shinylive (development version)
 
+## shinylive 0.4.0
+
+CRAN release: 2026-03-31
+
+### Lifecycle changes
+
+- `export(verbose=)` now signals its deprecation warning using
+  [`lifecycle::deprecate_warn()`](https://lifecycle.r-lib.org/reference/deprecate_soft.html).
+  `verbose` was soft-deprecated in shinylive 0.2.0 in favor of `quiet`
+  ([\#182](https://github.com/posit-dev/r-shinylive/issues/182)).
+
+### New features
+
+- [`export()`](https://posit-dev.github.io/r-shinylive/dev/reference/export.md)
+  now displays [cli](https://cli.r-lib.org) progress bars when
+  downloading WebAssembly packages
+  ([\#169](https://github.com/posit-dev/r-shinylive/issues/169)).
+
+### Bug fixes and minor improvements
+
 - Updated default shinylive assets to
-  [v0.10.6](https://github.com/posit-dev/shinylive/releases/tag/v0.10.6).
+  [v0.10.8](https://github.com/posit-dev/shinylive/releases/tag/v0.10.8)
   ([\#165](https://github.com/posit-dev/r-shinylive/issues/165),
-  [\#166](https://github.com/posit-dev/r-shinylive/issues/166))
+  [\#166](https://github.com/posit-dev/r-shinylive/issues/166),
+  [\#177](https://github.com/posit-dev/r-shinylive/issues/177)).
+
+- [`export()`](https://posit-dev.github.io/r-shinylive/dev/reference/export.md)
+  no longer produces an encoding error when exporting certain apps
+  ([\#118](https://github.com/posit-dev/r-shinylive/issues/118),
+  [\#172](https://github.com/posit-dev/r-shinylive/issues/172)), now
+  uses HTTPS when downloading WebAssembly packages
+  ([\#171](https://github.com/posit-dev/r-shinylive/issues/171)), and no
+  longer warns when an app has zero package dependencies
+  ([\#172](https://github.com/posit-dev/r-shinylive/issues/172)).
 
 ## shinylive 0.3.0
 
