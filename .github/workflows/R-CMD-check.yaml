@@ -57,6 +57,7 @@ jobs:
         uses: r-lib/actions/check-r-package@v2
         env:
           TEST_ASSETS: "TRUE"
+          R_USER_CACHE_DIR: ~/.cache
         with:
           args: 'c("--no-manual", "--as-cran")'
           build_args: 'c("--compact-vignettes=gs+qpdf", "--no-manual")'
