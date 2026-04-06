@@ -1,5 +1,13 @@
 # shinylive (development version)
 
+## Bug fixes
+
+* Fixed CRAN policy violation where tests could create the shinylive
+  assets cache directory (`~/.cache/shinylive` or
+  `~/Library/Caches/shinylive` on macOS). Tests that interact with the
+  cache are now skipped on CRAN, and `assets_cache_dir()` includes a
+  runtime guard that errors if called during CRAN testing.
+
 # shinylive 0.4.0
 
 ## Lifecycle changes

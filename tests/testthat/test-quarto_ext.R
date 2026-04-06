@@ -1,4 +1,5 @@
 test_that("quarto_ext errors on missing --sw-dir argument", {
+  skip_on_cran()
   expect_error(
     quarto_ext(c("extension", "base-htmldeps")),
     class = "rlang_error"
@@ -6,6 +7,7 @@ test_that("quarto_ext errors on missing --sw-dir argument", {
 })
 
 test_that("quarto_ext errors on --sw-dir without value", {
+  skip_on_cran()
   expect_error(
     quarto_ext(c("extension", "base-htmldeps", "--sw-dir")),
     class = "rlang_error"
@@ -13,6 +15,7 @@ test_that("quarto_ext errors on --sw-dir without value", {
 })
 
 test_that("quarto_ext errors on unknown extension type", {
+  skip_on_cran()
   expect_error(
     quarto_ext(c("extension", "nonexistent-type")),
     class = "rlang_error"

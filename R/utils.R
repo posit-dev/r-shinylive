@@ -1,3 +1,8 @@
+cran_is_testing <- function() {
+  identical(Sys.getenv("TESTTHAT"), "true") &&
+    !identical(Sys.getenv("NOT_CRAN"), "true")
+}
+
 assert_nzchar_string <- function(
   x,
   arg = rlang::caller_arg(x),

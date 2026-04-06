@@ -1,7 +1,9 @@
 test_that("export(verbose=) is deprecated", {
+  skip_on_cran()
+
   app_dir <- test_path("apps", "app-r")
   lifecycle::expect_deprecated(
-    try(export(app_dir, tempfile(), verbose = TRUE), silent = TRUE)
+    export(app_dir, tempfile(), verbose = TRUE)
   )
 })
 
