@@ -139,22 +139,22 @@ test_that("assets_cache_dir() errors during CRAN testing", {
 # -- assets.R --
 
 test_that("assets_remove rejects non-character versions", {
-  skip_on_cran()
+  skip_if_assets_unavailable()
   expect_error(assets_remove(123), class = "rlang_error")
 })
 
 test_that("assets_remove rejects empty versions", {
-  skip_on_cran()
+  skip_if_assets_unavailable()
   expect_error(assets_remove(character(0)), class = "rlang_error")
 })
 
 test_that("assets_dirs rejects extra dots args", {
-  skip_on_cran()
+  skip_if_assets_unavailable()
   expect_error(assets_dirs(extra = "bad"), class = "rlib_error_dots")
 })
 
 test_that("assets_cleanup rejects extra dots args", {
-  skip_on_cran()
+  skip_if_assets_unavailable()
   expect_error(assets_cleanup(extra = "bad"), class = "rlib_error_dots")
 })
 

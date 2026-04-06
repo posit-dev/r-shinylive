@@ -1,5 +1,5 @@
 test_that("quarto_ext errors on missing --sw-dir argument", {
-  skip_on_cran()
+  skip_if_assets_unavailable()
   expect_error(
     quarto_ext(c("extension", "base-htmldeps")),
     class = "rlang_error"
@@ -7,7 +7,7 @@ test_that("quarto_ext errors on missing --sw-dir argument", {
 })
 
 test_that("quarto_ext errors on --sw-dir without value", {
-  skip_on_cran()
+  skip_if_assets_unavailable()
   expect_error(
     quarto_ext(c("extension", "base-htmldeps", "--sw-dir")),
     class = "rlang_error"
@@ -15,7 +15,7 @@ test_that("quarto_ext errors on --sw-dir without value", {
 })
 
 test_that("quarto_ext errors on unknown extension type", {
-  skip_on_cran()
+  skip_if_assets_unavailable()
   expect_error(
     quarto_ext(c("extension", "nonexistent-type")),
     class = "rlang_error"
@@ -23,7 +23,7 @@ test_that("quarto_ext errors on unknown extension type", {
 })
 
 test_that("quarto_ext handles `extension info`", {
-  maybe_skip_test()
+  skip_if_assets_unavailable()
 
   assets_ensure()
 
@@ -47,7 +47,7 @@ test_that("quarto_ext handles `extension info`", {
 
 
 test_that("quarto_ext handles `extension base-htmldeps`", {
-  maybe_skip_test()
+  skip_if_assets_unavailable()
 
   assets_ensure()
 
@@ -75,7 +75,7 @@ test_that("quarto_ext handles `extension base-htmldeps`", {
   )))
 })
 test_that("quarto_ext handles `extension language-resources`", {
-  maybe_skip_test()
+  skip_if_assets_unavailable()
 
   assets_ensure()
 
@@ -94,7 +94,7 @@ test_that("quarto_ext handles `extension language-resources`", {
 
 
 test_that("quarto_ext handles `extension app-resources`", {
-  maybe_skip_test()
+  skip_if_assets_unavailable()
 
   assets_ensure()
 
@@ -123,7 +123,7 @@ test_that("quarto_ext handles `extension app-resources`", {
 })
 
 test_that("quarto_ext handles `extension app-resources` with additional binary files", {
-  maybe_skip_test()
+  skip_if_assets_unavailable()
 
   assets_ensure()
 
