@@ -1,7 +1,9 @@
 test_that("export(verbose=) is deprecated", {
+  skip_if_assets_unavailable()
+
   app_dir <- test_path("apps", "app-r")
   lifecycle::expect_deprecated(
-    try(export(app_dir, tempfile(), verbose = TRUE), silent = TRUE)
+    export(app_dir, tempfile(), verbose = TRUE)
   )
 })
 
@@ -13,7 +15,7 @@ expect_silent_unattended <- function(expr) {
 }
 
 test_that("export - app.R", {
-  maybe_skip_test()
+  skip_if_assets_unavailable()
 
   assets_ensure()
 
@@ -60,7 +62,7 @@ test_that("export - app.R", {
 
 
 test_that("export - server.R", {
-  maybe_skip_test()
+  skip_if_assets_unavailable()
 
   assets_ensure()
 
@@ -85,7 +87,7 @@ test_that("export - server.R", {
 })
 
 test_that("export with template", {
-  maybe_skip_test()
+  skip_if_assets_unavailable()
   skip_if(assets_version() <= "0.4.1")
 
   # For local testing until next release after 0.4.1
@@ -147,7 +149,7 @@ test_that("export with template", {
 })
 
 test_that("export - include R package in wasm assets", {
-  maybe_skip_test()
+  skip_if_assets_unavailable()
 
   assets_ensure()
 
@@ -204,7 +206,7 @@ test_that("export - include R package in wasm assets", {
 })
 
 test_that("export - non utf8 paths", {
-  maybe_skip_test()
+  skip_if_assets_unavailable()
 
   assets_ensure()
 

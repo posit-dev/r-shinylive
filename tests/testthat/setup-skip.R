@@ -4,7 +4,7 @@ can_test_assets <- function() {
 is_interative_or_on_ci <- function() {
   interactive() || can_test_assets()
 }
-maybe_skip_test <- function() {
+skip_if_assets_unavailable <- function() {
   skip_on_cran()
   skip_if(
     !is_interative_or_on_ci(),

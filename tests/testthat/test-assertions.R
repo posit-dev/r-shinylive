@@ -104,21 +104,57 @@ test_that("quarto_html_dependency_obj rejects extra dots args", {
   )
 })
 
+# -- utils.R CRAN guard --
+
+test_that("cran_is_testing() is TRUE when TESTTHAT=true and NOT_CRAN is unset", {
+  withr::with_envvar(list("TESTTHAT" = "true", "NOT_CRAN" = NA), {
+    expect_true(cran_is_testing())
+  })
+})
+
+test_that("cran_is_testing() is TRUE when TESTTHAT=true and NOT_CRAN!=true", {
+  withr::with_envvar(list("TESTTHAT" = "true", "NOT_CRAN" = "false"), {
+    expect_true(cran_is_testing())
+  })
+})
+
+test_that("cran_is_testing() is FALSE when NOT_CRAN=true", {
+  withr::with_envvar(list("TESTTHAT" = "true", "NOT_CRAN" = "true"), {
+    expect_false(cran_is_testing())
+  })
+})
+
+test_that("cran_is_testing() is FALSE when TESTTHAT is unset", {
+  withr::with_envvar(list("TESTTHAT" = NA, "NOT_CRAN" = NA), {
+    expect_false(cran_is_testing())
+  })
+})
+
+test_that("assets_cache_dir() errors during CRAN testing", {
+  withr::with_envvar(list("TESTTHAT" = "true", "NOT_CRAN" = NA), {
+    expect_error(assets_cache_dir(), "must not be called during CRAN testing")
+  })
+})
+
 # -- assets.R --
 
 test_that("assets_remove rejects non-character versions", {
+  skip_if_assets_unavailable()
   expect_error(assets_remove(123), class = "rlang_error")
 })
 
 test_that("assets_remove rejects empty versions", {
+  skip_if_assets_unavailable()
   expect_error(assets_remove(character(0)), class = "rlang_error")
 })
 
 test_that("assets_dirs rejects extra dots args", {
+  skip_if_assets_unavailable()
   expect_error(assets_dirs(extra = "bad"), class = "rlib_error_dots")
 })
 
 test_that("assets_cleanup rejects extra dots args", {
+  skip_if_assets_unavailable()
   expect_error(assets_cleanup(extra = "bad"), class = "rlib_error_dots")
 })
 

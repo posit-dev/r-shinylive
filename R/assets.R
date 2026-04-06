@@ -66,6 +66,9 @@ assets_bundle_url <- function(version = assets_version()) {
 
 
 assets_cache_dir <- function() {
+  if (cran_is_testing()) {
+    stop("assets_cache_dir() must not be called during CRAN testing")
+  }
   # Must be normalized as `~` does not work with quarto
   cache_dir <- rappdirs::user_cache_dir("shinylive")
   if (!dir.exists(cache_dir)) {

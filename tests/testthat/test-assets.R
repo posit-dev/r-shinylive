@@ -1,5 +1,5 @@
 test_that("assets_dirs() contains files", {
-  maybe_skip_test()
+  skip_if_assets_unavailable()
 
   assets_ensure()
 
