@@ -34,6 +34,10 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="shinylive-development-version">shinylive (development version)<a class="anchor" aria-label="anchor" href="#shinylive-development-version"></a></h2>
+<div class="section level3">
+<h3 id="bug-fixes-development-version">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
+<ul><li>Fixed CRAN policy violation where tests could create the shinylive assets cache directory (<code>~/.cache/shinylive</code> or <code>~/Library/Caches/shinylive</code> on macOS). Tests that interact with the cache are now skipped on CRAN, and <code>assets_cache_dir()</code> includes a runtime guard that errors if called during CRAN testing (<a href="https://github.com/posit-dev/r-shinylive/issues/185" class="external-link">#185</a>, <a href="https://github.com/posit-dev/r-shinylive/issues/186" class="external-link">#186</a>).</li>
+</ul></div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.0" id="shinylive-040">shinylive 0.4.0<a class="anchor" aria-label="anchor" href="#shinylive-040"></a></h2><p class="text-muted">CRAN release: 2026-03-31</p>
