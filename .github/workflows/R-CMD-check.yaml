@@ -24,6 +24,8 @@ jobs:
 
   R-CMD-check-test-assets:
     runs-on: ubuntu-latest
+    env:
+      R_USER_CACHE_DIR: ~/.cache
     steps:
       - name: Checkout GitHub repo
         uses: rstudio/shiny-workflows/.github/internal/checkout@v1
@@ -50,14 +52,13 @@ jobs:
       - name: Cache shinylive assets
         uses: actions/cache@v4
         with:
-          path: ~/.cache/shinylive
+          path: ${{ env.R_USER_CACHE_DIR }}/shinylive
           key: shinylive-assets-${{ steps.assets-version.outputs.version }}
 
       - name: Check package
         uses: r-lib/actions/check-r-package@v2
         env:
           TEST_ASSETS: "TRUE"
-          R_USER_CACHE_DIR: ~/.cache
         with:
           args: 'c("--no-manual", "--as-cran")'
           build_args: 'c("--compact-vignettes=gs+qpdf", "--no-manual")'
