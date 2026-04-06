@@ -1,5 +1,5 @@
 test_that("export(verbose=) is deprecated", {
-  skip_on_cran()
+  maybe_skip_test()
 
   app_dir <- test_path("apps", "app-r")
   lifecycle::expect_deprecated(
