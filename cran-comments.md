@@ -19,7 +19,7 @@ after you on several machines ....
 
 Sorry for the required cleanup. I had a test slip through the cracks.
 
-Changes made to address the cache folder being created during testing:
+Changes made to address the cache folder being created during testing (https://github.com/posit-dev/r-shinylive/pull/186):
 * Added a runtime guard in `assets_cache_dir()` to error during CRAN testing, preventing any future cache directory creation on CRAN.
 * Tests that interact with the shinylive assets cache directory are now skipped on CRAN.
 
