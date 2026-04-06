@@ -22,6 +22,57 @@ jobs:
   R-CMD-check:
     uses: rstudio/shiny-workflows/.github/workflows/R-CMD-check.yaml@v1
 
+  R-CMD-check-test-assets:
+    runs-on: ubuntu-latest
+    env:
+      R_USER_CACHE_DIR: ~/.cache
+    steps:
+      - name: Checkout GitHub repo
+        uses: rstudio/shiny-workflows/.github/internal/checkout@v1
+
+      - name: Install R, system dependencies, and package dependencies
+        uses: rstudio/shiny-workflows/setup-r-package@v1
+        with:
+          needs: check
+          cache-version: "test-assets"
+          extra-packages: |
+            any::rcmdcheck
+
+      - name: Get shinylive assets version
+        id: assets-version
+        shell: Rscript {0}
+        run: |
+          cat(
+            "version=", shinylive::assets_version(),
+            file = Sys.getenv("GITHUB_OUTPUT"),
+            append = TRUE,
+            sep = ""
+          )
+
+      - name: Cache shinylive assets
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.R_USER_CACHE_DIR }}/shinylive
+          key: shinylive-assets-${{ steps.assets-version.outputs.version }}
+
+      - name: Check package
+        uses: r-lib/actions/check-r-package@v2
+        env:
+          TEST_ASSETS: "TRUE"
+        with:
+          args: 'c("--no-manual", "--as-cran")'
+          build_args: 'c("--compact-vignettes=gs+qpdf", "--no-manual")'
+
+      - name: Show testthat output
+        if: always()
+        run: find check -name 'testthat.Rout*' -exec cat '{}' \; || true
+        shell: bash
+
+      - name: Show install logs
+        if: always()
+        run: find check -name '00install.out' -exec cat '{}' \; || true
+        shell: bash
+
   integration:
     runs-on: ubuntu-latest
     steps:
