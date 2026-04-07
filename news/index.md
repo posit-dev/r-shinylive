@@ -2,6 +2,8 @@
 
 ## shinylive 0.4.1
 
+CRAN release: 2026-04-07
+
 ### Bug fixes
 
 - Fixed CRAN policy violation where tests could create the shinylive

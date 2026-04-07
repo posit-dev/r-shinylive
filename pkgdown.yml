@@ -2,7 +2,7 @@ pandoc: 3.8.3
 pkgdown: 2.2.0
 pkgdown_sha: ~
 articles: {}
-last_built: 2026-04-06T21:03Z
+last_built: 2026-04-07T14:40Z
 urls:
   reference: https://posit-dev.github.io/r-shinylive/reference
   article: https://posit-dev.github.io/r-shinylive/articles
