@@ -1,4 +1,4 @@
-# shinylive (development version)
+# shinylive 0.4.1
 
 ## Bug fixes
 
