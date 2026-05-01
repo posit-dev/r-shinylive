@@ -1,6 +1,13 @@
 # Changelog
 
-## shinylive (development version)
+## shinylive 0.4.1.9000
+
+- Updated default shinylive assets to
+  [v0.10.9](https://github.com/posit-dev/shinylive/releases/tag/v0.10.9).
+
+## shinylive 0.4.1
+
+CRAN release: 2026-04-07
 
 ### Bug fixes
 
