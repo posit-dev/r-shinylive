@@ -27,6 +27,9 @@ Useful links:
 
 Authors:
 
+- Barret Schloerke <barret@posit.co>
+  ([ORCID](https://orcid.org/0000-0001-9986-114X))
+
 - Winston Chang <winston@posit.co>
   ([ORCID](https://orcid.org/0000-0002-1576-2126))
 
