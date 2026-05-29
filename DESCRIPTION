@@ -48,9 +48,9 @@ Suggests:
     spelling,
     testthat (>= 3.0.0)
 Config/Needs/website: tidyverse/tidytemplate
+Config/roxygen2/version: 8.0.0
 Config/testthat/edition: 3
 Config/usethis/last-upkeep: 2026-03-30
 Encoding: UTF-8
 Language: en-US
 Roxygen: list(markdown = TRUE)
-Config/roxygen2/version: 8.0.0
