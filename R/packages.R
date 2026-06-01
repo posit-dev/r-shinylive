@@ -241,7 +241,9 @@ prepare_wasm_metadata <- function(pkg, metadata) {
 
       # Store the ref of the version actually resolved in the repo, so the cache
       # self-invalidates once the repo catches up to the desired local version.
-      if (length(metadata$assets) > 0 && !is.null(metadata$assets[[1]]$version)) {
+      if (
+        length(metadata$assets) > 0 && !is.null(metadata$assets[[1]]$version)
+      ) {
         metadata$ref <- if (is_runiverse) {
           desired_ref
         } else {
@@ -382,7 +384,11 @@ download_wasm_packages <- function(
     meta <- prepare_wasm_metadata(pkg, prev_meta)
 
     if (!meta$cached) {
-      wanted <- vapply(meta$assets, function(asset) asset$filename, character(1))
+      wanted <- vapply(
+        meta$assets,
+        function(asset) asset$filename,
+        character(1)
+      )
 
       # Remove stale binaries no longer wanted (e.g. an old package version).
       if (length(meta$assets) > 0 && fs::dir_exists(pkg_subdir)) {

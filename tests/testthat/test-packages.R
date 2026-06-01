@@ -52,8 +52,11 @@ test_that("cache self-heals once the repo catches up", {
   )
 
   prior <- list(
-    name = "scales", version = "1.4.0", ref = "scales@1.3.0",
-    cached = TRUE, type = "package"
+    name = "scales",
+    version = "1.4.0",
+    ref = "scales@1.3.0",
+    cached = TRUE,
+    type = "package"
   )
   m <- prepare_wasm_metadata("scales", prior)
   expect_false(m$cached) # re-download triggered
@@ -72,8 +75,11 @@ test_that("stable cache hit when stored ref equals desired ref", {
   )
 
   prior <- list(
-    name = "scales", version = "1.4.0", ref = "scales@1.4.0",
-    cached = TRUE, type = "package"
+    name = "scales",
+    version = "1.4.0",
+    ref = "scales@1.4.0",
+    cached = TRUE,
+    type = "package"
   )
   m <- prepare_wasm_metadata("scales", prior)
   expect_true(m$cached)
@@ -108,14 +114,23 @@ seed_packages_dir <- function(destdir, stale_file, ref) {
   fs::file_create(fs::path(pkg_subdir, stale_file))
 
   meta_file <- fs::path(
-    destdir, "shinylive", "webr", "packages", "metadata.rds"
+    destdir,
+    "shinylive",
+    "webr",
+    "packages",
+    "metadata.rds"
   )
   saveRDS(
-    list(scales = list(
-      name = "scales", version = "1.4.0", ref = ref,
-      cached = TRUE, type = "package",
-      path = glue::glue("packages/scales/{stale_file}")
-    )),
+    list(
+      scales = list(
+        name = "scales",
+        version = "1.4.0",
+        ref = ref,
+        cached = TRUE,
+        type = "package",
+        path = glue::glue("packages/scales/{stale_file}")
+      )
+    ),
     meta_file
   )
   pkg_subdir
@@ -157,7 +172,10 @@ test_that("stale .tgz binaries are removed when the repo version changes", {
   mock_download_env(repo_version = "1.4.0", downloaded = downloaded)
 
   suppressMessages(download_wasm_packages(
-    appdir = out, destdir = out, package_cache = TRUE, max_filesize = "100MB"
+    appdir = out,
+    destdir = out,
+    package_cache = TRUE,
+    max_filesize = "100MB"
   ))
 
   files <- fs::path_file(fs::dir_ls(pkg_subdir, type = "file"))
@@ -177,7 +195,10 @@ test_that("matching binary is not re-downloaded while the repo lags", {
   mock_download_env(repo_version = "1.3.0", downloaded = downloaded)
 
   suppressMessages(download_wasm_packages(
-    appdir = out, destdir = out, package_cache = TRUE, max_filesize = "100MB"
+    appdir = out,
+    destdir = out,
+    package_cache = TRUE,
+    max_filesize = "100MB"
   ))
 
   files <- fs::path_file(fs::dir_ls(pkg_subdir, type = "file"))
