@@ -20,16 +20,16 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/posit-dev/r-shinylive/blob/rc-v0.4.2/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/posit-dev/r-shinylive/blob/rc-v0.5.0/DESCRIPTION)
 
 Schloerke B, Chang W, Stagg G, Aden-Buie G (2026). *shinylive: Run
-'shiny' Applications in the Browser*. R package version 0.4.2,
+'shiny' Applications in the Browser*. R package version 0.5.0,
 <https://posit-dev.github.io/r-shinylive/>.
 
     @Manual{,
       title = {shinylive: Run 'shiny' Applications in the Browser},
       author = {Barret Schloerke and Winston Chang and George Stagg and Garrick Aden-Buie},
       year = {2026},
-      note = {R package version 0.4.2},
+      note = {R package version 0.5.0},
       url = {https://posit-dev.github.io/r-shinylive/},
     }
