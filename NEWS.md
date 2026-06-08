@@ -1,5 +1,11 @@
 # shinylive 0.4.1.9000
 
+## Bug fixes
+
+* Fixed a stale WASM package cache where a package binary downloaded while the
+  WebAssembly repository lagged behind the locally installed version was never
+  replaced once the repository caught up.
+
 * Updated default shinylive assets to
   [v0.10.12](https://github.com/posit-dev/shinylive/releases/tag/v0.10.12).
 

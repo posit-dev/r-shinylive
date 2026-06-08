@@ -59,7 +59,19 @@ get_wasm_assets <- function(desc, repo) {
   r_short <- gsub("\\.[^.]+$", "", WEBR_R_VERSION)
   contrib <- glue::glue("{repo}/bin/emscripten/contrib/{r_short}")
 
-  info <- utils::available.packages(contriburl = contrib)
+  # Cache the repository index in a persistent per-user cache (default 1h TTL)
+  # so repeated lookups across renders avoid re-downloading the PACKAGES index.
+  # Skipped under CRAN testing so we never write to the user cache dir (#186).
+  cache_user_dir <- !cran_is_testing()
+  if (cache_user_dir) {
+    # Required: available.packages(cache_user_dir = TRUE) errors if dir is absent.
+    fs::dir_create(tools::R_user_dir("base", "cache"))
+  }
+  info <- utils::available.packages(
+    contriburl = contrib,
+    cache_user_dir = cache_user_dir
+  )
+
   if (!pkg %in% rownames(info)) {
     cli_alert_danger(
       "{.pkg {pkg_wrap(pkg)}} not available in Wasm binary repository: {.url {repo}}"
@@ -76,7 +88,8 @@ get_wasm_assets <- function(desc, repo) {
   list(
     list(
       filename = glue::glue("{pkg}_{ver}.tgz"),
-      url = glue::glue("{contrib}/{pkg}_{ver}.tgz")
+      url = glue::glue("{contrib}/{pkg}_{ver}.tgz"),
+      version = ver
     )
   )
 }
@@ -145,6 +158,17 @@ get_github_wasm_assets <- function(desc) {
   )
 }
 
+# Build the stored cache ref from the version actually resolved in the Wasm
+# binary repository (CRAN-like and Bioconductor are keyed purely by version).
+repo_ref <- function(desc, repo, ver) {
+  pkg <- desc$Package
+  if (grepl("Bioconductor", repo)) {
+    glue::glue("bioc::{pkg}@{ver}")
+  } else {
+    glue::glue("{pkg}@{ver}")
+  }
+}
+
 # Lookup URL and metadata for Wasm binary package
 prepare_wasm_metadata <- function(pkg, metadata) {
   desc <- utils::packageDescription(pkg)
@@ -165,44 +189,78 @@ prepare_wasm_metadata <- function(pkg, metadata) {
     return(metadata)
   }
 
-  # Set a package ref for caching
-  if (!is.null(desc$RemoteType) && desc$RemoteType == "github") {
+  # The "desired" ref is derived from the locally installed package; the ref
+  # we *store* reflects the version actually downloaded from the Wasm repo.
+  is_github <- !is.null(desc$RemoteType) && desc$RemoteType == "github"
+  is_runiverse <- !is_github &&
+    !is.null(repo) &&
+    grepl("r-universe\\.dev$", repo)
+  if (is_github) {
     user <- desc$RemoteUsername
     repo <- desc$RemoteRepo
     sha <- desc$RemoteSha
-    metadata$ref <- glue::glue("github::{user}/{repo}@{sha}")
+    desired_ref <- glue::glue("github::{user}/{repo}@{sha}")
   } else if (is.null(repo) || repo == "CRAN") {
     repo <- "CRAN"
-    metadata$ref <- glue::glue("{metadata$name}@{metadata$version}")
+    desired_ref <- glue::glue("{metadata$name}@{metadata$version}")
   } else if (grepl("Bioconductor", repo)) {
-    metadata$ref <- glue::glue("bioc::{metadata$name}@{metadata$version}")
-  } else if (grepl("r-universe\\.dev$", repo)) {
-    metadata$ref <- glue::glue("{repo}::{metadata$name}@{desc$RemoteSha}")
+    desired_ref <- glue::glue("bioc::{metadata$name}@{metadata$version}")
+  } else if (is_runiverse) {
+    desired_ref <- glue::glue("{repo}::{metadata$name}@{desc$RemoteSha}")
   } else {
-    metadata$ref <- glue::glue("{metadata$name}@{metadata$version}")
+    desired_ref <- glue::glue("{metadata$name}@{metadata$version}")
   }
 
-  # If not cached, discover Wasm binary URLs
-  if (is.null(prev_cached) || !prev_cached || prev_ref != metadata$ref) {
+  # Cache is valid only if it was previously cached against the same desired ref.
+  # A missing/NA stored ref is treated as a miss so we retry.
+  cache_valid <- !is.null(prev_cached) &&
+    prev_cached &&
+    !is.null(prev_ref) &&
+    !is.na(prev_ref) &&
+    prev_ref == desired_ref
+
+  if (!cache_valid) {
+    # Cache miss: discover Wasm binary URLs and reconcile on-disk binaries
     metadata$cached <- FALSE
-    if (!is.null(desc$RemoteType) && desc$RemoteType == "github") {
+    if (is_github) {
       metadata$assets <- get_github_wasm_assets(desc)
       metadata$type <- "library"
-    } else if (grepl("r-universe\\.dev$", repo)) {
-      metadata$assets <- get_wasm_assets(desc, repo = desc$Repository)
-      metadata$type <- "package"
-    } else if (grepl("Bioconductor", repo)) {
-      # Use r-universe for Bioconductor packages
-      metadata$assets <- get_wasm_assets(
-        desc,
-        repo = "https://bioc.r-universe.dev"
-      )
-      metadata$type <- "package"
+      metadata$ref <- desired_ref
     } else {
-      # Fallback to repo.r-wasm.org lookup for CRAN and anything else
-      metadata$assets <- get_wasm_assets(desc, repo = "https://repo.r-wasm.org")
+      if (is_runiverse) {
+        metadata$assets <- get_wasm_assets(desc, repo = desc$Repository)
+      } else if (grepl("Bioconductor", repo)) {
+        # Use r-universe for Bioconductor packages
+        metadata$assets <- get_wasm_assets(
+          desc,
+          repo = "https://bioc.r-universe.dev"
+        )
+      } else {
+        # Fallback to repo.r-wasm.org lookup for CRAN and anything else
+        metadata$assets <- get_wasm_assets(
+          desc,
+          repo = "https://repo.r-wasm.org"
+        )
+      }
       metadata$type <- "package"
+
+      # Store the ref of the version actually resolved in the repo, so the cache
+      # self-invalidates once the repo catches up to the desired local version.
+      if (
+        length(metadata$assets) > 0 && !is.null(metadata$assets[[1]]$version)
+      ) {
+        metadata$ref <- if (is_runiverse) {
+          desired_ref
+        } else {
+          repo_ref(desc, repo, metadata$assets[[1]]$version)
+        }
+      } else {
+        metadata$ref <- NA_character_
+      }
     }
+  } else {
+    # Cache hit: keep the downloaded version.
+    metadata$ref <- prev_ref
   }
 
   metadata
@@ -331,10 +389,29 @@ download_wasm_packages <- function(
     meta <- prepare_wasm_metadata(pkg, prev_meta)
 
     if (!meta$cached) {
+      wanted <- vapply(
+        meta$assets,
+        function(asset) asset$filename,
+        character(1)
+      )
+
+      # Remove stale binaries no longer wanted (e.g. an old package version).
+      if (length(meta$assets) > 0 && fs::dir_exists(pkg_subdir)) {
+        existing <- fs::dir_ls(pkg_subdir, type = "file")
+        stale <- existing[!(fs::path_file(existing) %in% wanted)]
+        if (length(stale) > 0) {
+          fs::file_delete(stale)
+        }
+      }
+
       # Download Wasm binaries and copy to static assets dir
       for (file in meta$assets) {
         path <- fs::path(pkg_subdir, file$filename)
-        utils::download.file(file$url, path, mode = "wb", quiet = TRUE)
+
+        # Skip the download if we already have this exact binary.
+        if (!fs::file_exists(path)) {
+          utils::download.file(file$url, path, mode = "wb", quiet = TRUE)
+        }
 
         # Disallow this package if an asset is too large
         if (fs::file_size(path) > max_filesize) {

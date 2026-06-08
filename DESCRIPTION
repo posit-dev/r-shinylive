@@ -25,6 +25,8 @@ License: MIT + file LICENSE
 URL: https://posit-dev.github.io/r-shinylive/,
     https://github.com/posit-dev/r-shinylive
 BugReports: https://github.com/posit-dev/r-shinylive/issues
+Depends:
+    R (>= 4.0)
 Imports:
     archive,
     brio,
