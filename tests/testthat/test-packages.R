@@ -86,6 +86,32 @@ test_that("stable cache hit when stored ref equals desired ref", {
   expect_equal(as.character(m$ref), "scales@1.4.0")
 })
 
+test_that("a patch-level repo/local version mismatch never reaches a stable cache hit", {
+  skip_on_cran()
+  local_mocked_bindings(
+    packageDescription = function(...) cran_desc("1.4.0"),
+    .package = "utils"
+  )
+  # The repo serves a build whose version string differs only in patch from the
+  # locally installed version (webR may patch packages at the repo). The stored
+  # ref keys on the repo version, while the desired ref keys on the local one.
+  local_mocked_bindings(
+    get_wasm_assets = function(desc, repo) wasm_asset("scales", "1.4.0-1")
+  )
+
+  # First pass: miss, stores the repo's (patched) version as the ref.
+  m1 <- prepare_wasm_metadata("scales", list())
+  expect_false(m1$cached)
+  expect_equal(as.character(m1$ref), "scales@1.4.0-1")
+
+  # Next render: desired (local 1.4.0) still != stored (repo 1.4.0-1), so the
+  # cache never stabilises to a hit even though the repo has not changed.
+  m1$cached <- TRUE
+  m2 <- prepare_wasm_metadata("scales", m1)
+  expect_false(m2$cached)
+  expect_equal(as.character(m2$ref), "scales@1.4.0-1")
+})
+
 test_that("package missing from the repo gets an NA ref and retries", {
   skip_on_cran()
   local_mocked_bindings(
