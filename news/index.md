@@ -2,14 +2,18 @@
 
 ## shinylive 0.4.2
 
-### Bug fixes
+### Bug fixes and minor improvements
 
 - Fixed a stale WASM package cache where a package binary downloaded
   while the WebAssembly repository lagged behind the locally installed
-  version was never replaced once the repository caught up.
+  version was never replaced once the repository caught up
+  ([\#194](https://github.com/posit-dev/r-shinylive/issues/194)).
 
 - Updated default shinylive assets to
-  [v0.10.12](https://github.com/posit-dev/shinylive/releases/tag/v0.10.12).
+  [v0.10.12](https://github.com/posit-dev/shinylive/releases/tag/v0.10.12),
+  which bundles webR v0.6.0
+  ([\#193](https://github.com/posit-dev/r-shinylive/issues/193),
+  [\#195](https://github.com/posit-dev/r-shinylive/issues/195)).
 
 ## shinylive 0.4.1
 
