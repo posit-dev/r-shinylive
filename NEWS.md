@@ -7,7 +7,7 @@
   replaced once the repository caught up.
 
 * Updated default shinylive assets to
-  [v0.10.9](https://github.com/posit-dev/shinylive/releases/tag/v0.10.9).
+  [v0.10.12](https://github.com/posit-dev/shinylive/releases/tag/v0.10.12).
 
 # shinylive 0.4.1
 
