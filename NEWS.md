@@ -1,13 +1,16 @@
 # shinylive 0.5.0
 
-## Bug fixes
+## Bug fixes and minor improvements
 
-* Fixed a stale WASM package cache where a package binary downloaded while the
-  WebAssembly repository lagged behind the locally installed version was never
-  replaced once the repository caught up.
+* Updated the default shinylive assets to
+  [v0.10.12](https://github.com/posit-dev/shinylive/releases/tag/v0.10.12),
+  which upgrades the bundled webR to
+  [v0.6.0](https://github.com/r-wasm/webr/releases/tag/v0.6.0) (#193, #195).
 
-* Updated default shinylive assets to
-  [v0.10.12](https://github.com/posit-dev/shinylive/releases/tag/v0.10.12).
+* WebAssembly package binaries cached during `export()` are now replaced once
+  the WebAssembly repository catches up to the locally installed version.
+  Previously, a binary downloaded while the repository lagged behind was never
+  refreshed (#194).
 
 # shinylive 0.4.1
 
