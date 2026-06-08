@@ -1,4 +1,4 @@
-# shinylive 0.4.1.9000
+# shinylive 0.5.0
 
 ## Bug fixes
 
