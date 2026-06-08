@@ -61,6 +61,7 @@ get_wasm_assets <- function(desc, repo) {
 
   # Cache the repository index in a persistent per-user cache (default 1h TTL)
   # so repeated lookups across renders avoid re-downloading the PACKAGES index.
+  # Required: available.packages(cache_user_dir = TRUE) errors if this dir is absent.
   fs::dir_create(tools::R_user_dir("base", "cache"))
   info <- utils::available.packages(
     contriburl = contrib,
