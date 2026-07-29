@@ -416,7 +416,7 @@ download_wasm_packages <- function(
         # Disallow this package if an asset is too large
         if (fs::file_size(path) > max_filesize) {
           fs::dir_delete(pkg_subdir)
-          meta$assets = list()
+          meta$assets <- list()
           max_filesize_cli_fn(c(
             "!" = "The file size of package {.pkg {pkg}} is larger than the maximum allowed file size of {.strong {max_filesize}}.",
             "!" = "This package will not be included as part of the WebAssembly asset bundle.",
