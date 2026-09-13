@@ -10,5 +10,7 @@ export(assets_remove)
 export(assets_version)
 export(export)
 importFrom(lifecycle,deprecated)
-importFrom(rlang,"%||%")
-importFrom(rlang,is_interactive)
+importFrom(rlang,
+  "%||%",
+  is_interactive
+)
