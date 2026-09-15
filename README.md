@@ -77,7 +77,7 @@ shinylive::export("myapp2", "site", subdir = "app2")
 
 ### GitHub Pages
 
-`posit-dev/r-shiny` has a workflow to automatically deploy your Shiny app from the root directory in your GitHub repository to its GitHub Pages. You can add this workflow to your repo with help from [usethis](https://usethis.r-lib.org/).
+`posit-dev/r-shinylive` has a workflow to automatically deploy your Shiny app from the root directory in your GitHub repository to its GitHub Pages. You can add this workflow to your repo with help from [usethis](https://usethis.r-lib.org/).
 
 ```r
 usethis::use_github_action(url="https://github.com/posit-dev/r-shinylive/blob/actions-v1/examples/deploy-app.yaml")
