@@ -3,9 +3,9 @@
 ## Bug fixes and minor improvements
 
 * Updated the default shinylive assets to
-  [v0.10.15](https://github.com/posit-dev/shinylive/releases/tag/v0.10.15),
+  [v0.10.16](https://github.com/posit-dev/shinylive/releases/tag/v0.10.16),
   which bundles Shiny for Python
-  [v1.8.0](https://github.com/posit-dev/py-shiny/releases/tag/v1.8.0). The
+  [v1.9.0](https://github.com/posit-dev/py-shiny/releases/tag/v1.9.0). The
   bundled webR is unchanged at
   [v0.6.0](https://github.com/r-wasm/webr/releases/tag/v0.6.0).
 
