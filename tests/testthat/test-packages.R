@@ -226,6 +226,37 @@ test_that("stale .tgz binaries are removed when the repo version changes", {
   expect_true(isTRUE(downloaded$called))
 })
 
+test_that("`webr` is never downloaded, whether used directly or as a dependency", {
+  skip_on_cran()
+  withr::local_options(shinylive.quiet = TRUE)
+  out <- withr::local_tempdir()
+
+  downloaded <- new.env()
+  mock_download_env(repo_version = "1.4.0", downloaded = downloaded)
+  # The app calls `webr::install()`, and `scales` resolves to also need `webr`
+  local_mocked_bindings(
+    dependencies = function(...) data.frame(Package = c("scales", "webr")),
+    .package = "renv"
+  )
+  local_mocked_bindings(
+    resolve_dependencies = function(pkgs, local = TRUE) {
+      if ("scales" %in% pkgs) unique(c(pkgs, "webr")) else pkgs
+    }
+  )
+
+  suppressMessages(download_wasm_packages(
+    appdir = out,
+    destdir = out,
+    package_cache = TRUE,
+    max_filesize = "100MB"
+  ))
+
+  pkg_dir <- fs::path(out, "shinylive", "webr", "packages")
+  metadata <- readRDS(fs::path(pkg_dir, "metadata.rds"))
+  expect_equal(names(metadata), "scales")
+  expect_false(fs::dir_exists(fs::path(pkg_dir, "webr")))
+})
+
 test_that("matching binary is not re-downloaded while the repo lags", {
   skip_on_cran()
   withr::local_options(shinylive.quiet = TRUE)
