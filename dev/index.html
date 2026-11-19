@@ -115,6 +115,12 @@
 <p><code>posit-dev/r-shiny</code> has a workflow to automatically deploy your Shiny app from the root directory in your GitHub repository to its GitHub Pages. You can add this workflow to your repo with help from <a href="https://usethis.r-lib.org/" class="external-link">usethis</a>.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">usethis</span><span class="fu">::</span><span class="fu">use_github_action</span><span class="op">(</span>url<span class="op">=</span><span class="st">"https://github.com/posit-dev/r-shinylive/blob/actions-v1/examples/deploy-app.yaml"</span><span class="op">)</span></span></code></pre></div>
+<p>If your app is in a subfolder instead of the repo root, set the <code>app-dir</code> input:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">jobs</span><span class="kw">:</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="at">  </span><span class="fu">shinylive</span><span class="kw">:</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="at">    </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> posit-dev/r-shinylive/.github/workflows/deploy-app.yaml@actions-v1</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="at">    </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="at">      </span><span class="fu">app-dir</span><span class="kw">:</span><span class="at"> app</span></span></code></pre></div>
 <p>For more information, see the <a href="https://github.com/posit-dev/r-shinylive/tree/actions-v1/examples" class="external-link">examples folder</a>.</p>
 </div>
 </div>
@@ -123,7 +129,7 @@
 </h2>
 <p>The <a href="https://posit-dev.github.io/r-shinylive/">shinylive</a> web assets will statically inspect which packages are being used in your app.</p>
 <p>If your app includes a package that is not automatically discovered, you can add an impossible-to-reach code within your Shiny application that has a library call to that R package. For example:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">HIDDEN_CRAN_PKG</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
@@ -138,7 +144,7 @@
 </h2>
 <p>Each version of the Shinylive R package is associated with a particular version of the Shinylive web assets. (<a href="https://github.com/posit-dev/shinylive/releases" class="external-link">See the releases here</a>.)</p>
 <p>To see which version of this R package you have, and which version of the web assets it is associated with, simply run <code><a href="reference/assets.html">shinylive::assets_info()</a></code> in your R session. It will also show which asset versions you have already installed locally:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/assets.html">assets_info</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; shinylive R package version:  0.1.0</span></span>
 <span><span class="co">#&gt; shinylive web assets version: 0.2.1</span></span>
@@ -150,18 +156,18 @@
 <span><span class="co">#&gt;     /Users/username/Library/Caches/shinylive/0.2.1</span></span>
 <span><span class="co">#&gt;     /Users/username/Library/Caches/shinylive/0.2.0</span></span></code></pre></div>
 <p>The web assets will be downloaded and cached the first time you run <code><a href="reference/export.html">shinylive::export()</a></code>. Or, you can run <code><a href="reference/assets.html">shinylive::assets_download()</a></code> to fetch them manually.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/assets.html">assets_download</a></span><span class="op">(</span><span class="st">"0.1.5"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Downloading shinylive v0.1.5...</span></span>
 <span><span class="co">#&gt; Unzipping to /Users/username/Library/Caches/shinylive/</span></span></code></pre></div>
 <p>You can remove old versions with <code><a href="reference/assets.html">shinylive::assets_cleanup()</a></code>. This will remove all versions except the one that the Python package wants to use:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/assets.html">assets_cleanup</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Keeping version 0.2.1</span></span>
 <span><span class="co">#&gt; Removing /Users/username/Library/Caches/shinylive/0.2.0</span></span>
 <span><span class="co">#&gt; Removing /Users/username/Library/Caches/shinylive/0.1.5</span></span></code></pre></div>
 <p>To remove a specific version, use <code><a href="reference/assets.html">shinylive::assets_remove()</a></code>:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/assets.html">assets_remove</a></span><span class="op">(</span><span class="st">"0.2.1"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Removing /Users/username/Library/Caches/shinylive/0.2.1</span></span></code></pre></div>
 </div>
@@ -187,13 +193,13 @@
 </h3>
 <p>Works with latest GitHub version of <a href="https://github.com/posit-dev/shinylive/" class="external-link"><code>posit-dev/shinylive</code></a> (&gt;= v<code>0.2.1</code>).</p>
 <p>Before linking the shinylive assets to the asset cache folder, you must first build the shiny live assets:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co">## In your shinylive assets repo</span></span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="co"># cd PATH/TO/posit-dev/shinylive</span></span>
-<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a></span>
-<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="co"># Generate the shiny live assets</span></span>
-<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="fu">make</span> submodules all</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co">## In your shinylive assets repo</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="co"># cd PATH/TO/posit-dev/shinylive</span></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="co"># Generate the shiny live assets</span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="fu">make</span> submodules all</span></code></pre></div>
 <p>Then link the assets (using the <a href="https://posit-dev.github.io/r-shinylive/">shinylive</a> R package) to the asset cache folder so that changes to the assets are automatically in your cached shinylive assets:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Link to your local shinylive repo</span></span>
 <span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/install.html">assets_install_link</a></span><span class="op">(</span><span class="st">"PATH/TO/posit-dev/shinylive"</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -201,13 +207,13 @@
 <h3 id="setup---quarto">Setup - quarto<a class="anchor" aria-label="anchor" href="#setup---quarto"></a>
 </h3>
 <p>In your quarto project, call the following lines in the terminal to install the updated shinylive quarto extension:</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co"># Go to the quarto project directory</span></span>
-<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="bu">cd</span> local/quarto</span>
-<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a></span>
-<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="co"># Install the updated shinylive quarto extension</span></span>
-<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a><span class="ex">quarto</span> add quarto-ext/shinylive</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># Go to the quarto project directory</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="bu">cd</span> local/quarto</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a><span class="co"># Install the updated shinylive quarto extension</span></span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a><span class="ex">quarto</span> add quarto-ext/shinylive</span></code></pre></div>
 <p>By default, the extension will used the installed <a href="https://posit-dev.github.io/r-shinylive/">shinylive</a> R package. To use the local <a href="https://posit-dev.github.io/r-shinylive/">shinylive</a> R package, run the following in your R session to update the quarto extension locally:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://github.com/r-lib/pkgload" class="external-link">"pkgload"</a></span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"pkgload"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">shinylive_lua</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"local"</span>, <span class="st">"quarto"</span>, <span class="st">"_extensions"</span>, <span class="st">"quarto-ext"</span>, <span class="st">"shinylive"</span>, <span class="st">"shinylive.lua"</span><span class="op">)</span></span>
@@ -225,7 +231,7 @@
 <a class="anchor" aria-label="anchor" href="#execute---export"></a>
 </h3>
 <p>Export a local app to a directory and run it:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rstudio.github.io/httpuv/" class="external-link">httpuv</a></span><span class="op">)</span> <span class="co"># &gt;= 1.6.12</span></span>
 <span><span class="fu">pkgload</span><span class="fu">::</span><span class="fu"><a href="https://pkgload.r-lib.org/reference/load_all.html" class="external-link">load_all</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
