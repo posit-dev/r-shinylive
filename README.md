@@ -83,6 +83,16 @@ shinylive::export("myapp2", "site", subdir = "app2")
 usethis::use_github_action(url="https://github.com/posit-dev/r-shinylive/blob/actions-v1/examples/deploy-app.yaml")
 ```
 
+If your app is in a subfolder instead of the repo root, set the `app-dir` input:
+
+```yaml
+jobs:
+  shinylive:
+    uses: posit-dev/r-shinylive/.github/workflows/deploy-app.yaml@actions-v1
+    with:
+      app-dir: app
+```
+
 For more information, see the [examples folder](https://github.com/posit-dev/r-shinylive/tree/actions-v1/examples).
 
 

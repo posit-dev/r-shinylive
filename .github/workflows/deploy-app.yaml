@@ -3,7 +3,8 @@
 #
 # The agreed upon contract is:
 #
-# - Inspect the root directory for package dependencies
+# - Inspect the app directory (`app-dir`, default: the repo root) for package
+#   dependencies
 # - Install R and the found packages
 # - Export the Shiny app directory to `./site`
 # - On push events, deploy the exported app to GitHub Pages
@@ -27,6 +28,11 @@ on:
         type: string
         default: "1"
         required: false
+      app-dir:
+        description: "Directory containing the Shiny app (`app.R`), relative to the repo root."
+        type: string
+        default: "."
+        required: false
 
 jobs:
   build:
@@ -34,6 +40,7 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      APP_DIR: ${{ inputs.app-dir }}
 
     steps:
       - uses: actions/checkout@v4
@@ -52,13 +59,13 @@ jobs:
         run: |
           # Find package dependencies using {renv} and install with {pak}
           pak::pak(
-            unique(renv::dependencies(".")$Package)
+            unique(renv::dependencies(Sys.getenv("APP_DIR"))$Package)
           )
 
       - name: Build site
         shell: Rscript {0}
         run: |
-          shinylive::export(".", "site")
+          shinylive::export(Sys.getenv("APP_DIR"), "site")
 
       - name: Upload site artifact
         if: github.ref == 'refs/heads/main'
