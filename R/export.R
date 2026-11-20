@@ -104,7 +104,7 @@ export <- function(
     )
   }
 
-  if (full_path(appdir) == full_path(destdir)) {
+  if (comparable_path(appdir) == comparable_path(destdir)) {
     cli::cli_abort(
       "{.var destdir} must be a different folder than {.var appdir} ({.path {appdir}})."
     )

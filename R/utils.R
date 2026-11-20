@@ -67,6 +67,21 @@ full_path <- function(path) {
   fs::path(full_path(parent), fs::path_file(path))
 }
 
+# Windows and macOS file systems ignore case by default
+is_case_insensitive_os <- function() {
+  .Platform$OS.type == "windows" || Sys.info()[["sysname"]] == "Darwin"
+}
+
+# `full_path()` for comparing two paths. It is lower case where the file system
+# ignores case, so only use it to compare paths, never to create files.
+comparable_path <- function(path) {
+  path <- full_path(path)
+  if (is_case_insensitive_os()) {
+    path <- fs::path(tolower(path))
+  }
+  path
+}
+
 collapse <- function(...) {
   paste0(..., collapse = "\n")
 }

@@ -55,3 +55,23 @@ test_that("full_path() resolves symlinks in the parent of a missing path", {
   expect_equal(full_path(fs::path(link, "missing", "x")), expected)
   expect_equal(full_path(link), fs::path(normalizePath(real, winslash = "/")))
 })
+
+test_that("comparable_path() ignores case only on case-insensitive systems", {
+  dir <- withr::local_tempdir()
+
+  local_mocked_bindings(is_case_insensitive_os = function() TRUE)
+  expect_equal(
+    comparable_path(fs::path(dir, "MyApp")),
+    comparable_path(fs::path(dir, "myapp"))
+  )
+
+  local_mocked_bindings(is_case_insensitive_os = function() FALSE)
+  expect_false(
+    comparable_path(fs::path(dir, "MyApp")) ==
+      comparable_path(fs::path(dir, "myapp"))
+  )
+  expect_equal(
+    fs::path_file(comparable_path(fs::path(dir, "MyApp"))),
+    "MyApp"
+  )
+})

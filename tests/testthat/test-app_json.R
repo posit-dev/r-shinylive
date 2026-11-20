@@ -82,3 +82,10 @@ test_that("write_app_json() can write over a custom template's other files", {
   )
   expect_true(fs::file_exists(fs::path(destdir, "extra.css")))
 })
+
+test_that("export() compares folders without case on case-insensitive systems", {
+  root <- withr::local_tempdir()
+  appdir <- local_app(fs::path(root, "myapp"))
+  local_mocked_bindings(is_case_insensitive_os = function() TRUE)
+  expect_error(export(appdir, fs::path(root, "MyApp")), "different folder")
+})

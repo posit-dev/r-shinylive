@@ -50,8 +50,8 @@ read_app_files <- function(
   }
   # Compare full paths, so that relative and absolute paths (and symlinks like
   # macOS's /var -> /private/var) work together
-  appdir_abs <- full_path(appdir)
-  destdir_abs <- full_path(destdir)
+  appdir_abs <- comparable_path(appdir)
+  destdir_abs <- comparable_path(destdir)
   # Only skip `destdir` when it is a subfolder of the app. When the app is
   # inside `destdir`, every app file would be skipped.
   skip_destdir <- appdir_abs != destdir_abs &&
@@ -88,7 +88,9 @@ read_app_files <- function(
     }
 
     # If the current directory is inside of the destdir, then do not inspect
-    if (skip_destdir && fs::path_has_parent(full_path(curdur), destdir_abs)) {
+    if (
+      skip_destdir && fs::path_has_parent(comparable_path(curdur), destdir_abs)
+    ) {
       return(NULL)
     }
 
