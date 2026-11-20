@@ -4,6 +4,14 @@
 
 ### Bug fixes and minor improvements
 
+- [`export()`](https://posit-dev.github.io/r-shinylive/dev/reference/export.md)
+  and the Quarto extension now pick WebAssembly package binaries for the
+  R version of the webR in the Shinylive assets being used. Before, they
+  always used the R version of the package’s default assets, so a
+  different `assets_version` could bundle binaries that webR can’t load.
+  Cached binaries from another R version are now deleted and downloaded
+  again ([\#209](https://github.com/posit-dev/r-shinylive/issues/209)).
+
 - Updated the default shinylive assets to
   [v0.10.16](https://github.com/posit-dev/shinylive/releases/tag/v0.10.16),
   which bundles Shiny for Python

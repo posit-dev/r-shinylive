@@ -36,7 +36,8 @@
 <h2 class="pkg-version" data-toc-text="development version" id="shinylive-development-version">shinylive (development version)<a class="anchor" aria-label="anchor" href="#shinylive-development-version"></a></h2>
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
-<ul><li>Updated the default shinylive assets to <a href="https://github.com/posit-dev/shinylive/releases/tag/v0.10.16" class="external-link">v0.10.16</a>, which bundles Shiny for Python <a href="https://github.com/posit-dev/py-shiny/releases/tag/v1.9.0" class="external-link">v1.9.0</a>. The bundled webR is unchanged at <a href="https://github.com/r-wasm/webr/releases/tag/v0.6.0" class="external-link">v0.6.0</a>.</li>
+<ul><li><p><code><a href="../reference/export.html">export()</a></code> and the Quarto extension now pick WebAssembly package binaries for the R version of the webR in the Shinylive assets being used. Before, they always used the R version of the package’s default assets, so a different <code>assets_version</code> could bundle binaries that webR can’t load. Cached binaries from another R version are now deleted and downloaded again (<a href="https://github.com/posit-dev/r-shinylive/issues/209" class="external-link">#209</a>).</p></li>
+<li><p>Updated the default shinylive assets to <a href="https://github.com/posit-dev/shinylive/releases/tag/v0.10.16" class="external-link">v0.10.16</a>, which bundles Shiny for Python <a href="https://github.com/posit-dev/py-shiny/releases/tag/v1.9.0" class="external-link">v1.9.0</a>. The bundled webR is unchanged at <a href="https://github.com/r-wasm/webr/releases/tag/v0.6.0" class="external-link">v0.6.0</a>.</p></li>
 </ul></div>
 </div>
     <div class="section level2">
