@@ -180,7 +180,8 @@ test_that("a failed release list keeps the old latest and versions", {
   info <- update_versions_info(dir, now = now)
   expect_match(info$error, "403")
   expect_equal(info$latest, "0.10.16")
-  expect_equal(info$versions, c("0.10.16", "0.10.15"))
+  # The newly seen latest tag is added to the known versions
+  expect_equal(info$versions, c("0.11.0", "0.10.16", "0.10.15"))
 })
 
 test_that("a failed check with no file still records the error", {
@@ -444,4 +445,49 @@ test_that("an empty SHINYLIVE_ASSETS_VERSION is treated as unset", {
     assets_version_input("0.10.*", TRUE),
     SHINYLIVE_ASSETS_VERSION_DEFAULT
   )
+})
+
+# Review fixes ------------------------------------------------------------
+
+test_that("a read-only cache does not stop resolution", {
+  dir <- withr::local_tempdir()
+  downloaded <- local_resolve_env(dir)
+  add_local_assets(dir, "0.10.16")
+  local_mocked_bindings(
+    write_versions_json = function(...) stop("cannot open the connection")
+  )
+
+  expect_equal(resolve_assets_version("0.10.*", dir = dir, now = now), "0.10.16")
+})
+
+test_that("a newly seen latest tag is kept when the release list fails", {
+  dir <- withr::local_tempdir()
+  local_mocked_bindings(
+    fetch_latest_assets_version = function() "0.10.17",
+    fetch_assets_versions = function() stop("HTTP 403 rate limit exceeded")
+  )
+  info <- update_versions_info(dir, now = now)
+  expect_match(info$error, "403")
+  expect_true("0.10.17" %in% info$versions)
+  # Not stored as `latest`, so the next check fetches the full list
+  expect_null(info$latest)
+})
+
+test_that("a failed download with nothing downloaded tries the fallback", {
+  dir <- withr::local_tempdir()
+  downloaded <- local_resolve_env(
+    dir,
+    c("0.10.17", SHINYLIVE_ASSETS_VERSION_FALLBACK),
+    download = function(version, dir) {
+      if (version == "0.10.17") stop("HTTP 404 Not Found")
+      fs::dir_create(fs::path(dir, paste0("shinylive-", version)))
+    }
+  )
+
+  expect_warning(
+    v <- resolve_assets_version("0.10.*", dir = dir, now = now),
+    "0.10.17"
+  )
+  expect_equal(v, SHINYLIVE_ASSETS_VERSION_FALLBACK)
+  expect_equal(downloaded(), c("0.10.17", SHINYLIVE_ASSETS_VERSION_FALLBACK))
 })

@@ -51,6 +51,8 @@ assets_download <- function(
     add = TRUE
   )
 
+  existed_before <- fs::dir_exists(assets_dir_impl(dir = dir, version = version))
+
   cli_progress_step("Downloading shinylive assets {.field v{version}}")
   req <- httr2::request(url)
   req <- httr2::req_progress(req)
@@ -64,7 +66,17 @@ assets_download <- function(
   on.exit(unlink(tmp_dir, recursive = TRUE), add = TRUE)
   archive::archive_extract(tmp_targz, tmp_dir)
   target_dir <- assets_dir_impl(dir = dir, version = version)
-  unlink_path(target_dir)
+  if (fs::dir_exists(target_dir)) {
+    if (existed_before) {
+      # A re-download replaces the old folder
+      unlink_path(target_dir)
+    } else {
+      # Another R process just finished the same download. Keep its folder,
+      # which it may be reading from.
+      cli_progress_done()
+      return(invisible(dir))
+    }
+  }
   fs::file_move(fs::path(tmp_dir, basename(target_dir)), dir)
 
   cli_progress_done()
@@ -310,6 +322,11 @@ assets_cleanup <- function(
     character(1)
   )
   keep <- versions[!duplicated(series)]
+  # Also keep an exact version pinned with `SHINYLIVE_ASSETS_VERSION`
+  pinned <- parse_assets_version(assets_version_input(NULL, TRUE))
+  if (pinned$kind == "exact") {
+    keep <- union(keep, intersect(versions, pinned$value))
+  }
   for (v in keep) {
     cli_alert_info("Keeping version {v}")
   }

@@ -97,10 +97,6 @@ export <- function(
   cli_alert_info("Exporting Shiny app from: {.path {appdir}}")
   cli_alert("Destination: {.path {destdir}}")
 
-  assets_version <- resolve_assets_version(
-    assets_version_input(assets_version, missing(assets_version))
-  )
-
   wasm_packages <- wasm_packages %||% sys_env_wasm_packages()
 
   if (!fs::is_dir(appdir)) {
@@ -133,6 +129,11 @@ export <- function(
   }
 
   subdir <- check_subdir(subdir)
+
+  # Resolve after the argument checks: it may use the network or download
+  assets_version <- resolve_assets_version(
+    assets_version_input(assets_version, missing(assets_version))
+  )
 
   if (!fs::dir_exists(destdir)) {
     fs::dir_create(destdir)

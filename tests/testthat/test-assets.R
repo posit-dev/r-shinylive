@@ -225,3 +225,50 @@ test_that("assets_install_copy() warns outside the default series", {
   )
   expect_no_warning(assets_install_copy(repo, dir = dir, version = "0.10.99"))
 })
+
+test_that("assets_cleanup() keeps a version pinned by SHINYLIVE_ASSETS_VERSION", {
+  dir <- withr::local_tempdir()
+  fs::dir_create(fs::path(dir, paste0("shinylive-", c("0.10.17", "0.10.16"))))
+  withr::local_options(shinylive.quiet = TRUE)
+  withr::local_envvar(SHINYLIVE_ASSETS_VERSION = "0.10.16")
+
+  assets_cleanup(dir = dir)
+  expect_equal(
+    assets_dirs(dir = dir),
+    fs::path(dir, c("shinylive-0.10.17", "shinylive-0.10.16"))
+  )
+})
+
+test_that("assets_download() keeps a folder another process just made", {
+  dir <- withr::local_tempdir()
+  withr::local_options(shinylive.quiet = TRUE)
+  tarball <- local_assets_tarball("0.10.99")
+  target <- fs::path(dir, "shinylive-0.10.99")
+  real_extract <- archive::archive_extract
+  local_mocked_bindings(
+    archive_extract = function(archive, dir, ...) {
+      # Another process finishes the same download while we extract
+      fs::dir_create(target)
+      writeLines("other", fs::path(target, "marker.txt"))
+      real_extract(archive, dir, ...)
+    },
+    .package = "archive"
+  )
+
+  assets_download("0.10.99", dir = dir, url = paste0("file://", tarball))
+  expect_true(fs::file_exists(fs::path(target, "marker.txt")))
+  expect_equal(basename(fs::dir_ls(dir)), "shinylive-0.10.99")
+})
+
+test_that("assets_download() replaces a folder that existed before", {
+  dir <- withr::local_tempdir()
+  withr::local_options(shinylive.quiet = TRUE)
+  tarball <- local_assets_tarball("0.10.99")
+  target <- fs::path(dir, "shinylive-0.10.99")
+  fs::dir_create(target)
+  writeLines("stale", fs::path(target, "stale.txt"))
+
+  assets_download("0.10.99", dir = dir, url = paste0("file://", tarball))
+  expect_false(fs::file_exists(fs::path(target, "stale.txt")))
+  expect_true(fs::file_exists(fs::path(target, "shinylive", "x.txt")))
+})

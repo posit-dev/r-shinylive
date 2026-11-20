@@ -143,6 +143,7 @@ update_versions_info <- function(dir, force = FALSE, now = Sys.time()) {
     return(info)
   }
 
+  latest <- NULL
   new_info <- tryCatch(
     {
       latest <- fetch_latest_assets_version()
@@ -155,14 +156,17 @@ update_versions_info <- function(dir, force = FALSE, now = Sys.time()) {
     error = function(e) {
       list(
         checked_at = now,
+        # Keep the old `latest`, so the next check fetches the full list
         latest = info$latest,
-        versions = info$versions %||% character(0),
+        # A newly seen latest tag is still a known release
+        versions = unique(c(latest, info$versions, character(0))),
         error = conditionMessage(e)
       )
     }
   )
 
-  write_versions_json(new_info, dir)
+  # A read-only cache (such as in a Docker image) must not stop the export
+  try(write_versions_json(new_info, dir), silent = TRUE)
   new_info
 }
 
@@ -294,6 +298,23 @@ resolve_assets_version <- function(
         chosen
       },
       error = function(e) {
+        fallback <- SHINYLIVE_ASSETS_VERSION_FALLBACK
+        if (
+          length(local_matches) == 0 &&
+            chosen != fallback &&
+            assets_version_matches(fallback, spec)
+        ) {
+          ok <- tryCatch(
+            {
+              assets_download(fallback, dir = dir)
+              TRUE
+            },
+            error = function(e2) FALSE
+          )
+          if (ok) {
+            local_matches <- fallback
+          }
+        }
         if (length(local_matches) == 0) {
           cli::cli_abort(
             c(
