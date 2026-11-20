@@ -346,3 +346,49 @@ test_that("parse_max_filesize() parses sizes and warns on bad values", {
     expect_equal(out, fs::fs_bytes(SHINYLIVE_DEFAULT_MAX_FILESIZE))
   }
 })
+
+test_that("a package dropped for its size is tried again on the next export", {
+  skip_on_cran()
+  withr::local_options(shinylive.quiet = TRUE)
+  withr::local_envvar(SHINYLIVE_DEFAULT_MAX_FILESIZE = NA)
+  out <- withr::local_tempdir()
+
+  downloaded <- new.env()
+  mock_download_env(repo_version = "1.4.0", downloaded = downloaded)
+  local_mocked_bindings(
+    download.file = function(url, destfile, ...) {
+      downloaded$called <- TRUE
+      writeLines(strrep("x", 100), destfile)
+      invisible(0)
+    },
+    .package = "utils"
+  )
+  local_mocked_bindings(SHINYLIVE_DEFAULT_MAX_FILESIZE = "10B")
+
+  expect_warning(
+    download_wasm_packages(
+      appdir = out,
+      destdir = out,
+      package_cache = TRUE,
+      max_filesize = NULL,
+      r_version = "4.6.0"
+    ),
+    "larger than the maximum"
+  )
+  meta_file <- fs::path(out, "shinylive", "webr", "packages", "metadata.rds")
+  expect_false(readRDS(meta_file)$scales$cached)
+
+  # A larger limit downloads it this time
+  downloaded$called <- FALSE
+  download_wasm_packages(
+    appdir = out,
+    destdir = out,
+    package_cache = TRUE,
+    max_filesize = "1MB",
+    r_version = "4.6.0"
+  )
+  expect_true(downloaded$called)
+  meta <- readRDS(meta_file)$scales
+  expect_true(meta$cached)
+  expect_equal(as.character(meta$path), "packages/scales/scales_1.4.0.tgz")
+})

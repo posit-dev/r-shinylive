@@ -438,6 +438,7 @@ download_wasm_packages <- function(
       }
 
       # Download Wasm binaries and copy to static assets dir
+      too_large <- FALSE
       for (file in meta$assets) {
         path <- fs::path(pkg_subdir, file$filename)
 
@@ -450,6 +451,7 @@ download_wasm_packages <- function(
         if (fs::file_size(path) > max_filesize) {
           fs::dir_delete(pkg_subdir)
           meta$assets <- list()
+          too_large <- TRUE
           max_filesize_cli_fn(c(
             "!" = "The file size of package {.pkg {pkg}} is larger than the maximum allowed file size of {.strong {max_filesize}}.",
             "!" = "This package will not be included as part of the WebAssembly asset bundle.",
@@ -464,7 +466,9 @@ download_wasm_packages <- function(
         }
       }
 
-      meta$cached <- TRUE
+      # A package dropped for its size is not cached, so a later export with a
+      # larger `max_filesize` tries it again
+      meta$cached <- !too_large
       meta$path <- NULL
       if (length(meta$assets) > 0) {
         meta$path <- glue::glue("packages/{pkg}/{meta$assets[[1]]$filename}")
