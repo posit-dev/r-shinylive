@@ -231,7 +231,8 @@ assets_version_reset <- function() {
 # `SHINYLIVE_ASSETS_VERSION` env var, then the package default.
 assets_version_input <- function(version, is_missing) {
   if (is_missing || is.null(version)) {
-    Sys.getenv("SHINYLIVE_ASSETS_VERSION", SHINYLIVE_ASSETS_VERSION_DEFAULT)
+    env <- Sys.getenv("SHINYLIVE_ASSETS_VERSION")
+    if (nzchar(env)) env else SHINYLIVE_ASSETS_VERSION_DEFAULT
   } else {
     version
   }

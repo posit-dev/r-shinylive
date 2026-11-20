@@ -437,3 +437,11 @@ test_that("assets_ensure() resolves a pattern before downloading", {
   expect_equal(path, fs::path(dir, "shinylive-0.10.17"))
   expect_equal(downloaded(), "0.10.17")
 })
+
+test_that("an empty SHINYLIVE_ASSETS_VERSION is treated as unset", {
+  withr::local_envvar(SHINYLIVE_ASSETS_VERSION = "")
+  expect_equal(
+    assets_version_input("0.10.*", TRUE),
+    SHINYLIVE_ASSETS_VERSION_DEFAULT
+  )
+})
