@@ -88,7 +88,7 @@ test_that("export - server.R", {
 
 test_that("export with template", {
   skip_if_assets_unavailable()
-  skip_if(assets_version() <= "0.4.1")
+  skip_if(assets_version() <= package_version("0.4.1"))
 
   # For local testing until next release after 0.4.1
   # withr::local_envvar(list("SHINYLIVE_ASSETS_VERSION" = "0.4.1"))
