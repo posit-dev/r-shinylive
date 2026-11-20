@@ -10,8 +10,10 @@ description: "How export() turns an app folder into a static site: copying asset
 `export(appdir, destdir)` builds a folder that any static web server can host.
 It runs these steps in order:
 
-1. Check arguments: `appdir` must be a folder with `app.R` or `server.R`, and
-   `subdir` must not be an absolute path. Create `destdir` if needed.
+1. Check arguments: `appdir` must be a folder with `app.R` or `server.R`;
+   `destdir` must not be the same folder as `appdir` (compared with
+   `full_path()`); `subdir` is checked and cleaned by `check_subdir()`.
+   Create `destdir` if needed.
 2. Copy the base Shinylive asset files (the `base` and `r` sets) from the
    assets cache into `destdir` (`create_copy_fn()`).
 3. Read every app file into a list (`read_app_files()`).
@@ -27,12 +29,14 @@ Asset download and caching are covered in `assets.md`.
 
 | File | Functions |
 |---|---|
-| `R/export.R` | `export()`, `wasm_packages_able()` |
+| `R/export.R` | `export()`, `wasm_packages_able()`, `check_subdir()` |
 | `R/app_json.R` | `file_content_obj()`, `app_info_obj()`, `read_app_files()`, `write_app_json()` |
-| `R/utils.R` | `create_copy_fn()`, `unlink_path()`, `files_are_equal()` |
+| `R/utils.R` | `create_copy_fn()`, `unlink_path()`, `files_are_equal()`, `full_path()` |
 | `R/deps.R` | `shinylive_common_files()` (which asset files are copied) |
 | `R/cli.R` | `local_quiet()`, `is_quiet()`, and the `cli_*()` wrappers |
-| `tests/testthat/test-export.R` | End-to-end tests (need the assets, see `TEST_ASSETS` in `AGENTS.md`) |
+| `tests/testthat/test-export.R` | End-to-end tests (need the assets, see `TEST_ASSETS` in `AGENTS.md`), plus offline `check_subdir()` tests |
+| `tests/testthat/test-app_json.R` | Offline `read_app_files()` and `write_app_json()` tests |
+| `tests/testthat/test-utils.R` | `unlink_path()` and `create_copy_fn()` tests |
 | `tests/testthat/apps/` | Test apps, including a custom `export_template/` |
 
 ## What ends up in destdir
@@ -64,17 +68,22 @@ relative to `appdir`. This list is written as-is to `app.json`.
 - **Hidden files and folders** are skipped, because base `dir()` is called
   without `all.files = TRUE`.
 - **Excluded folder names:** `__pycache__`, `venv`, `.venv`, `rsconnect`, at
-  any depth. Only folders are checked. A *file* named `venv` is kept.
-- **destdir inside appdir:** a folder is skipped when
-  `fs::path_has_parent(folder, destdir)` is true. This is a plain path
-  compare (see Pitfalls).
+  any depth below `appdir`. Only folders are checked. A *file* named `venv`
+  is kept. The `appdir` folder itself is never excluded, so an app folder
+  named `venv` still works.
+- **destdir inside appdir:** both paths go through `full_path()` first
+  (absolute, symlinks resolved, works for paths that do not exist yet), so
+  relative and absolute forms (and macOS `/var` vs `/private/var`) compare
+  correctly. Folders under `destdir` are skipped only when `destdir` is a
+  subfolder of `appdir`. When `appdir` is inside `destdir` (for example
+  `export("myapp", ".")`), nothing is skipped for that reason.
 - **`shinylive.js` found:** gives a warning that you may be bundling a
   Shinylive copy into the app.
-- **Text or binary:** `brio::read_file()` is tried first. If it errors, the
+- **Text or binary:** `brio::read_file()` is tried first. If it errors (on
+  embedded NUL bytes) or the result is not valid UTF-8 (`validUTF8()`), the
   file is read with `brio::read_file_raw()` and marked `"binary"`.
-  `jsonlite` writes raw vectors as base64. `brio::read_file()` errors only
-  on embedded NUL bytes. So any file without a NUL byte is `"text"`, even if
-  it is not valid UTF-8.
+  `jsonlite` writes raw vectors as base64. So a latin1 text file is stored
+  as binary, and `app.json` stays valid JSON.
 
 ## Template and app.json (write_app_json)
 
@@ -83,8 +92,8 @@ relative to `appdir`. This list is written as-is to `app.json`.
 1. Lists every file in `template_dir` (recursive).
 2. For files with extension `html`, renders them with
    `whisker::whisker.render()` and writes them with `brio::write_file()`
-   (overwrites). Other files are copied with `fs::file_copy()` (does not
-   overwrite). Note `.htm` is not rendered.
+   (overwrites). Other files are copied with
+   `fs::file_copy(overwrite = TRUE)`. Note `.htm` is not rendered.
 3. Writes `app.json` with `jsonlite::write_json(auto_unbox = TRUE,
    pretty = FALSE)`.
 
@@ -113,6 +122,19 @@ Unknown names render as empty.
 `REL_PATH` lets `index.html` in `destdir/subdir` reach the shared
 `destdir/shinylive/` folder.
 
+### check_subdir()
+
+`check_subdir(subdir)` in `R/export.R` runs before anything is written. It:
+
+- errors unless `subdir` is a single non-`NA` string;
+- errors on an absolute path;
+- splits on `/` and `\`, drops empty and `.` parts, and errors if any part
+  is `..`;
+- returns the parts joined with `/`.
+
+So `subdir = "."` or `"./"` is the same as `""` (`REL_PATH` is `""`), and
+`subdir = "../x"` or `"a/../b"` is an error.
+
 ## Multiple apps and re-exporting
 
 - **Multiple apps:** export each app to the same `destdir` with a different
@@ -120,11 +142,15 @@ Unknown names render as empty.
   metadata is merged across exports (see `wasmPackages.md`).
 - **Copying is skip-if-exists.** `export()` uses
   `create_copy_fn(overwrite = FALSE)`. `mark_file()` skips any destination
-  that already exists. If its MD5 differs from the source, it prints
-  "Source and destination copies differ" and suggests a clean re-export. The
-  old file stays. All marked files are then copied in one
-  `fs::file_copy()` call by `copy_files()`.
-- **Always rewritten:** `app.json` and rendered `.html` template files.
+  that already exists. If its MD5 differs from the source and output is not
+  quiet, it prints "Source and destination copies differ" and suggests a
+  clean re-export. The old file stays. All marked files are then copied in
+  one `fs::file_copy()` call by `copy_files()`.
+- **`create_copy_fn(overwrite = TRUE)`** removes each existing destination
+  with `unlink_path()` (file, folder, or link) before copying. Nothing calls
+  it with `TRUE` today.
+- **Always rewritten:** `app.json`, rendered `.html` template files, and the
+  template's other files.
 - **Never removed:** files from an earlier export that are no longer needed
   (old app files, old assets from another assets version). Delete `destdir`
   for a clean result.
@@ -145,8 +171,9 @@ Unknown names render as empty.
   FALSE)`; `export()` passes its value through.
 - The "Copying base Shinylive files" progress bar calls
   `cli::cli_progress_bar()` directly, guarded by `is_quiet()`.
-- `cli::cli_warn()`, `cli::cli_abort()`, and `cli::cli_inform()` are not
-  wrapped. They show even when quiet.
+- `cli::cli_warn()` and `cli::cli_abort()` are not wrapped. They show even
+  when quiet. The one direct `cli::cli_inform()` call (the "copies differ"
+  message in `create_copy_fn()`) checks `is_quiet()` itself.
 
 ## Environment variables
 
@@ -171,34 +198,18 @@ and `index.html` are not written. Details are in `wasmPackages.md`.
 
 ## Pitfalls
 
-- **destdir that contains appdir gives an empty app.**
-  `export("myapp", ".")` reads zero files: `inspect_dir()` sees that `appdir`
-  itself has `destdir` as a parent and returns early. Same if the `appdir`
-  folder is named `venv`, `.venv`, `rsconnect`, or `__pycache__`. No error
-  is raised.
-- **destdir inside appdir is only skipped when both paths use the same form.**
-  `export(".", "site")` works. `export("/abs/app", "site")` from inside the
-  app (absolute vs relative) does not skip `site/`, so a second export puts
-  the whole site (about 190 files) into `app.json`. Paths are not
-  normalized before `fs::path_has_parent()`.
-- **`subdir` is only checked for being absolute.** `subdir = "."` writes to
-  `destdir` but sets `REL_PATH` to `../`, which breaks asset links.
-  `subdir = "../x"` writes outside `destdir` with a wrong `REL_PATH`.
-- **Non-UTF-8 text breaks `app.json`.** A latin1 file (or any binary file
-  with no NUL byte) is stored as `"text"` and its bytes are written as-is.
-  The result is not valid JSON (`jsonlite::validate()` fails).
+- **`destdir` equal to `appdir` is an error.** `export(".", ".")` (or any two
+  paths that `full_path()` resolves to the same folder) stops with
+  "`destdir` must be a different folder than `appdir`".
+- **A `destdir` that holds the app is not read into `app.json`, but the
+  export is still written there.** `export("myapp", ".")` reads the app
+  normally and writes the site files next to `myapp/`.
+- **Use `full_path()` to compare paths.** Plain `fs::path_has_parent()` on
+  raw paths misses relative vs absolute forms and symlinks.
 - **Empty files become `"content": []`** in `app.json`, not `""`, because
   `brio::read_file()` returns `character(0)` for an empty file.
-- **Custom template with non-HTML files cannot be re-exported.** The second
-  export fails with `EEXIST` from `fs::file_copy()` in `write_app_json()`.
-- **`create_copy_fn(overwrite = TRUE)` does not work for files.**
-  `unlink_path()` only deletes folders and links to folders, so the file
-  stays and `copy_files()` fails with `EEXIST`. Nothing calls it with
-  `overwrite = TRUE` today.
-- **The "copies differ" message is not quiet.** It uses `cli::cli_inform()`,
-  so it shows with `quiet = TRUE`, and the stale file is kept.
-- **Roxygen says the default title is `"Shiny app"`**; the code uses
-  `"Shiny App"`.
+- **The "copies differ" message keeps the stale file.** It only warns; delete
+  `destdir` for a clean result.
 - **`export()` does not check `ui.R`.** A folder with only `ui.R` is rejected;
   one with only `server.R` passes.
 - **Stale comment in `inspect_dir()`** mentions `fs::dir_walk(all = FALSE)`;

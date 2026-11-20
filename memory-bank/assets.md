@@ -24,7 +24,8 @@ the cache, and reads files from it.
   `SHINYLIVE_R_VERSION` (this package's version, from `utils::packageVersion()`).
 - `R/utils.R` - `cran_is_testing()`, `unlink_path()`, `package_json_version()`.
 - `tests/testthat/test-assets.R` - asset tests, including the expected webR R
-  version for the default assets.
+  version for the default assets, plus offline tests for `dir=`, stray cache
+  entries, `assets_info()` with nothing installed, and `check_assets_url()`.
 - `tests/testthat/test-assertions.R` - argument checks and the CRAN guard.
 - `.agents/skills/update-assets-version/SKILL.md` - steps to bump the default
   assets version.
@@ -49,8 +50,10 @@ the cache, and reads files from it.
 - `assets_dir_impl(dir, version)` builds `<dir>/shinylive-<version>`. The
   prefix is the `shinylive_prefix` constant.
 - `assets_dirs(dir)` lists `shinylive-*` entries in `dir` (with base
-  `dir()`, which is faster than `fs::dir_ls()`) and sorts them newest first
-  with `numeric_version()`.
+  `dir()`, which is faster than `fs::dir_ls()`), keeps only folders whose
+  suffix parses with `numeric_version(strict = FALSE)`, and sorts them newest
+  first. So stray entries like a `shinylive-dev` folder or a
+  `shinylive-1.0.0.tar.gz` file are skipped.
 
 ## Which version is used
 
@@ -69,21 +72,21 @@ R changed, the `NEWS.md` bullet, and examples that name the old version.
 |---|---|---|
 | `assets_download(version, dir, url)` | yes | Always downloads `url` with httr2 into a temp `.tar.gz`, then extracts it into `dir` with `archive::archive_extract()`. The tarball's top folder is `shinylive-<version>/`. Returns `invisible(dir)`. Deletes the temp file on exit. |
 | `assets_bundle_url(version)` | no | `https://github.com/posit-dev/shinylive/releases/download/v<version>/shinylive-<version>.tar.gz` |
-| `assets_ensure(version, dir, url)` | yes | Creates `dir` if missing. If the version folder is missing, calls `assets_download()`. Returns the version folder invisibly. |
-| `assets_dir(version, dir)` | no | Path to one version folder. Does not check that it exists. |
+| `assets_ensure(version, dir, url)` | yes | Creates `dir` if missing (and prints "Creating assets cache directory" with the path). If `<dir>/shinylive-<version>` is missing, calls `assets_download()` into `dir`. Returns that version folder invisibly. |
+| `assets_dir(version, dir)` | no | Path `<dir>/shinylive-<version>`. Does not check that it exists. |
 | `assets_cleanup(dir)` | yes | Removes every version in `dir` except `assets_version()`. |
 | `assets_remove(versions, dir)` | yes | Removes the given versions. Errors if `versions` is not a non-empty character vector. Warns (does not error) for a version that is not there. |
-| `assets_info(quiet)` | yes | Prints package version, assets version, cache dir, and installed folders. Returns a `tbl_df` with `version`, `path`, `is_assets_version`. |
+| `assets_info(quiet)` | yes | Prints package version, assets version, cache dir, and installed folders (or `(None)`). Returns a `tbl_df` with `version`, `path`, `is_assets_version`; zero rows when nothing is installed. |
 | `assets_version()` | yes | See above. |
 | `assets_install_copy(assets_repo_dir, dir, version)` | yes | Copies a local build into the cache. |
 | `assets_install_link(assets_repo_dir, dir, version)` | yes | Symlinks a local build into the cache. |
 | `assets_webr_r_version(version)` | no | Ensures the version is cached, then calls `assets_path_webr_r_version()`. |
 | `assets_path_webr_r_version(assets_path)` | no | Reads the webR R version from the assets. |
-| `check_assets_url(version, url)` | no | HEAD request; `TRUE` if status is 200. Not called anywhere in `R/` or tests. |
+| `check_assets_url(version, url)` | no | HEAD request with HTTP errors turned off (`httr2::req_error()`); `TRUE` if status is 200, `FALSE` otherwise (for example a 404 for a missing release). Network errors still throw. Not called anywhere in `R/`; tested in `test-assets.R`. |
 
-Removal goes through `unlink_path()`, which deletes a symlink with
-`fs::link_delete()` (so the linked repo is untouched) and a real folder with
-`fs::dir_delete()`.
+Removal goes through `unlink_path()` in `R/utils.R`, which deletes a symlink
+with `fs::link_delete()` (so the linked repo is untouched), a real folder with
+`fs::dir_delete()`, and a file with `fs::file_delete()`.
 
 ## Local builds of posit-dev/shinylive
 
@@ -122,42 +125,25 @@ the file is missing. `export()` and `quarto_ext()` pass this value to
 when `cran_is_testing()` is true (`TESTTHAT=true` and `NOT_CRAN` not
 `true`). This keeps CRAN checks from writing to the user cache. Because
 `dir = assets_cache_dir()` is a lazy default, passing `dir=` avoids the
-guard for most functions, but not for `assets_dir()` and `assets_info()`
-(see Pitfalls).
+guard for every function that has a `dir` argument (including
+`assets_dir()` and `assets_ensure()`), but not for `assets_info()`, which
+has no `dir` argument.
 
 ## Pitfalls
 
-- **`assets_dir()` ignores `dir=`.** It calls
-  `assets_dir_impl(dir = assets_cache_dir(), ...)`. So the path always
-  points at the real cache, and passing `dir=` does not avoid the CRAN guard.
-- **`assets_ensure(dir = other)` mixes two folders.** It checks for and
-  returns `<real cache>/shinylive-<version>` (through `assets_dir()`), but
-  downloads into `other`. If the real cache already has the version, nothing
-  is downloaded into `other` at all.
-- **`assets_info()` errors when no versions are installed.** It sets the list
-  to `"(None)"`, prints it, then `strsplit(..., "shinylive-")` gives one piece
-  and `x[[2]]` fails with "subscript out of bounds".
 - **`assets_info()` has no `dir` argument.** It always reads the real cache.
-  Its "(Cache dir does not exist)" branch can't run, because
-  `assets_cache_dir()` creates the folder.
 - **`assets_info()` visibility is reversed from what you may expect.**
   `quiet = FALSE` prints and returns invisibly; `quiet = TRUE` returns the
-  table visibly.
-- **A stray `shinylive-*` entry breaks listing.** A folder like
-  `shinylive-dev` or a file like `shinylive-1.0.0.tar.gz` in the cache makes
-  `assets_dirs()` fail with "invalid version specification". That also breaks
-  `assets_info()` and `assets_cleanup()`. Files are not filtered out.
-- **`assets_ensure()` does not print the dir it creates.** The message is
-  `cli_alert_info("Creating assets cache directory ", dir)`; `dir` lands in
-  `cli::cli_alert_info()`'s `id` argument, so only the text shows.
+  table visibly. The roxygen now says this.
 - **Empty `SHINYLIVE_ASSETS_VERSION` is not unset.** If the env var is set to
   `""`, `assets_version()` returns `""`, not the default.
-- **`check_assets_url()` never returns `FALSE` for a 404.** httr2 turns
-  HTTP errors into R errors, so a bad version throws "HTTP 404 Not Found".
+- **Callers that do not pass `dir` still use the real cache.** For example
+  `assets_webr_r_version()` calls `assets_ensure(version)` with the default
+  `dir`, and `export()` calls `assets_dir(version = assets_version)`.
 - **`assets_download()` does not clear the target first.** It extracts over
   any existing version folder, so stale files from a partial or local
   install can remain. Use `assets_remove()` first.
 - **Calling the exported helpers in tests or scripts touches the real
-  cache** unless you pass `dir=` (and even then, see `assets_dir()` above).
-  Mock `assets_cache_dir` with `testthat::local_mocked_bindings()` or set
-  `R_USER_CACHE_DIR` to a temp folder.
+  cache** unless you pass `dir=`. For code paths that do not take `dir`, mock
+  `assets_cache_dir` with `testthat::local_mocked_bindings()` (as
+  `test-deps.R` does) or set `R_USER_CACHE_DIR` to a temp folder.
