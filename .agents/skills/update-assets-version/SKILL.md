@@ -15,7 +15,7 @@ description: Update the default shinylive web assets version used by the R packa
 
    Note the Shiny for Python version and the webR version it bundles. If a version was released but not deployed to shinylive.io, skip it and say so in the PR description.
 
-2. **`R/version.R`:** set `SHINYLIVE_ASSETS_VERSION <- "<VERSION>"`. If the webR version changes the R version, also update `WEBR_R_VERSION`. `export()` reads the R version from the assets, so `WEBR_R_VERSION` is only a fallback, but a test in `tests/testthat/test-assets.R` checks that it matches the default assets.
+2. **`R/version.R`:** set `SHINYLIVE_ASSETS_VERSION <- "<VERSION>"`. `export()` reads the webR R version from the assets. If the webR version changes the R version, update the expected R version in the "default assets use the expected webR R version" test in `tests/testthat/test-assets.R`.
 
 3. **`NEWS.md`:** under the development version, keep a single bullet for the assets update. Replace the old version in it instead of adding a new bullet:
 

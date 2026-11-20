@@ -23,34 +23,19 @@ test_that("assets_path_webr_r_version() reads the R version from the assets", {
   expect_equal(assets_path_webr_r_version(assets_path), "4.7.1")
 })
 
-test_that("assets_path_webr_r_version() falls back to WEBR_R_VERSION", {
+test_that("assets_path_webr_r_version() errors when the version is missing", {
   assets_path <- withr::local_tempdir()
 
-  expect_warning(
-    r_version <- assets_path_webr_r_version(assets_path),
+  expect_error(
+    assets_path_webr_r_version(assets_path),
     "Can't find the webR R version"
   )
-  expect_equal(r_version, WEBR_R_VERSION)
 })
 
-test_that("assets_path_webr_r_version(warn = FALSE) falls back quietly", {
-  assets_path <- withr::local_tempdir()
-
-  expect_no_warning(
-    r_version <- assets_path_webr_r_version(assets_path, warn = FALSE)
-  )
-  expect_equal(r_version, WEBR_R_VERSION)
-})
-
-test_that("the package's own assets use WEBR_R_VERSION", {
+test_that("the default assets use the expected webR R version", {
   skip_if_assets_unavailable()
 
-  # The fallback also returns WEBR_R_VERSION, so check that the version was
-  # read from the assets and not from the fallback.
-  expect_true(fs::file_exists(fs::path(
-    assets_ensure(),
-    "shinylive/webr/vfs/usr/lib/R/library/translations/DESCRIPTION"
-  )))
-  expect_no_warning(r_version <- assets_webr_r_version())
-  expect_equal(r_version, WEBR_R_VERSION)
+  # Update this when a new default assets version changes the webR R version.
+  # It catches an R version change that would otherwise go unnoticed.
+  expect_equal(assets_webr_r_version(SHINYLIVE_ASSETS_VERSION), "4.6.0")
 })

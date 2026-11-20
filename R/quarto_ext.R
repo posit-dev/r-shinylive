@@ -208,11 +208,6 @@ quarto_ext <- function(
       shinylive_base_deps_htmldep(sw_dir)
     },
     "language-resources" = {
-      # Quarto calls this once per document, but `app-resources` once per app.
-      # Warn here, once, if the webR R version can't be found.
-      if (sys_env_wasm_packages() && assets_version() > package_version("0.7.0")) {
-        assets_webr_r_version()
-      }
       shinylive_r_resources()
       # shinylive_python_resources()
     },
@@ -288,9 +283,7 @@ build_app_resources <- function(app_json) {
         destdir,
         package_cache = TRUE,
         max_filesize = NULL,
-        # Quarto runs this once per app. `language-resources` already warned
-        # once for the document, so stay quiet here.
-        r_version = assets_webr_r_version(warn = FALSE)
+        r_version = assets_webr_r_version()
       )
     )
   }
