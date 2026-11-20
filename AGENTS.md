@@ -82,11 +82,24 @@ The skip helper is `skip_if_assets_unavailable()` in
 - **NEWS:** add a bullet to `NEWS.md` under the development version for any
   user-facing change.
 
+## Memory Bank
+
+The `memory-bank/` directory holds contributor documentation with YAML
+frontmatter (`title`, `description`). **Before exploring the codebase**, invoke
+the `memory-bank` skill to find and read the relevant docs. Start with
+`memory-bank/architecture.md`; it explains how the pieces fit and which doc
+covers each `R/` file. Update or add docs when you learn something future
+contributors will need (see the skill for conventions).
+
 ## Skills
 
 Task-specific instructions live in `.agents/skills/` (`.claude/skills` is a
 symlink to it):
 
+- `memory-bank`: find, read, and update the docs in `memory-bank/`.
 - `update-assets-version`: bump `SHINYLIVE_ASSETS_VERSION`.
 - `update-actions-tag`: move the `actions-v1` tag after changes to the
   reusable `deploy-app` workflow or `examples/`.
+
+Only allowlisted skills are tracked, so when adding or removing one, update
+the `!/.agents/skills/<name>/` lines in `.gitignore` to match.
