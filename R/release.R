@@ -6,7 +6,8 @@ release_bullets <- function() {
       "default in `.github/workflows/deploy-app.yaml` from ",
       "`posit-dev/r-shinylive` to `shinylive`, so the workflow installs the ",
       "CRAN release. Then move the `actions-v1` tag to that commit ",
-      "(see `examples/README.md`). Remove this bullet afterwards."
+      "(see `.agents/skills/update-actions-tag/SKILL.md`). Remove this bullet ",
+      "afterwards."
     )
   )
 }
