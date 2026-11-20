@@ -53,3 +53,167 @@ assets_version_matches <- function(versions, spec) {
     }
   )
 }
+
+
+# versions.json -----------------------------------------------------------
+#
+# Cached in the assets cache dir:
+# {
+#   "checked_at": "2026-11-20T17:03:00Z",
+#   "latest": "0.11.0",
+#   "versions": ["0.11.0", "0.10.17"],
+#   "error": "<reason>"            # only when the last check failed
+# }
+
+VERSIONS_CHECK_HOURS <- 24
+VERSIONS_RETRY_HOURS <- 1
+VERSIONS_TIME_FORMAT <- "%Y-%m-%dT%H:%M:%SZ"
+
+versions_json_path <- function(dir) {
+  fs::path(dir, "versions.json")
+}
+
+read_versions_json <- function(dir) {
+  path <- versions_json_path(dir)
+  if (!fs::file_exists(path)) {
+    return(NULL)
+  }
+  json <- tryCatch(
+    jsonlite::read_json(path, simplifyVector = TRUE),
+    error = function(e) NULL
+  )
+  if (!is.list(json) || !is.character(json$checked_at)) {
+    return(NULL)
+  }
+  checked_at <- as.POSIXct(
+    json$checked_at,
+    format = VERSIONS_TIME_FORMAT,
+    tz = "UTC"
+  )
+  if (length(checked_at) != 1 || is.na(checked_at)) {
+    return(NULL)
+  }
+  info <- list(
+    checked_at = checked_at,
+    latest = if (is.character(json$latest)) json$latest,
+    versions = if (is.character(json$versions)) json$versions else character(0)
+  )
+  info$error <- if (is.character(json$error)) json$error
+  info
+}
+
+write_versions_json <- function(info, dir) {
+  fs::dir_create(dir)
+  json <- list(
+    checked_at = format(info$checked_at, VERSIONS_TIME_FORMAT, tz = "UTC"),
+    latest = jsonlite::unbox(info$latest),
+    versions = I(as.character(info$versions))
+  )
+  if (!is.null(info$error)) {
+    json$error <- jsonlite::unbox(info$error)
+  }
+  json$checked_at <- jsonlite::unbox(json$checked_at)
+  # Write to a temp file and rename, so other R processes never read a
+  # half-written file.
+  tmp <- tempfile("versions-", tmpdir = dir, fileext = ".json")
+  on.exit(unlink(tmp), add = TRUE)
+  jsonlite::write_json(json, tmp, pretty = TRUE, null = "null")
+  file.rename(tmp, versions_json_path(dir))
+  invisible(versions_json_path(dir))
+}
+
+versions_check_due <- function(info, now = Sys.time()) {
+  if (is.null(info)) {
+    return(TRUE)
+  }
+  hours <- as.numeric(difftime(now, info$checked_at, units = "hours"))
+  if (hours < 0) {
+    # The clock changed
+    return(TRUE)
+  }
+  wait <- if (is.null(info$error)) VERSIONS_CHECK_HOURS else VERSIONS_RETRY_HOURS
+  hours >= wait
+}
+
+# Runs the GitHub check when due (or when `force = TRUE`) and returns the
+# versions info. A failed check records `error` but keeps the old versions.
+update_versions_info <- function(dir, force = FALSE, now = Sys.time()) {
+  info <- read_versions_json(dir)
+  if (!force && !versions_check_due(info, now)) {
+    return(info)
+  }
+
+  new_info <- tryCatch(
+    {
+      latest <- fetch_latest_assets_version()
+      versions <- info$versions
+      if (!identical(latest, info$latest) || length(versions) == 0) {
+        versions <- fetch_assets_versions()
+      }
+      list(checked_at = now, latest = latest, versions = versions)
+    },
+    error = function(e) {
+      list(
+        checked_at = now,
+        latest = info$latest,
+        versions = info$versions %||% character(0),
+        error = conditionMessage(e)
+      )
+    }
+  )
+
+  write_versions_json(new_info, dir)
+  new_info
+}
+
+assets_releases_url <- "https://github.com/posit-dev/shinylive/releases"
+
+check_network_allowed <- function(call = rlang::caller_env()) {
+  if (cran_is_testing()) {
+    cli::cli_abort(
+      "Can't check Shinylive assets versions during CRAN checks.",
+      call = call
+    )
+  }
+}
+
+# Returns the newest release version, read from where
+# `<releases>/latest` redirects to. This is not the GitHub API, so it has no
+# rate limit.
+fetch_latest_assets_version <- function() {
+  check_network_allowed()
+  req <- httr2::request(paste0(assets_releases_url, "/latest"))
+  req <- httr2::req_method(req, "HEAD")
+  req <- httr2::req_timeout(req, 3)
+  req <- httr2::req_options(req, connecttimeout = 1)
+  resp <- httr2::req_perform(req)
+  latest_tag_version(httr2::resp_url(resp))
+}
+
+latest_tag_version <- function(url) {
+  if (!grepl("/releases/tag/v[0-9.]+$", url)) {
+    cli::cli_abort(
+      "Can't find the latest Shinylive assets version in {.url {url}}."
+    )
+  }
+  sub("^.*/releases/tag/v", "", url)
+}
+
+# Returns all published (not draft, not prerelease) release versions.
+fetch_assets_versions <- function() {
+  check_network_allowed()
+  releases <- gh::gh(
+    "/repos/posit-dev/shinylive/releases",
+    .limit = Inf,
+    .timeout = 10,
+    .progress = FALSE
+  )
+  keep <- vapply(
+    releases,
+    function(r) !isTRUE(r$draft) && !isTRUE(r$prerelease),
+    logical(1)
+  )
+  tags <- vapply(releases[keep], function(r) r$tag_name, character(1))
+  versions <- sub("^v", "", tags)
+  versions[!is.na(safe_numeric_version(versions))]
+}
