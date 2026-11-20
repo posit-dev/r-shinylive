@@ -37,8 +37,8 @@ and then turns every file under `shinylive/webr/` into an HTML dependency.
   `download_wasm_packages()` runs. They mock `utils::packageDescription`,
   `utils::download.file`, `renv::dependencies`, `get_wasm_assets()`, and
   `resolve_dependencies()`, so they need no network and no assets. Also
-  `parse_max_filesize()` tests and a test that a package dropped for its
-  size is tried again.
+  `parse_max_filesize()` tests and tests for a limit that stays the same,
+  grows, or shrinks between runs.
 
 ## Finding dependencies
 
@@ -105,11 +105,13 @@ release or missing assets is an error, not a warning.
 
 Each entry is named by package and holds `name`, `version` (local),
 `ref`, `cached`, `type` (`"package"`, `"library"`, or `"base"`), `assets`,
-`path` (`packages/<pkg>/<first asset filename>`), and `_webr_r_version`.
+`path` (`packages/<pkg>/<first asset filename>`), `_webr_r_version`, and
+`dropped_size` (only for a package left out for its size).
 
 A cache hit needs all of: `package_cache = TRUE`, an entry from a previous run,
-`cached` is `TRUE`, `ref` is not `NA`, and stored `ref == desired_ref`. On a
-hit nothing is queried or downloaded.
+`cached` is `TRUE`, `ref` is not `NA`, stored `ref == desired_ref`, and no
+`dropped_size` that now fits under `max_filesize`. On a hit nothing is
+queried or downloaded, but the size limit is still checked (see below).
 
 The stored `ref` is not always the desired ref:
 
@@ -155,15 +157,27 @@ Resolution order: `max_filesize` argument, then
 So the env var (always a string) can turn the limit off with `"-1"`,
 `"Inf"`, or `"NA"`, the same as the argument.
 
-Each asset is checked after download (or when already on disk). If it is too
-big, the package folder is deleted, `assets` is emptied, the entry is saved
-with `cached = FALSE` (so the next export tries it again, for example with a
-larger `max_filesize`), and:
+The limit is checked on every run, without downloading anything extra:
 
-- if neither the argument nor the env var was set, `cli::cli_warn()` and the
-  export goes on without the package;
-- otherwise, `cli::cli_abort()` and the export stops. `metadata.rds` is not
-  written in that run.
+- **Cache miss:** each asset is checked after download (or when already on
+  disk).
+- **Cache hit:** the files already on disk are checked, so a smaller limit
+  than last time drops a cached package.
+- **Cache hit for a dropped package:** the saved `dropped_size` is still over
+  the limit, so the package is dropped again (no download).
+- **Dropped package that now fits:** `dropped_size <= max_filesize` turns the
+  hit into a miss before `prepare_wasm_metadata()`, so it is downloaded.
+  `dropped_size` is cleared on every miss.
+
+Dropping goes through `drop_too_large()` (inside `download_wasm_packages()`):
+
+- if neither the argument nor the env var was set, `cli::cli_warn()`; then
+  the package folder is deleted, `assets` and `path` are cleared,
+  `dropped_size` is saved, and the entry stays `cached = TRUE`;
+- otherwise, `cli::cli_abort()` comes *before* any delete, so the files and
+  `metadata.rds` stay as they were. Deleting first would leave
+  `metadata.rds` listing files that are gone, and a cache hit never checks
+  that files exist.
 
 ## SHINYLIVE_WASM_PACKAGES
 
@@ -175,9 +189,9 @@ argument wins over the env var.
 
 ## Pitfalls
 
-- A package dropped for being too large is saved with `cached = FALSE`, so
-  every later export queries and downloads it again, then drops it again if
-  it is still too big. Raise `max_filesize` to keep it.
+- `drop_too_large()` reads `size` before deleting the folder. R arguments
+  are lazy, so passing `fs::file_size(path)` and using it after the delete
+  gives `NA`.
 - A cache hit never checks that files exist on disk. If someone deletes
   `packages/<pkg>/` but keeps `metadata.rds`, the package stays missing.
 - Packages the app no longer uses stay in `metadata.rds` and on disk (the

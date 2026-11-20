@@ -36,7 +36,7 @@ Results on this machine (assets 0.10.16 already cached):
 | `tests/testthat/test-app_json.R` | Offline `read_app_files()` tests (non-UTF-8 text, app inside `destdir`, app folder with an excluded name, relative `destdir`), `export()` into its own `appdir`, and `write_app_json()` over a custom template's other files. |
 | `tests/testthat/test-deps.R` | `shinylive_common_dep_htmldep()` uses `version` and defaults `dep_type` to `"base"`. Uses a fake assets folder. |
 | `tests/testthat/test-export.R` | `export()` end to end: `app.R`, `ui.R`/`server.R`, `subdir`, custom template, Wasm packages, `max_filesize`, non-UTF-8 paths, deprecated `verbose`. Also offline `check_subdir()` tests. |
-| `tests/testthat/test-packages.R` | Wasm package cache logic in `R/packages.R` (`prepare_wasm_metadata()`, `download_wasm_packages()`, `wasm_contrib_url()`), `parse_max_filesize()`, and retrying a package dropped for its size. Fully mocked. |
+| `tests/testthat/test-packages.R` | Wasm package cache logic in `R/packages.R` (`prepare_wasm_metadata()`, `download_wasm_packages()`, `wasm_contrib_url()`), `parse_max_filesize()`, and the size limit staying the same, growing, or shrinking between runs. Fully mocked. |
 | `tests/testthat/test-quarto_ext.R` | `quarto_ext()` subcommands and their JSON output; offline `build_app_resources()` path and bad-binary checks. |
 | `tests/testthat/test-utils.R` | `unlink_path()` on files, folders, and links; `create_copy_fn(overwrite = TRUE)`; the "copies differ" message staying quiet. |
 | `tests/testthat/apps/` | Test apps and the custom export template. |

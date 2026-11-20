@@ -348,6 +348,31 @@ download_wasm_packages <- function(
       SHINYLIVE_DEFAULT_MAX_FILESIZE
   )
 
+  # Leave out a package with a file over `max_filesize`. The warning or error
+  # comes first, so an error leaves the files and `metadata.rds` as they were.
+  drop_too_large <- function(meta, pkg, pkg_subdir, size) {
+    # Read the size before its file is deleted below
+    size <- as.numeric(size)
+    max_filesize_cli_fn(c(
+      "!" = "The file size of package {.pkg {pkg}} is larger than the maximum allowed file size of {.strong {max_filesize}}.",
+      "!" = "This package will not be included as part of the WebAssembly asset bundle.",
+      "i" = "Set the maximum allowed size to {.code -1}, {.code Inf}, or {.code NA} to disable this check.",
+      "i" = if (max_filesize_missing) {
+        "Explicitly set the maximum allowed size to treat this as an error."
+      } else {
+        NULL
+      }
+    ))
+    if (fs::dir_exists(pkg_subdir)) {
+      fs::dir_delete(pkg_subdir)
+    }
+    meta$assets <- list()
+    meta$path <- NULL
+    # Kept so that a later export tries again once the limit allows this size
+    meta$dropped_size <- size
+    meta
+  }
+
   # Core packages in base webR image that we don't need to download
   shiny_pkgs <- c("shiny", "bslib", "renv")
   shiny_pkgs <- resolve_dependencies(shiny_pkgs, local = FALSE)
@@ -424,11 +449,31 @@ download_wasm_packages <- function(
     } else {
       list()
     }
+    # A package dropped for its size is downloaded again once it fits
+    if (isTRUE(prev_meta$dropped_size <= max_filesize)) {
+      prev_meta$cached <- FALSE
+    }
     # Create package ref and lookup download URLs
     meta <- prepare_wasm_metadata(pkg, prev_meta, r_version)
     meta[["_webr_r_version"]] <- r_version
 
-    if (!meta$cached) {
+    if (meta$cached) {
+      if (!is.null(meta$dropped_size)) {
+        # Still too large for the limit, so say so again
+        meta <- drop_too_large(meta, pkg, pkg_subdir, meta$dropped_size)
+      } else {
+        # The limit may be smaller than when these files were downloaded
+        paths <- fs::path(
+          pkg_subdir,
+          vapply(meta$assets, function(asset) asset$filename, character(1))
+        )
+        sizes <- fs::file_size(paths[fs::file_exists(paths)])
+        if (any(sizes > max_filesize)) {
+          meta <- drop_too_large(meta, pkg, pkg_subdir, max(sizes))
+        }
+      }
+    } else {
+      meta$dropped_size <- NULL
       wanted <- vapply(
         meta$assets,
         function(asset) asset$filename,
@@ -445,7 +490,8 @@ download_wasm_packages <- function(
       }
 
       # Download Wasm binaries and copy to static assets dir
-      too_large <- FALSE
+      meta$cached <- TRUE
+      meta$path <- NULL
       for (file in meta$assets) {
         path <- fs::path(pkg_subdir, file$filename)
 
@@ -456,27 +502,11 @@ download_wasm_packages <- function(
 
         # Disallow this package if an asset is too large
         if (fs::file_size(path) > max_filesize) {
-          fs::dir_delete(pkg_subdir)
-          meta$assets <- list()
-          too_large <- TRUE
-          max_filesize_cli_fn(c(
-            "!" = "The file size of package {.pkg {pkg}} is larger than the maximum allowed file size of {.strong {max_filesize}}.",
-            "!" = "This package will not be included as part of the WebAssembly asset bundle.",
-            "i" = "Set the maximum allowed size to {.code -1}, {.code Inf}, or {.code NA} to disable this check.",
-            "i" = if (max_filesize_missing) {
-              "Explicitly set the maximum allowed size to treat this as an error."
-            } else {
-              NULL
-            }
-          ))
+          meta <- drop_too_large(meta, pkg, pkg_subdir, fs::file_size(path))
           break
         }
       }
 
-      # A package dropped for its size is not cached, so a later export with a
-      # larger `max_filesize` tries it again
-      meta$cached <- !too_large
-      meta$path <- NULL
       if (length(meta$assets) > 0) {
         meta$path <- glue::glue("packages/{pkg}/{meta$assets[[1]]$filename}")
       }

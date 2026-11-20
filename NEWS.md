@@ -25,8 +25,10 @@
   * `max_filesize` (and `SHINYLIVE_DEFAULT_MAX_FILESIZE`) accept `"Inf"`,
     `"NA"`, and `"-1"` to turn the limit off. Values that can't be parsed,
     like `""`, now warn and use the default instead of turning the limit off.
-  * A package left out for being larger than `max_filesize` is tried again on
-    the next export, so raising the limit includes it.
+  * A package left out for being larger than `max_filesize` is downloaded
+    again once the limit allows its size, and the warning shows on every
+    export while it is left out. A cached package larger than a new, smaller
+    limit is now left out too (or is an error when the limit is set).
 
 * Assets fixes (#216): `assets_ensure(dir=)` and `assets_dir(dir=)` use `dir`
   instead of the default cache, `assets_info()` works when no assets are
