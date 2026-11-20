@@ -42,9 +42,10 @@ disable.}
 to \code{TRUE}.}
 
 \item{max_filesize}{Maximum file size for bundling of WebAssembly package
-assets. Parsed by \code{\link[fs:fs_bytes]{fs::fs_bytes()}}. Defaults to \code{"100M"}. The default
+assets. Parsed by \code{\link[fs:fs_bytes]{fs::fs_bytes()}}. Defaults to \code{"100MB"}. The default
 value can be changed by setting the environment variable
-\code{SHINYLIVE_DEFAULT_MAX_FILESIZE}. Set to \code{Inf}, \code{NA} or \code{-1} to disable.}
+\code{SHINYLIVE_DEFAULT_MAX_FILESIZE}. Set to \code{Inf}, \code{NA} or \code{-1} (or \code{"Inf"},
+\code{"NA"} or \code{"-1"}) to disable.}
 
 \item{assets_version}{The version of the Shinylive assets to use in the
 exported app. Defaults to \code{\link[=assets_version]{assets_version()}}. Note, not all custom assets

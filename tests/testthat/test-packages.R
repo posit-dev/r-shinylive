@@ -326,3 +326,23 @@ test_that("prepare_wasm_metadata() passes the R version to the repo lookup", {
   prepare_wasm_metadata("scales", list(), "4.7.0")
   expect_equal(seen, "4.7.0")
 })
+
+test_that("parse_max_filesize() turns the limit off for NA, Inf, and negatives", {
+  for (x in list(NA, Inf, -1, "NA", "Inf", "inf", "-1", " -1 ")) {
+    expect_equal(as.numeric(parse_max_filesize(x)), Inf, info = format(x))
+  }
+})
+
+test_that("parse_max_filesize() parses sizes and warns on bad values", {
+  expect_equal(parse_max_filesize("100MB"), fs::fs_bytes("100MB"))
+  expect_equal(parse_max_filesize(" 1K "), fs::fs_bytes("1K"))
+  expect_equal(parse_max_filesize(2048), fs::fs_bytes(2048))
+  for (x in c("", "+1GB", "abc")) {
+    expect_warning(
+      out <- parse_max_filesize(x),
+      "Could not parse",
+      info = x
+    )
+    expect_equal(out, fs::fs_bytes(SHINYLIVE_DEFAULT_MAX_FILESIZE))
+  }
+})

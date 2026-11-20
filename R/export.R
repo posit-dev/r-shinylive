@@ -18,9 +18,10 @@
 #' @param package_cache Cache downloaded binary WebAssembly packages. Defaults
 #'   to `TRUE`.
 #' @param max_filesize Maximum file size for bundling of WebAssembly package
-#'   assets. Parsed by [fs::fs_bytes()]. Defaults to `"100M"`. The default
+#'   assets. Parsed by [fs::fs_bytes()]. Defaults to `"100MB"`. The default
 #'   value can be changed by setting the environment variable
-#'   `SHINYLIVE_DEFAULT_MAX_FILESIZE`. Set to `Inf`, `NA` or `-1` to disable.
+#'   `SHINYLIVE_DEFAULT_MAX_FILESIZE`. Set to `Inf`, `NA` or `-1` (or `"Inf"`,
+#'   `"NA"` or `"-1"`) to disable.
 #' @param assets_version The version of the Shinylive assets to use in the
 #'   exported app. Defaults to [assets_version()]. Note, not all custom assets
 #'   versions may work with this release of \pkg{shinylive}. Please visit the

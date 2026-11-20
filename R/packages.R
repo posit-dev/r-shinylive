@@ -17,6 +17,37 @@ sys_env_wasm_packages <- function() {
   wasm_packages
 }
 
+# Parse a maximum file size into `fs::fs_bytes()`. `NA`, `Inf`, and negative
+# numbers turn the limit off (`Inf`); they may also be given as strings, since
+# values from environment variables are always strings.
+parse_max_filesize <- function(x) {
+  if (is.character(x)) {
+    x <- trimws(x)
+    if (toupper(x) %in% c("NA", "INF")) {
+      return(fs::fs_bytes(Inf))
+    }
+    x_num <- suppressWarnings(as.numeric(x))
+    if (!is.na(x_num)) {
+      x <- x_num
+    }
+  }
+  if (is.numeric(x) || is.logical(x)) {
+    if (is.na(x) || x < 0) {
+      return(fs::fs_bytes(Inf))
+    }
+  }
+
+  bytes <- fs::fs_bytes(x)
+  if (is.na(bytes)) {
+    cli::cli_warn(c(
+      "!" = "Could not parse `max_filesize` value: {.code {x}}",
+      "i" = "Setting to {.code {SHINYLIVE_DEFAULT_MAX_FILESIZE}}"
+    ))
+    bytes <- fs::fs_bytes(SHINYLIVE_DEFAULT_MAX_FILESIZE)
+  }
+  bytes
+}
+
 # Resolve package list, dependencies listed in Depends and Imports
 resolve_dependencies <- function(pkgs, local = TRUE) {
   pkg_refs <- if (local) {
@@ -304,23 +335,11 @@ download_wasm_packages <- function(
     cli::cli_abort
   }
 
-  max_filesize <- max_filesize %||%
-    sys_env_max_filesize() %||%
-    SHINYLIVE_DEFAULT_MAX_FILESIZE
-  max_filesize <- if (is.na(max_filesize) || (max_filesize < 0)) {
-    Inf
-  } else {
-    max_filesize
-  }
-  max_filesize_val <- max_filesize
-  max_filesize <- fs::fs_bytes(max_filesize)
-  if (is.na(max_filesize)) {
-    cli::cli_warn(c(
-      "!" = "Could not parse `max_filesize` value: {.code {max_filesize_val}}",
-      "i" = "Setting to {.code {SHINYLIVE_DEFAULT_MAX_FILESIZE}}"
-    ))
-    max_filesize <- fs::fs_bytes(SHINYLIVE_DEFAULT_MAX_FILESIZE)
-  }
+  max_filesize <- parse_max_filesize(
+    max_filesize %||%
+      sys_env_max_filesize() %||%
+      SHINYLIVE_DEFAULT_MAX_FILESIZE
+  )
 
   # Core packages in base webR image that we don't need to download
   shiny_pkgs <- c("shiny", "bslib", "renv")
