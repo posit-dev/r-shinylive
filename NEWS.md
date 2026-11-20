@@ -8,6 +8,34 @@
   `assets_version` could bundle binaries that webR can't load. Cached binaries
   from another R version are now deleted and downloaded again (#209).
 
+* `export()` fixes (#216):
+  * An app inside `destdir` (like `export("myapp", ".")`), an app folder named
+    `venv` or `rsconnect`, and a mix of relative and absolute paths no longer
+    give an empty or wrong `app.json`. Exporting into the app folder itself is
+    now an error.
+  * `subdir` can no longer point outside `destdir`, and `subdir = "."` is the
+    same as no subdir.
+  * App text files that are not valid UTF-8 are stored as binary, so
+    `app.json` stays valid JSON.
+  * Re-exporting with a custom template that has non-HTML files works.
+  * The message about differing asset copies respects `quiet = TRUE`.
+  * `max_filesize` (and `SHINYLIVE_DEFAULT_MAX_FILESIZE`) accept `"Inf"`,
+    `"NA"`, and `"-1"` to turn the limit off. Values that can't be parsed,
+    like `""`, now warn and use the default instead of turning the limit off.
+  * A package left out for being larger than `max_filesize` is tried again on
+    the next export, so raising the limit includes it.
+
+* Assets fixes (#216): `assets_ensure(dir=)` and `assets_dir(dir=)` use `dir`
+  instead of the default cache, `assets_info()` works when no assets are
+  installed, stray `shinylive-*` files or folders in the cache no longer
+  break `assets_info()` and `assets_cleanup()`, and `assets_ensure()` shows
+  the cache folder it creates.
+
+* The Quarto extension's `app-resources` command checks app file paths by
+  their parts (so `..foo.R` is allowed and `C:/x.R` or `~/x.R` are not) and
+  errors on binary files that can't be decoded instead of skipping them
+  (#216).
+
 * Updated the default shinylive assets to
   [v0.10.16](https://github.com/posit-dev/shinylive/releases/tag/v0.10.16),
   which bundles Shiny for Python
