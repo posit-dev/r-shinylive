@@ -60,3 +60,15 @@ test_that("assets_ensure() downloads to and returns a path in `dir`", {
   expect_equal(path, fs::path(dir, "shinylive-1.2.3"))
   expect_true(fs::dir_exists(path))
 })
+
+test_that("assets_dirs() skips entries that are not version folders", {
+  dir <- withr::local_tempdir()
+  fs::dir_create(fs::path(dir, c("shinylive-0.9.0", "shinylive-0.10.1")))
+  fs::dir_create(fs::path(dir, "shinylive-dev"))
+  fs::file_create(fs::path(dir, "shinylive-1.0.0.tar.gz"))
+
+  expect_equal(
+    assets_dirs(dir = dir),
+    fs::path(dir, c("shinylive-0.10.1", "shinylive-0.9.0"))
+  )
+})

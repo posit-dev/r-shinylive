@@ -363,14 +363,19 @@ assets_dirs <- function(
     return(character(0))
   }
 
-  # Sort descending by version numbers
+  # Skip files and folders whose suffix is not a version, like `shinylive-dev`
   path_versions_str <- sub(shinylive_prefix, "", path_basenames)
-  path_versions <- as.character(
-    sort(numeric_version(path_versions_str), decreasing = TRUE)
-  )
+  path_versions <- numeric_version(path_versions_str, strict = FALSE)
+  is_version_dir <- !is.na(path_versions) &
+    dir.exists(file.path(dir, path_basenames))
+  path_basenames <- path_basenames[is_version_dir]
+  path_versions <- path_versions[is_version_dir]
+
+  # Sort descending by version numbers
+  path_basenames <- path_basenames[order(path_versions, decreasing = TRUE)]
 
   # Return full path to the versions
-  fs::path(dir, paste0(shinylive_prefix, path_versions))
+  fs::path(dir, path_basenames)
 }
 
 
