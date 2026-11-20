@@ -110,11 +110,7 @@ export <- function(
     )
   }
 
-  if (fs::is_absolute_path(subdir)) {
-    cli::cli_abort(
-      "{.var subdir} was supplied an absolute path ({.path {subdir}}), but only relative paths are allowed."
-    )
-  }
+  subdir <- check_subdir(subdir)
 
   if (!fs::dir_exists(destdir)) {
     fs::dir_create(destdir)
@@ -254,4 +250,27 @@ wasm_packages_able <- function(assets_version) {
   } else {
     TRUE
   }
+}
+
+# Check that `subdir` stays inside `destdir`, and drop empty and `.` parts so
+# that `REL_PATH` in the export template points back to `destdir`
+check_subdir <- function(subdir, call = rlang::caller_env()) {
+  if (!is.character(subdir) || length(subdir) != 1 || is.na(subdir)) {
+    cli::cli_abort("{.var subdir} must be a single string.", call = call)
+  }
+  if (fs::is_absolute_path(subdir)) {
+    cli::cli_abort(
+      "{.var subdir} was supplied an absolute path ({.path {subdir}}), but only relative paths are allowed.",
+      call = call
+    )
+  }
+  parts <- strsplit(subdir, "[/\\\\]")[[1]]
+  parts <- parts[!parts %in% c("", ".")]
+  if (".." %in% parts) {
+    cli::cli_abort(
+      "{.var subdir} must not contain {.val ..} ({.path {subdir}}).",
+      call = call
+    )
+  }
+  paste(parts, collapse = "/")
 }
