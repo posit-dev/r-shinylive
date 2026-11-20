@@ -25,3 +25,4 @@
 ^\.agents$
 ^\.claude$
 ^AGENTS\.md$
+^memory-bank$

@@ -10,3 +10,16 @@ local/quarto/*.js
 local/quarto/_extensions/
 .Rproj.user
 venv/
+/.claude/*
+!/.claude/skills
+
+# Contributor skills. Tools like `npx skills` or `uvx library-skills` install
+# dependency skills into .agents/skills/ (and through the .claude/skills
+# symlink), so only the skills listed here are tracked. Update this list when
+# adding or removing a skill.
+/.agents/*
+!/.agents/skills/
+/.agents/skills/*
+!/.agents/skills/memory-bank/
+!/.agents/skills/update-actions-tag/
+!/.agents/skills/update-assets-version/
