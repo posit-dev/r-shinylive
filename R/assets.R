@@ -91,7 +91,7 @@ assets_dir <- function(
   ...,
   dir = assets_cache_dir()
 ) {
-  assets_dir_impl(dir = assets_cache_dir(), version = version)
+  assets_dir_impl(dir = dir, version = version)
 }
 shinylive_prefix <- "shinylive-"
 assets_dir_impl <- function(

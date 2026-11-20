@@ -39,3 +39,24 @@ test_that("the default assets use the expected webR R version", {
   # It catches an R version change that would otherwise go unnoticed.
   expect_equal(assets_webr_r_version(SHINYLIVE_ASSETS_VERSION), "4.6.0")
 })
+
+test_that("assets_dir() uses `dir`", {
+  dir <- withr::local_tempdir()
+  expect_equal(
+    assets_dir("1.2.3", dir = dir),
+    fs::path(dir, "shinylive-1.2.3")
+  )
+})
+
+test_that("assets_ensure() downloads to and returns a path in `dir`", {
+  dir <- withr::local_tempdir()
+  local_mocked_bindings(
+    assets_download = function(version, ..., dir, url) {
+      fs::dir_create(fs::path(dir, paste0("shinylive-", version)))
+      invisible(dir)
+    }
+  )
+  path <- assets_ensure("1.2.3", dir = dir)
+  expect_equal(path, fs::path(dir, "shinylive-1.2.3"))
+  expect_true(fs::dir_exists(path))
+})
