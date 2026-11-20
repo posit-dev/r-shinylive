@@ -165,7 +165,7 @@ seed_packages_dir <- function(destdir, stale_file, ref, r_version = "4.6.0") {
         cached = TRUE,
         type = "package",
         path = glue::glue("packages/scales/{stale_file}"),
-        r_version = r_version
+        "_webr_r_version" = r_version
       )
     ),
     meta_file
@@ -279,7 +279,7 @@ test_that("binaries from another R version are deleted and re-downloaded", {
     "packages",
     "metadata.rds"
   ))
-  expect_equal(metadata$scales$r_version, "4.6.0")
+  expect_equal(metadata$scales[["_webr_r_version"]], "4.6.0")
 })
 
 test_that("old metadata without an R version is not reused", {

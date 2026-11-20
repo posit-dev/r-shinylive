@@ -400,7 +400,7 @@ download_wasm_packages <- function(
     }
     # Create package ref and lookup download URLs
     meta <- prepare_wasm_metadata(pkg, prev_meta, r_version)
-    meta$r_version <- r_version
+    meta[["_webr_r_version"]] <- r_version
 
     if (!meta$cached) {
       wanted <- vapply(
@@ -482,8 +482,9 @@ download_wasm_packages <- function(
 }
 
 # Binaries built for another R version can't load in this webR, even when their
-# file name matches. Forget them and delete them from disk. Entries without an
-# `r_version` come from older shinylive versions and are treated the same way.
+# file name matches. Forget them and delete them from disk. Entries without a
+# `_webr_r_version` come from older shinylive versions and are treated the same
+# way.
 # The full version is compared on purpose, even though binaries are grouped by
 # major.minor (see `wasm_contrib_url()`). A patch bump such as 4.6.0 -> 4.6.1
 # re-downloads everything. That costs a little time but keeps the check simple.
@@ -493,7 +494,7 @@ drop_other_r_version <- function(metadata, pkg_dir, r_version) {
   }
   keep <- vapply(
     metadata,
-    function(item) identical(item$r_version, r_version),
+    function(item) identical(item[["_webr_r_version"]], r_version),
     logical(1)
   )
   drop <- names(metadata)[!keep]
