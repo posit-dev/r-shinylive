@@ -271,10 +271,16 @@ build_app_resources <- function(app_json) {
     if (file$type == "text") {
       writeLines(file$content, file_path)
     } else {
-      try({
-        raw_content <- jsonlite::base64_dec(file$content)
-        writeBin(raw_content, file_path, useBytes = TRUE)
-      })
+      raw_content <- tryCatch(
+        jsonlite::base64_dec(file$content),
+        error = function(err) {
+          cli::cli_abort(
+            "Could not decode binary app file {.path {file$name}}.",
+            parent = err
+          )
+        }
+      )
+      writeBin(raw_content, file_path, useBytes = TRUE)
     }
   })
 

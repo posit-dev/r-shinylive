@@ -188,3 +188,15 @@ test_that("build_app_resources() checks app file paths", {
   expect_no_error(build_app_resources(app_json_with("..foo.R")))
   expect_true(fs::file_exists(fs::path(appdir, "..foo.R")))
 })
+
+test_that("build_app_resources() errors on bad binary content", {
+  local_app_resources_project()
+  expect_error(
+    build_app_resources(app_json_with(
+      "img.png",
+      "!!!notbase64%%%",
+      type = "binary"
+    )),
+    "Could not decode"
+  )
+})
