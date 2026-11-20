@@ -20,7 +20,16 @@ sys_env_wasm_packages <- function() {
 # Parse a maximum file size into `fs::fs_bytes()`. `NA`, `Inf`, and negative
 # numbers turn the limit off (`Inf`); they may also be given as strings, since
 # values from environment variables are always strings.
-parse_max_filesize <- function(x) {
+parse_max_filesize <- function(x, call = rlang::caller_env()) {
+  if (length(x) != 1 || !(is.character(x) || is.numeric(x) || is.logical(x))) {
+    cli::cli_abort(
+      "{.arg max_filesize} must be a single number or string, not {.obj_type_friendly {x}}.",
+      call = call
+    )
+  }
+  if (is.na(x)) {
+    return(fs::fs_bytes(Inf))
+  }
   if (is.character(x)) {
     x <- trimws(x)
     if (toupper(x) %in% c("NA", "INF")) {
@@ -31,10 +40,8 @@ parse_max_filesize <- function(x) {
       x <- x_num
     }
   }
-  if (is.numeric(x) || is.logical(x)) {
-    if (is.na(x) || x < 0) {
-      return(fs::fs_bytes(Inf))
-    }
+  if (is.numeric(x) && x < 0) {
+    return(fs::fs_bytes(Inf))
   }
 
   bytes <- fs::fs_bytes(x)

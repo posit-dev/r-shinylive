@@ -328,7 +328,17 @@ test_that("prepare_wasm_metadata() passes the R version to the repo lookup", {
 })
 
 test_that("parse_max_filesize() turns the limit off for NA, Inf, and negatives", {
-  for (x in list(NA, Inf, -1, "NA", "Inf", "inf", "-1", " -1 ")) {
+  for (x in list(
+    NA,
+    NA_character_,
+    Inf,
+    -1,
+    "NA",
+    "Inf",
+    "inf",
+    "-1",
+    " -1 "
+  )) {
     expect_equal(as.numeric(parse_max_filesize(x)), Inf, info = format(x))
   }
 })
@@ -344,6 +354,16 @@ test_that("parse_max_filesize() parses sizes and warns on bad values", {
       info = x
     )
     expect_equal(out, fs::fs_bytes(SHINYLIVE_DEFAULT_MAX_FILESIZE))
+  }
+})
+
+test_that("parse_max_filesize() needs a single value", {
+  for (x in list(c(1, 2), character(0), list("1MB"))) {
+    expect_error(
+      parse_max_filesize(x),
+      "must be a single number or string",
+      info = format(x)
+    )
   }
 })
 
