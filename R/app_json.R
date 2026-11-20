@@ -127,7 +127,12 @@ read_app_files <- function(
 
         # Get file content
         file_content <- try(brio::read_file(cur_path), silent = TRUE)
-        if (!inherits(file_content, "try-error")) {
+        # Text that is not valid UTF-8 (like latin1) would make app.json
+        # invalid, so it is stored as binary
+        if (
+          !inherits(file_content, "try-error") &&
+            all(validUTF8(file_content))
+        ) {
           file_type <- "text"
         } else {
           # Try reading as binary
