@@ -64,3 +64,21 @@ test_that("export() errors when destdir is appdir", {
   appdir <- local_app(withr::local_tempdir())
   expect_error(export(appdir, appdir), "different folder")
 })
+
+test_that("write_app_json() can write over a custom template's other files", {
+  template_dir <- withr::local_tempdir()
+  writeLines("<title>{{title}}</title>", fs::path(template_dir, "index.html"))
+  writeLines("body {}", fs::path(template_dir, "extra.css"))
+
+  destdir <- withr::local_tempdir()
+  app_info <- app_info_obj(
+    "app",
+    "",
+    list(file_content_obj("app.R", "library(shiny)"))
+  )
+  write_app_json(app_info, destdir, template_dir = template_dir, quiet = TRUE)
+  expect_no_error(
+    write_app_json(app_info, destdir, template_dir = template_dir, quiet = TRUE)
+  )
+  expect_true(fs::file_exists(fs::path(destdir, "extra.css")))
+})

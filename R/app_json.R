@@ -230,7 +230,7 @@ write_app_json <- function(
       )
       brio::write_file(file_content, dest_file)
     } else {
-      fs::file_copy(template_file, dest_file)
+      fs::file_copy(template_file, dest_file, overwrite = TRUE)
     }
   }
 
