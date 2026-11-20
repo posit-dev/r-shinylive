@@ -44,3 +44,14 @@ test_that("create_copy_fn() is silent about differing files when quiet", {
   withr::local_options(shinylive.quiet = FALSE)
   expect_message(cp$mark_file(src, dst), "differ")
 })
+
+test_that("full_path() resolves symlinks in the parent of a missing path", {
+  skip_on_os("windows")
+  real <- withr::local_tempdir()
+  link <- fs::path(withr::local_tempdir(), "link")
+  fs::link_create(real, link)
+
+  expected <- fs::path(normalizePath(real, winslash = "/"), "missing", "x")
+  expect_equal(full_path(fs::path(link, "missing", "x")), expected)
+  expect_equal(full_path(link), fs::path(normalizePath(real, winslash = "/")))
+})

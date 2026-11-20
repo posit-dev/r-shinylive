@@ -53,10 +53,18 @@ unlink_path <- function(path) {
 }
 
 
-# Absolute path with symlinks resolved, for comparing paths. Works for paths
-# that do not exist yet.
+# Absolute path with symlinks resolved. For a path that does not exist yet, the
+# symlinks in its nearest existing parent folder are resolved.
 full_path <- function(path) {
-  fs::path_abs(normalizePath(path, winslash = "/", mustWork = FALSE))
+  path <- fs::path_abs(path.expand(path))
+  if (file.exists(path)) {
+    return(fs::path(normalizePath(path, winslash = "/")))
+  }
+  parent <- fs::path_dir(path)
+  if (parent == path) {
+    return(path)
+  }
+  fs::path(full_path(parent), fs::path_file(path))
 }
 
 collapse <- function(...) {
