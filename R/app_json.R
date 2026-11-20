@@ -48,6 +48,15 @@ read_app_files <- function(
   is_excluded <- function(name) {
     name %in% exclude_names
   }
+  # Compare full paths, so that relative and absolute paths (and symlinks like
+  # macOS's /var -> /private/var) work together
+  appdir_abs <- full_path(appdir)
+  destdir_abs <- full_path(destdir)
+  # Only skip `destdir` when it is a subfolder of the app. When the app is
+  # inside `destdir`, every app file would be skipped.
+  skip_destdir <- appdir_abs != destdir_abs &&
+    fs::path_has_parent(destdir_abs, appdir_abs)
+
   # Recursively iterate over files in app directory, and collect the files into
   # app_files data structure.
 
@@ -70,14 +79,16 @@ read_app_files <- function(
       )
     }
 
-    # Check for excluded dirs
+    is_appdir <- curdur == appdir
+
+    # Check for excluded dirs. The app folder itself is never excluded.
     curdur_basename <- basename(curdur)
-    if (is_excluded(curdur_basename)) {
+    if (!is_appdir && is_excluded(curdur_basename)) {
       return(NULL)
     }
 
     # If the current directory is inside of the destdir, then do not inspect
-    if (fs::path_has_parent(curdur, destdir)) {
+    if (skip_destdir && fs::path_has_parent(full_path(curdur), destdir_abs)) {
       return(NULL)
     }
 

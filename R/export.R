@@ -104,6 +104,12 @@ export <- function(
     )
   }
 
+  if (full_path(appdir) == full_path(destdir)) {
+    cli::cli_abort(
+      "{.var destdir} must be a different folder than {.var appdir} ({.path {appdir}})."
+    )
+  }
+
   if (fs::is_absolute_path(subdir)) {
     cli::cli_abort(
       "{.var subdir} was supplied an absolute path ({.path {subdir}}), but only relative paths are allowed."

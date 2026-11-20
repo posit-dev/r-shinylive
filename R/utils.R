@@ -53,6 +53,12 @@ unlink_path <- function(path) {
 }
 
 
+# Absolute path with symlinks resolved, for comparing paths. Works for paths
+# that do not exist yet.
+full_path <- function(path) {
+  fs::path_abs(normalizePath(path, winslash = "/", mustWork = FALSE))
+}
+
 collapse <- function(...) {
   paste0(..., collapse = "\n")
 }
