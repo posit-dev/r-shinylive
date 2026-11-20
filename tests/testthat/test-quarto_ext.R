@@ -152,3 +152,39 @@ test_that("quarto_ext handles `extension app-resources` with additional binary f
     fixed = TRUE
   )))
 })
+
+local_app_resources_project <- function(env = parent.frame()) {
+  projdir <- withr::local_tempdir(.local_envir = env)
+  withr::local_envvar(
+    QUARTO_PROJECT_DIR = projdir,
+    SHINYLIVE_WASM_PACKAGES = "FALSE",
+    .local_envir = env
+  )
+  projdir
+}
+
+app_json_with <- function(name, content = "x", type = "text") {
+  jsonlite::toJSON(
+    list(
+      list(name = "app.R", content = "library(shiny)", type = "text"),
+      list(name = name, content = content, type = type)
+    ),
+    auto_unbox = TRUE
+  )
+}
+
+test_that("build_app_resources() checks app file paths", {
+  projdir <- local_app_resources_project()
+  appdir <- fs::path(projdir, ".quarto", "_webr", "appdir")
+
+  for (bad in c("/abs.R", "../up.R", "a/../../up.R", "C:/x.R", "~/x.R")) {
+    expect_error(
+      build_app_resources(app_json_with(bad)),
+      "must be relative",
+      info = bad
+    )
+  }
+
+  expect_no_error(build_app_resources(app_json_with("..foo.R")))
+  expect_true(fs::file_exists(fs::path(appdir, "..foo.R")))
+})
