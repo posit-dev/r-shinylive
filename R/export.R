@@ -206,7 +206,13 @@ export <- function(
   # Copy app package dependencies as Wasm binaries
   # =========================================================================
   if (wasm_packages && wasm_packages_able(assets_version)) {
-    download_wasm_packages(appdir, destdir, package_cache, max_filesize)
+    download_wasm_packages(
+      appdir,
+      destdir,
+      package_cache,
+      max_filesize,
+      r_version = assets_webr_r_version(assets_version)
+    )
   }
 
   # =========================================================================

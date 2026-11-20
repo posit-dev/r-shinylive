@@ -24,17 +24,19 @@ test_that("repo lag stores the downloaded version and keeps re-checking", {
   )
   # Repository lags behind local: it only serves scales 1.3.0
   local_mocked_bindings(
-    get_wasm_assets = function(desc, repo) wasm_asset("scales", "1.3.0")
+    get_wasm_assets = function(desc, repo, r_version) {
+      wasm_asset("scales", "1.3.0")
+    }
   )
 
   # First pass: no prior cache -> miss, stores the DOWNLOADED version as the ref
-  m1 <- prepare_wasm_metadata("scales", list())
+  m1 <- prepare_wasm_metadata("scales", list(), "4.6.0")
   expect_false(m1$cached)
   expect_equal(as.character(m1$ref), "scales@1.3.0")
 
   # The download loop would mark it cached; simulate the next render
   m1$cached <- TRUE
-  m2 <- prepare_wasm_metadata("scales", m1)
+  m2 <- prepare_wasm_metadata("scales", m1, "4.6.0")
   # desired (1.4.0) != stored (1.3.0) -> still a miss, repo still lagging
   expect_false(m2$cached)
   expect_equal(as.character(m2$ref), "scales@1.3.0")
@@ -48,7 +50,9 @@ test_that("cache self-heals once the repo catches up", {
   )
   # Repo now serves the desired version
   local_mocked_bindings(
-    get_wasm_assets = function(desc, repo) wasm_asset("scales", "1.4.0")
+    get_wasm_assets = function(desc, repo, r_version) {
+      wasm_asset("scales", "1.4.0")
+    }
   )
 
   prior <- list(
@@ -58,7 +62,7 @@ test_that("cache self-heals once the repo catches up", {
     cached = TRUE,
     type = "package"
   )
-  m <- prepare_wasm_metadata("scales", prior)
+  m <- prepare_wasm_metadata("scales", prior, "4.6.0")
   expect_false(m$cached) # re-download triggered
   expect_equal(as.character(m$ref), "scales@1.4.0")
 })
@@ -71,7 +75,9 @@ test_that("stable cache hit when stored ref equals desired ref", {
   )
   # Must not hit the network on a cache hit
   local_mocked_bindings(
-    get_wasm_assets = function(desc, repo) stop("should not re-download")
+    get_wasm_assets = function(desc, repo, r_version) {
+      stop("should not re-download")
+    }
   )
 
   prior <- list(
@@ -81,7 +87,7 @@ test_that("stable cache hit when stored ref equals desired ref", {
     cached = TRUE,
     type = "package"
   )
-  m <- prepare_wasm_metadata("scales", prior)
+  m <- prepare_wasm_metadata("scales", prior, "4.6.0")
   expect_true(m$cached)
   expect_equal(as.character(m$ref), "scales@1.4.0")
 })
@@ -96,18 +102,20 @@ test_that("a patch-level repo/local version mismatch never reaches a stable cach
   # locally installed version (webR may patch packages at the repo). The stored
   # ref keys on the repo version, while the desired ref keys on the local one.
   local_mocked_bindings(
-    get_wasm_assets = function(desc, repo) wasm_asset("scales", "1.4.0-1")
+    get_wasm_assets = function(desc, repo, r_version) {
+      wasm_asset("scales", "1.4.0-1")
+    }
   )
 
   # First pass: miss, stores the repo's (patched) version as the ref.
-  m1 <- prepare_wasm_metadata("scales", list())
+  m1 <- prepare_wasm_metadata("scales", list(), "4.6.0")
   expect_false(m1$cached)
   expect_equal(as.character(m1$ref), "scales@1.4.0-1")
 
   # Next render: desired (local 1.4.0) still != stored (repo 1.4.0-1), so the
   # cache never stabilises to a hit even though the repo has not changed.
   m1$cached <- TRUE
-  m2 <- prepare_wasm_metadata("scales", m1)
+  m2 <- prepare_wasm_metadata("scales", m1, "4.6.0")
   expect_false(m2$cached)
   expect_equal(as.character(m2$ref), "scales@1.4.0-1")
 })
@@ -120,21 +128,23 @@ test_that("package missing from the repo gets an NA ref and retries", {
     },
     .package = "utils"
   )
-  local_mocked_bindings(get_wasm_assets = function(desc, repo) list())
+  local_mocked_bindings(get_wasm_assets = function(desc, repo, r_version) {
+    list()
+  })
 
-  m1 <- prepare_wasm_metadata("ghost", list())
+  m1 <- prepare_wasm_metadata("ghost", list(), "4.6.0")
   expect_length(m1$assets, 0)
   expect_true(is.na(m1$ref))
 
   # Next render: an NA stored ref must be treated as a miss (retry)
   m1$cached <- TRUE
-  m2 <- prepare_wasm_metadata("ghost", m1)
+  m2 <- prepare_wasm_metadata("ghost", m1, "4.6.0")
   expect_false(m2$cached)
 })
 
 # Helpers for the download_wasm_packages() integration tests below.
 
-seed_packages_dir <- function(destdir, stale_file, ref) {
+seed_packages_dir <- function(destdir, stale_file, ref, r_version = "4.6.0") {
   pkg_subdir <- fs::path(destdir, "shinylive", "webr", "packages", "scales")
   fs::dir_create(pkg_subdir, recurse = TRUE)
   fs::file_create(fs::path(pkg_subdir, stale_file))
@@ -154,7 +164,8 @@ seed_packages_dir <- function(destdir, stale_file, ref) {
         ref = ref,
         cached = TRUE,
         type = "package",
-        path = glue::glue("packages/scales/{stale_file}")
+        path = glue::glue("packages/scales/{stale_file}"),
+        r_version = r_version
       )
     ),
     meta_file
@@ -179,7 +190,7 @@ mock_download_env <- function(repo_version, downloaded) {
     .env = parent.frame()
   )
   local_mocked_bindings(
-    get_wasm_assets = function(desc, repo) {
+    get_wasm_assets = function(desc, repo, r_version) {
       downloaded$queried <- TRUE
       wasm_asset("scales", repo_version)
     },
@@ -201,7 +212,8 @@ test_that("stale .tgz binaries are removed when the repo version changes", {
     appdir = out,
     destdir = out,
     package_cache = TRUE,
-    max_filesize = "100MB"
+    max_filesize = "100MB",
+    r_version = "4.6.0"
   ))
 
   files <- fs::path_file(fs::dir_ls(pkg_subdir, type = "file"))
@@ -224,7 +236,8 @@ test_that("matching binary is not re-downloaded while the repo lags", {
     appdir = out,
     destdir = out,
     package_cache = TRUE,
-    max_filesize = "100MB"
+    max_filesize = "100MB",
+    r_version = "4.6.0"
   ))
 
   files <- fs::path_file(fs::dir_ls(pkg_subdir, type = "file"))
@@ -232,4 +245,84 @@ test_that("matching binary is not re-downloaded while the repo lags", {
   # The cheap repo re-query happened, but the binary was not re-downloaded
   expect_true(isTRUE(downloaded$queried))
   expect_false(isTRUE(downloaded$called))
+})
+
+test_that("binaries from another R version are deleted and re-downloaded", {
+  skip_on_cran()
+  withr::local_options(shinylive.quiet = TRUE)
+  out <- withr::local_tempdir()
+  # Same file name, but built for R 4.5
+  pkg_subdir <- seed_packages_dir(
+    out,
+    "scales_1.4.0.tgz",
+    "scales@1.4.0",
+    r_version = "4.5.0"
+  )
+
+  downloaded <- new.env()
+  mock_download_env(repo_version = "1.4.0", downloaded = downloaded)
+
+  suppressMessages(download_wasm_packages(
+    appdir = out,
+    destdir = out,
+    package_cache = TRUE,
+    max_filesize = "100MB",
+    r_version = "4.6.0"
+  ))
+
+  expect_true(isTRUE(downloaded$called))
+  expect_true(fs::file_exists(fs::path(pkg_subdir, "scales_1.4.0.tgz")))
+  metadata <- readRDS(fs::path(
+    out,
+    "shinylive",
+    "webr",
+    "packages",
+    "metadata.rds"
+  ))
+  expect_equal(metadata$scales$r_version, "4.6.0")
+})
+
+test_that("old metadata without an R version is not reused", {
+  skip_on_cran()
+  withr::local_options(shinylive.quiet = TRUE)
+  out <- withr::local_tempdir()
+  seed_packages_dir(out, "scales_1.4.0.tgz", "scales@1.4.0", r_version = NULL)
+
+  downloaded <- new.env()
+  mock_download_env(repo_version = "1.4.0", downloaded = downloaded)
+
+  suppressMessages(download_wasm_packages(
+    appdir = out,
+    destdir = out,
+    package_cache = TRUE,
+    max_filesize = "100MB",
+    r_version = "4.6.0"
+  ))
+
+  expect_true(isTRUE(downloaded$called))
+})
+
+test_that("the Wasm repo URL follows the given R version", {
+  expect_equal(
+    as.character(wasm_contrib_url("https://repo.r-wasm.org", "4.7.1")),
+    "https://repo.r-wasm.org/bin/emscripten/contrib/4.7"
+  )
+})
+
+test_that("prepare_wasm_metadata() passes the R version to the repo lookup", {
+  skip_on_cran()
+  local_mocked_bindings(
+    packageDescription = function(...) cran_desc("1.4.0"),
+    .package = "utils"
+  )
+  seen <- NULL
+  local_mocked_bindings(
+    get_wasm_assets = function(desc, repo, r_version) {
+      seen <<- r_version
+      wasm_asset("scales", "1.4.0")
+    }
+  )
+
+  prepare_wasm_metadata("scales", list(), "4.7.0")
+  expect_equal(seen, "4.7.0")
 })
