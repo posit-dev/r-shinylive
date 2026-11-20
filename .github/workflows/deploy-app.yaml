@@ -100,7 +100,7 @@ jobs:
             Sys.getenv("APP_DIR"),
             "site",
             # `NULL` uses the installed shinylive's default assets version
-            assets_version = if (nzchar(assets_version)) assets_version
+            assets_version = if (nzchar(assets_version)) assets_version else NULL
           )
 
       # Only deploy from the default branch. `schedule` events always run on the
