@@ -24,3 +24,4 @@
 ^\.git$
 ^\.agents$
 ^\.claude$
+^AGENTS\.md$
