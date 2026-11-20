@@ -110,7 +110,7 @@ create_copy_fn <- function(overwrite = FALSE) {
 
   mark_file <- function(src_file_path, dst_file_path) {
     if (file.exists(dst_file_path)) {
-      if (!files_are_equal(src_file_path, dst_file_path)) {
+      if (!is_quiet() && !files_are_equal(src_file_path, dst_file_path)) {
         cli::cli_inform(c(
           x = "Source and destination copies differ for {.path {dst_file_path}}",
           "!" = "This is probably because your shinylive sources have been updated and differ from the copy in the exported app.",

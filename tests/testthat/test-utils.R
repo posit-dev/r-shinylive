@@ -29,3 +29,18 @@ test_that("create_copy_fn(overwrite = TRUE) replaces existing files", {
   cp$copy_files()
   expect_equal(readLines(dst), "new")
 })
+
+test_that("create_copy_fn() is silent about differing files when quiet", {
+  dir <- withr::local_tempdir()
+  src <- fs::path(dir, "src.txt")
+  dst <- fs::path(dir, "dst.txt")
+  writeLines("new", src)
+  writeLines("old", dst)
+
+  cp <- create_copy_fn(overwrite = FALSE)
+  withr::local_options(shinylive.quiet = TRUE)
+  expect_no_message(cp$mark_file(src, dst))
+
+  withr::local_options(shinylive.quiet = FALSE)
+  expect_message(cp$mark_file(src, dst), "differ")
+})
