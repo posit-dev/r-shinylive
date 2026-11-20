@@ -165,11 +165,6 @@ jobs:
               replacement = "print(\"Calling",
               fixed = TRUE
             ) |>
-            sub(
-              pattern = "-- print(\"res",
-              replacement = "-- print(\"res",
-              fixed = TRUE
-            ) |>
             brio::write_file(shinylive_lua)
 
           cat(brio::read_file(shinylive_lua),"\n")
