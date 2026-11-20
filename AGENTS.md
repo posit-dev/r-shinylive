@@ -52,18 +52,8 @@ The skip helper is `skip_if_assets_unavailable()` in
 
 ## Code layout
 
-| File | What it holds |
-|---|---|
-| `R/export.R` | `export()`, the main entry point |
-| `R/app_json.R` | Reads app files into `app.json`; writes `index.html` and `edit/index.html` from the export template |
-| `R/assets.R` | Download, cache, install, and remove assets; `assets_version()`; webR R version lookup |
-| `R/deps.R` | Lists asset files and builds the HTML dependency objects that the Quarto extension uses |
-| `R/packages.R` | Finds the app's R package dependencies and downloads their Wasm binaries |
-| `R/quarto_ext.R` | `quarto_ext()` command-line interface for the Quarto extension |
-| `R/cli.R` | `cli` wrappers that respect the `shinylive.quiet` option |
-| `R/utils.R` | Small helpers: argument checks, file copying, `cran_is_testing()` |
-| `R/version.R` | `SHINYLIVE_ASSETS_VERSION`, the default assets version |
-| `R/release.R` | Extra release checklist bullets for `usethis::use_release_issue()` |
+See `memory-bank/architecture.md` for how the pieces fit and which file holds
+what.
 
 ## Conventions
 

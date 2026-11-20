@@ -1,0 +1,187 @@
+---
+title: "Testing shinylive"
+description: "How the testthat suite in tests/testthat/ is laid out, how skip_if_assets_unavailable() and TEST_ASSETS gate the tests that need the Shinylive assets, the test apps and custom export template, mocking in test-packages.R, the spelling test, and what runs on CI. Read before writing, running, or debugging any test."
+---
+
+# Testing shinylive
+
+## Overview
+
+Tests use testthat 3rd edition (`Config/testthat/edition: 3` in
+`DESCRIPTION`). There are two kinds of tests:
+
+- **Asset tests** need the Shinylive web assets (several hundred MB unpacked,
+  cached after the first download) and often the network. They call
+  `skip_if_assets_unavailable()` and are skipped unless you opt in.
+- **Offline tests** check argument validation, small helpers, and the Wasm
+  package cache logic with mocks. They always run (some skip on CRAN).
+
+Results on this machine (assets 0.10.16 already cached):
+
+| Command | Skips | Failures |
+|---|---|---|
+| `Rscript -e 'devtools::test(reporter="summary")'` | 20 | 0 |
+| `TEST_ASSETS=true Rscript -e 'devtools::test(reporter="summary")'` | 0 | 0 |
+
+## Key files
+
+| File | What it holds |
+|---|---|
+| `tests/testthat.R` | Standard `test_check("shinylive")`. |
+| `tests/spelling.R` | Spelling check during `R CMD check` (see below). |
+| `tests/testthat/setup-skip.R` | `can_test_assets()`, `is_interative_or_on_ci()`, `skip_if_assets_unavailable()`. |
+| `tests/testthat/test-assertions.R` | Argument checks in `R/utils.R`, `R/app_json.R`, `R/deps.R`, `R/assets.R`, `R/quarto_ext.R`; `cran_is_testing()` and the `assets_cache_dir()` CRAN guard. |
+| `tests/testthat/test-assets.R` | `assets_dirs()`, `assets_path_webr_r_version()`, and the webR R version of the default assets. |
+| `tests/testthat/test-export.R` | `export()` end to end: `app.R`, `ui.R`/`server.R`, `subdir`, custom template, Wasm packages, `max_filesize`, non-UTF-8 paths, deprecated `verbose`. |
+| `tests/testthat/test-packages.R` | Wasm package cache logic in `R/packages.R` (`prepare_wasm_metadata()`, `download_wasm_packages()`, `wasm_contrib_url()`), fully mocked. |
+| `tests/testthat/test-quarto_ext.R` | `quarto_ext()` subcommands and their JSON output. |
+| `tests/testthat/apps/` | Test apps and the custom export template. |
+| `inst/WORDLIST` | Words the spelling check accepts. |
+
+## Skipping asset tests
+
+`tests/testthat/setup-skip.R`:
+
+- `can_test_assets()` is `isTRUE(as.logical(Sys.getenv("TEST_ASSETS", "false")))`.
+- `is_interative_or_on_ci()` is `interactive() || can_test_assets()`. Despite
+  the name (and its typo), it does not look at `CI`.
+- `skip_if_assets_unavailable()` calls `skip_on_cran()`, then skips unless
+  `is_interative_or_on_ci()` is true.
+
+So asset tests run when R is interactive (for example, `devtools::test()` in
+the RStudio console) or when `TEST_ASSETS` is `true`/`TRUE`/`T`.
+
+Tests that call `skip_if_assets_unavailable()` (the 20 skips):
+
+| File | Tests |
+|---|---|
+| `test-assertions.R` | The four `assets_remove()`, `assets_dirs()`, `assets_cleanup()` checks. |
+| `test-assets.R` | `assets_dirs() contains files`; `the default assets use the expected webR R version`. |
+| `test-export.R` | All six tests. |
+| `test-quarto_ext.R` | All eight tests, including the three argument-error tests. |
+
+Asset tests call `assets_ensure()`, which downloads the default assets into
+the real user cache (`assets_cache_dir()`) if they are missing. The export
+tests also need the network to download Wasm binaries from
+`repo.r-wasm.org` and call `pkgcache::meta_cache_list()` to load CRAN
+metadata. `pkgcache` is in `Suggests`.
+
+`the default assets use the expected webR R version` pins `"4.6.0"`. Update it
+when a new default assets version changes the webR R version.
+
+## Test apps (tests/testthat/apps/)
+
+| Folder | Used by | What it is |
+|---|---|---|
+| `app-r/` | most export tests | Single-file `app.R` with a slider. |
+| `server-r/` | `export - server.R` | `global.R`, `ui.R`, `server.R`. The test checks all three land in `app.json`. |
+| `app-utf8/` | `export - include R package in wasm assets` | `app.R` that calls `library(utf8)`, so a non-base package must be bundled. |
+| `export_template/` | `export with template` | A copy of the assets' `export_template` (`index.html`, `edit/index.html`) with one extra `{{ description }}` meta tag. |
+
+`export with template` passes `template_dir` and `template_params` (`title`,
+`include_before_body`, `include_after_body`, `description`) to `export()` and
+checks the rendered `index.html`. To refresh the template from the assets,
+there is an `if (FALSE)` block in the test that copies
+`fs::path(shinylive:::assets_dir(), "export_template")`; you must re-add the
+`description` meta tag afterwards.
+
+`export - non utf8 paths` copies `app-r/app.R` into a temp folder named
+`• app` and exports it.
+
+## Helpers inside test files
+
+- `expect_silent_unattended(expr)` in `test-export.R`: in an interactive
+  session it just runs `expr`; otherwise it is `expect_silent(expr)`. This lets
+  you watch export progress when running by hand, while CI checks that
+  `export()` prints nothing when not interactive. `export - non utf8 paths`
+  uses plain `expect_silent()` instead.
+- `test-packages.R` builds fake inputs with `cran_desc()` and `wasm_asset()`,
+  seeds an output folder with `seed_packages_dir()` (a stale `.tgz` plus
+  `metadata.rds` with `_webr_r_version`), and installs mocks with
+  `mock_download_env()`.
+
+## Mocking in test-packages.R
+
+`testthat::local_mocked_bindings()` replaces functions for one test:
+
+- `utils::packageDescription()` and `utils::download.file()` with
+  `.package = "utils"`.
+- `renv::dependencies()` with `.package = "renv"`.
+- shinylive's own `get_wasm_assets()` and `resolve_dependencies()` (no
+  `.package`, so the shinylive namespace).
+
+`mock_download_env()` passes `.env = parent.frame()` so the mocks last for the
+calling test, not just the helper. It records calls in an environment
+(`downloaded$queried`, `downloaded$called`) so tests can check whether the
+repo was queried and whether a file was downloaded. These tests use
+`withr::local_tempdir()` for output and `shinylive.quiet = TRUE`. They need
+no assets and no network. All but `the Wasm repo URL follows the given R
+version` call `skip_on_cran()`.
+
+## Spelling
+
+`tests/spelling.R` runs, if `spelling` is installed:
+
+```r
+spelling::spell_check_test(vignettes = TRUE, error = FALSE, skip_on_cran = TRUE)
+```
+
+`error = FALSE` means misspellings are printed but never fail `R CMD check`.
+Add accepted words to `inst/WORDLIST` (one per line, sorted). Check by hand
+with `spelling::spell_check_package()`. Right now it reports `pak`, `repo's`
+and `subfolder`, all in `README.md`.
+
+## Running tests
+
+```r
+devtools::test()                       # offline tests only (when not interactive)
+devtools::test(filter = "packages")    # one file; filter matches the name after "test-"
+devtools::test(reporter = "summary")   # shows each skip and its reason
+devtools::check()                      # full R CMD check
+```
+
+```sh
+TEST_ASSETS=true Rscript -e 'devtools::test()'   # include asset tests
+```
+
+`devtools::test()` sets `NOT_CRAN=true`, so `skip_on_cran()` does not skip.
+
+## What runs on CI
+
+See `ciAndTooling.md` for the full workflow. In short, in
+`.github/workflows/R-CMD-check.yaml`:
+
+| Job | `TEST_ASSETS` | Asset tests |
+|---|---|---|
+| `R-CMD-check` (shiny-workflows matrix of OS and R versions) | not set | skipped |
+| `R-CMD-check-test-assets` (ubuntu, `--as-cran`) | `TRUE` | run, with cached assets |
+| `integration` (`testthat::test_local()` against assets built from posit-dev/shinylive `main`) | `TRUE` | run |
+
+`r-lib/actions/setup-r` sets `NOT_CRAN=true` on CI, so `skip_on_cran()` does
+not skip there even with `--as-cran`.
+
+## Pitfalls
+
+- **`TEST_ASSETS=1` does not work.** The skip message says "set environment
+  variable TEST_ASSETS=1", but `as.logical("1")` is `NA`, so
+  `can_test_assets()` returns `FALSE`. Use `TEST_ASSETS=true`.
+- **Asset tests write to your real cache.** `assets_ensure()` downloads into
+  `assets_cache_dir()`. There is no temp cache for tests.
+- **Interactive runs include asset tests.** Running `devtools::test()` from
+  the console downloads assets and hits the network.
+- **The `app-resources` tests in `test-quarto_ext.R` delete the session temp
+  folder.** They `setwd(tempdir())` and then `fs::dir_delete(tempdir())` on
+  exit. testthat recreates the folder, but anything else stored there (other
+  `tempfile()` paths) is gone. Use `withr::local_tempdir()` in new tests.
+- **`export - include R package in wasm assets` needs `utf8` installed
+  locally.** `resolve_dependencies()` calls `find.package()` on the app's
+  packages, which errors if one is missing. `shiny` is in the skip list, so it
+  is not looked up. `utf8` is not listed in `DESCRIPTION`.
+- **The quarto argument-error tests are gated too.** `quarto_ext errors on
+  missing --sw-dir argument` and the two after it call
+  `skip_if_assets_unavailable()`, so they only run with assets.
+- **`export with template` keeps an old guard**,
+  `skip_if(assets_version() <= package_version("0.4.1"))`. It never skips with
+  current assets.
+- **Spelling never fails the build** (`error = FALSE`). Run
+  `spelling::spell_check_package()` yourself after editing docs.
