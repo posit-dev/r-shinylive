@@ -43,12 +43,12 @@ assert_list <- function(
 
 
 unlink_path <- function(path) {
-  if (fs::dir_exists(path)) {
-    if (fs::is_link(path)) {
-      fs::link_delete(path)
-    } else {
-      fs::dir_delete(path)
-    }
+  if (fs::is_link(path)) {
+    fs::link_delete(path)
+  } else if (fs::dir_exists(path)) {
+    fs::dir_delete(path)
+  } else if (fs::file_exists(path)) {
+    fs::file_delete(path)
   }
 }
 
