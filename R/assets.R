@@ -438,6 +438,7 @@ check_assets_url <- function(
 ) {
   req <- httr2::request(url)
   req <- httr2::req_method(req, "HEAD")
+  req <- httr2::req_error(req, is_error = function(resp) FALSE)
   resp <- httr2::req_perform(req)
-  resp$status_code == 200
+  httr2::resp_status(resp) == 200
 }

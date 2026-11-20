@@ -101,3 +101,9 @@ test_that("assets_ensure() shows the cache folder it creates", {
     "Creating assets cache directory .*cache"
   )
 })
+
+test_that("check_assets_url() returns FALSE for a missing release", {
+  skip_on_cran()
+  skip_if_offline("github.com")
+  expect_false(check_assets_url(url = assets_bundle_url("0.0.0-missing")))
+})
