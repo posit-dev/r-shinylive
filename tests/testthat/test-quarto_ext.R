@@ -169,7 +169,17 @@ test_that("build_app_resources() checks app file paths", {
   projdir <- local_app_resources_project()
   appdir <- fs::path(projdir, ".quarto", "_webr", "appdir")
 
-  for (bad in c("/abs.R", "../up.R", "a/../../up.R", "C:/x.R", "~/x.R")) {
+  bad_names <- c(
+    "/abs.R",
+    "../up.R",
+    "a/../../up.R",
+    "C:/x.R",
+    "C:x.R",
+    "~/x.R",
+    "~",
+    "~user/x.R"
+  )
+  for (bad in bad_names) {
     expect_error(
       build_app_resources(app_json_with(bad)),
       "must be relative",

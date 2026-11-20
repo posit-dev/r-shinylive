@@ -257,11 +257,8 @@ build_app_resources <- function(app_json) {
     file_name <- fs::path_norm(file$name)
     file_parts <- strsplit(file_name, "[/\\\\]")[[1]]
 
-    if (
-      fs::is_absolute_path(file_name) ||
-        grepl("^([A-Za-z]:|~)", file_name) ||
-        ".." %in% file_parts
-    ) {
+    # `fs::is_absolute_path()` is also `TRUE` for `C:x.R` and `~user/x.R`
+    if (fs::is_absolute_path(file_name) || ".." %in% file_parts) {
       cli::cli_abort(c(
         "App file paths must be relative to the app directory",
         x = "Invalid file path: {.path {file$name}}"
