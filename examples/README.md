@@ -24,11 +24,4 @@ To add the workflow to your repository, call `usethis::use_github_action(url="ht
 
 # Contributing
 
-If any changes are made to the reusable workflows in `.github/workflows/`, please force update the tag `actions-v1` to the latest appropriate git sha. This will allow users to easily reference the latest version of the workflow.
-
-```bash
-git tag -f actions-v1
-git push --tags
-```
-
-This update is not necessary for changes in `examples/` as these files are copied within each of the user's repositories.
+Callers and `usethis::use_github_action()` read from the `actions-v1` tag, not from `main`. After a change to `.github/workflows/` or `examples/` merges, move the tag. See [`.agents/skills/update-actions-tag/SKILL.md`](../.agents/skills/update-actions-tag/SKILL.md) for when and how.

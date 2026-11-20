@@ -22,3 +22,5 @@
 ^\.vscode$
 ^\.context$
 ^\.git$
+^\.agents$
+^\.claude$

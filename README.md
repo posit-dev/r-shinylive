@@ -93,6 +93,16 @@ jobs:
       app-dir: app
 ```
 
+To choose which shinylive R package and web assets are used, set the `shinylive-version` and `assets-version` inputs. `shinylive-version` is a [pak](https://pak.r-lib.org/) reference, such as `shinylive` (CRAN), `shinylive@0.5.0` or `posit-dev/r-shinylive` (GitHub). By default, `assets-version` is empty, which uses the assets version of the installed shinylive package. Set it to a version to pin it, or to `latest` to look up the newest [posit-dev/shinylive release](https://github.com/posit-dev/shinylive/releases) when the workflow runs. Assets that differ from the package's default may not work with that package version:
+
+```yaml
+    with:
+      shinylive-version: shinylive@0.5.0
+      assets-version: "0.10.16"
+```
+
+The site is deployed on pushes and scheduled runs on the repo's default branch.
+
 For more information, see the [examples folder](https://github.com/posit-dev/r-shinylive/tree/actions-v1/examples).
 
 
