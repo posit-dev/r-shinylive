@@ -37,14 +37,14 @@ test_that("the default assets use the expected webR R version", {
 
   # Update this when a new default assets version changes the webR R version.
   # It catches an R version change that would otherwise go unnoticed.
-  expect_equal(assets_webr_r_version(SHINYLIVE_ASSETS_VERSION), "4.6.0")
+  expect_equal(assets_webr_r_version(SHINYLIVE_ASSETS_VERSION_FALLBACK), "4.6.0")
 })
 
 test_that("assets_dir() uses `dir`", {
   dir <- withr::local_tempdir()
   expect_equal(
-    assets_dir("1.2.3", dir = dir),
-    fs::path(dir, "shinylive-1.2.3")
+    assets_dir("0.10.99", dir = dir),
+    fs::path(dir, "shinylive-0.10.99")
   )
 })
 
@@ -56,8 +56,8 @@ test_that("assets_ensure() downloads to and returns a path in `dir`", {
       invisible(dir)
     }
   )
-  path <- assets_ensure("1.2.3", dir = dir)
-  expect_equal(path, fs::path(dir, "shinylive-1.2.3"))
+  path <- assets_ensure("0.10.99", dir = dir)
+  expect_equal(path, fs::path(dir, "shinylive-0.10.99"))
   expect_true(fs::dir_exists(path))
 })
 
@@ -75,7 +75,13 @@ test_that("assets_dirs() skips entries that are not version folders", {
 
 test_that("assets_info() works when no assets are installed", {
   dir <- withr::local_tempdir()
-  local_mocked_bindings(assets_cache_dir = function() dir)
+  assets_version_reset()
+  withr::defer(assets_version_reset())
+  local_mocked_bindings(
+    assets_cache_dir = function() dir,
+    fetch_latest_assets_version = function() stop("offline"),
+    assets_download = function(...) stop("must not download")
+  )
 
   info <- assets_info(quiet = TRUE)
   expect_equal(nrow(info), 0)
@@ -97,7 +103,7 @@ test_that("assets_ensure() shows the cache folder it creates", {
   )
   withr::local_options(shinylive.quiet = FALSE)
   expect_message(
-    assets_ensure("1.2.3", dir = dir),
+    assets_ensure("0.10.99", dir = dir),
     "Creating assets cache directory .*cache"
   )
 })

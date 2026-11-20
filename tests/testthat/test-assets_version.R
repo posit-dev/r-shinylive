@@ -221,3 +221,219 @@ test_that("latest_tag_version() reads the version from a release URL", {
     "latest"
   )
 })
+
+# Resolving a version -----------------------------------------------------
+
+local_resolve_env <- function(
+  dir,
+  versions = NULL,
+  hours_ago = 1,
+  download = function(version, ..., dir) {
+    fs::dir_create(fs::path(dir, paste0("shinylive-", version)))
+  },
+  env = parent.frame()
+) {
+  withr::local_envvar(SHINYLIVE_ASSETS_VERSION = NA, .local_envir = env)
+  assets_version_reset()
+  withr::defer(assets_version_reset(), envir = env)
+  if (!is.null(versions)) {
+    write_versions_json(
+      list(
+        checked_at = now - hours_ago * 3600,
+        latest = versions[1],
+        versions = versions
+      ),
+      dir
+    )
+  }
+  downloaded <- character(0)
+  local_mocked_bindings(
+    fetch_latest_assets_version = function() stop("offline"),
+    fetch_assets_versions = function() stop("offline"),
+    assets_download = function(version, ..., dir) {
+      downloaded <<- c(downloaded, version)
+      download(version, dir = dir)
+      invisible(dir)
+    },
+    .env = env
+  )
+  function() downloaded
+}
+
+add_local_assets <- function(dir, versions) {
+  fs::dir_create(fs::path(dir, paste0("shinylive-", versions)))
+}
+
+test_that("exported formals use SHINYLIVE_ASSETS_VERSION_DEFAULT", {
+  expect_equal(
+    formals(export)$assets_version,
+    SHINYLIVE_ASSETS_VERSION_DEFAULT
+  )
+  expect_equal(
+    formals(assets_download)$version,
+    SHINYLIVE_ASSETS_VERSION_DEFAULT
+  )
+  expect_equal(formals(assets_ensure)$version, SHINYLIVE_ASSETS_VERSION_DEFAULT)
+})
+
+test_that("the default and fallback versions agree", {
+  expect_true(assets_version_matches(
+    SHINYLIVE_ASSETS_VERSION_FALLBACK,
+    parse_assets_version(SHINYLIVE_ASSETS_VERSION_DEFAULT)
+  ))
+})
+
+test_that("a pattern resolves to the highest matching release and downloads it", {
+  dir <- withr::local_tempdir()
+  downloaded <- local_resolve_env(dir, c("0.11.0", "0.10.17", "0.10.16"))
+  add_local_assets(dir, "0.10.16")
+
+  expect_equal(resolve_assets_version("0.10.*", dir = dir, now = now), "0.10.17")
+  expect_equal(downloaded(), "0.10.17")
+})
+
+test_that("a downloaded version newer than the list is used", {
+  dir <- withr::local_tempdir()
+  downloaded <- local_resolve_env(dir, c("0.10.16"))
+  add_local_assets(dir, c("0.10.16", "0.10.18"))
+
+  expect_equal(resolve_assets_version("0.10.*", dir = dir, now = now), "0.10.18")
+  expect_equal(downloaded(), character(0))
+})
+
+test_that("offline with a newer release not downloaded uses the downloaded one", {
+  dir <- withr::local_tempdir()
+  local_resolve_env(
+    dir,
+    c("0.10.17", "0.10.16"),
+    download = function(...) stop("Could not resolve host")
+  )
+  add_local_assets(dir, "0.10.16")
+
+  expect_warning(
+    v <- resolve_assets_version("0.10.*", dir = dir, now = now),
+    "0.10.16"
+  )
+  expect_equal(v, "0.10.16")
+})
+
+test_that("offline with nothing downloaded errors clearly", {
+  dir <- withr::local_tempdir()
+  local_resolve_env(dir, download = function(...) stop("Could not resolve host"))
+
+  expect_error(
+    resolve_assets_version("0.10.*", dir = dir, now = now),
+    "online"
+  )
+})
+
+test_that("no known match uses the fallback version", {
+  dir <- withr::local_tempdir()
+  downloaded <- local_resolve_env(dir)
+
+  expect_equal(
+    resolve_assets_version("0.10.*", dir = dir, now = now),
+    SHINYLIVE_ASSETS_VERSION_FALLBACK
+  )
+  expect_equal(downloaded(), SHINYLIVE_ASSETS_VERSION_FALLBACK)
+})
+
+test_that("no match and no matching fallback errors with the known versions", {
+  dir <- withr::local_tempdir()
+  local_resolve_env(dir, c("0.10.17", "0.10.16"))
+
+  expect_error(
+    resolve_assets_version("0.12.*", dir = dir, now = now),
+    "0.10.17"
+  )
+})
+
+test_that("'latest' checks GitHub even when the list is fresh", {
+  dir <- withr::local_tempdir()
+  downloaded <- local_resolve_env(dir, c("0.10.16"))
+  local_mocked_bindings(
+    fetch_latest_assets_version = function() "0.11.0",
+    fetch_assets_versions = function() c("0.11.0", "0.10.16")
+  )
+
+  expect_equal(resolve_assets_version("latest", dir = dir, now = now), "0.11.0")
+  expect_equal(downloaded(), "0.11.0")
+})
+
+test_that("resolution is remembered for the R session", {
+  dir <- withr::local_tempdir()
+  local_resolve_env(dir, c("0.10.16"))
+  calls <- 0
+  local_mocked_bindings(
+    fetch_latest_assets_version = function() {
+      calls <<- calls + 1
+      "0.10.16"
+    }
+  )
+
+  resolve_assets_version("latest", dir = dir, now = now)
+  resolve_assets_version("latest", dir = dir, now = now)
+  expect_equal(calls, 1)
+
+  assets_version_reset()
+  resolve_assets_version("latest", dir = dir, now = now)
+  expect_equal(calls, 2)
+})
+
+test_that("resolution can skip the download", {
+  dir <- withr::local_tempdir()
+  downloaded <- local_resolve_env(dir, c("0.10.17", "0.10.16"))
+
+  expect_equal(
+    resolve_assets_version("0.10.*", dir = dir, now = now, download = FALSE),
+    "0.10.17"
+  )
+  expect_equal(downloaded(), character(0))
+})
+
+test_that("exact versions are returned as is and warn outside the default", {
+  dir <- withr::local_tempdir()
+  downloaded <- local_resolve_env(dir)
+
+  expect_equal(resolve_assets_version("0.10.16", dir = dir), "0.10.16")
+  expect_warning(resolve_assets_version("0.9.0", dir = dir), "0\\.10\\.\\*")
+  # Only once per session
+  expect_no_warning(resolve_assets_version("0.9.0", dir = dir))
+  expect_equal(downloaded(), character(0))
+})
+
+test_that("assets_version_input() prefers explicit, then env var, then default", {
+  withr::local_envvar(SHINYLIVE_ASSETS_VERSION = NA)
+  expect_equal(assets_version_input("0.10.1", FALSE), "0.10.1")
+  expect_equal(assets_version_input(NULL, FALSE), SHINYLIVE_ASSETS_VERSION_DEFAULT)
+  expect_equal(
+    assets_version_input("0.10.*", TRUE),
+    SHINYLIVE_ASSETS_VERSION_DEFAULT
+  )
+
+  withr::local_envvar(SHINYLIVE_ASSETS_VERSION = "0.10.5")
+  expect_equal(assets_version_input("0.10.*", TRUE), "0.10.5")
+  expect_equal(assets_version_input(NULL, FALSE), "0.10.5")
+  expect_equal(assets_version_input("0.10.1", FALSE), "0.10.1")
+})
+
+test_that("assets_version() resolves the default in the cache dir", {
+  dir <- withr::local_tempdir()
+  local_resolve_env(dir, c("0.10.17", "0.10.16"))
+  local_mocked_bindings(assets_cache_dir = function() dir)
+
+  expect_equal(assets_version(), "0.10.17")
+
+  assets_version_reset()
+  withr::local_envvar(SHINYLIVE_ASSETS_VERSION = "0.10.16")
+  expect_equal(assets_version(), "0.10.16")
+})
+
+test_that("assets_ensure() resolves a pattern before downloading", {
+  dir <- withr::local_tempdir()
+  downloaded <- local_resolve_env(dir, c("0.10.17", "0.10.16"))
+
+  path <- assets_ensure(dir = dir)
+  expect_equal(path, fs::path(dir, "shinylive-0.10.17"))
+  expect_equal(downloaded(), "0.10.17")
+})

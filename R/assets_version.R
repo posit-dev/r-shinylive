@@ -217,3 +217,115 @@ fetch_assets_versions <- function() {
   versions <- sub("^v", "", tags)
   versions[!is.na(safe_numeric_version(versions))]
 }
+
+
+# Resolving a version -----------------------------------------------------
+
+assets_version_memo <- new.env(parent = emptyenv())
+
+assets_version_reset <- function() {
+  rm(list = ls(assets_version_memo, all.names = TRUE), envir = assets_version_memo)
+}
+
+# Returns the version input to use: an explicit value wins, then the
+# `SHINYLIVE_ASSETS_VERSION` env var, then the package default.
+assets_version_input <- function(version, is_missing) {
+  if (is_missing || is.null(version)) {
+    Sys.getenv("SHINYLIVE_ASSETS_VERSION", SHINYLIVE_ASSETS_VERSION_DEFAULT)
+  } else {
+    version
+  }
+}
+
+# Versions of the downloaded assets in `dir`
+local_assets_versions <- function(dir) {
+  assets_path_version(assets_dirs(dir = dir))
+}
+
+max_version <- function(versions) {
+  as.character(max(numeric_version(versions)))
+}
+
+# Returns an exact assets version for an exact version, a series pattern, or
+# `"latest"`. When `download = TRUE`, the chosen version is downloaded if
+# needed; if that fails, the highest downloaded match is used instead.
+resolve_assets_version <- function(
+  version,
+  dir = assets_cache_dir(),
+  now = Sys.time(),
+  download = TRUE
+) {
+  spec <- parse_assets_version(version)
+
+  if (spec$kind == "exact") {
+    warn_outside_default(spec$value)
+    return(spec$value)
+  }
+
+  key <- paste(spec$value, dir, download)
+  if (!is.null(assets_version_memo[[key]])) {
+    return(assets_version_memo[[key]])
+  }
+
+  info <- update_versions_info(dir, force = spec$kind == "latest", now = now)
+  local <- local_assets_versions(dir)
+  local_matches <- local[assets_version_matches(local, spec)]
+  known <- unique(c(info$versions, local))
+  matches <- known[assets_version_matches(known, spec)]
+
+  if (length(matches) == 0) {
+    fallback <- SHINYLIVE_ASSETS_VERSION_FALLBACK
+    if (!assets_version_matches(fallback, spec)) {
+      cli::cli_abort(c(
+        "No Shinylive assets version matches {.val {spec$value}}.",
+        "i" = "Known versions: {.val {known}}",
+        "i" = "Pass an exact version instead, such as {.val {fallback}}."
+      ))
+    }
+    matches <- fallback
+  }
+  chosen <- max_version(matches)
+
+  if (download && !chosen %in% local) {
+    chosen <- tryCatch(
+      {
+        assets_download(chosen, dir = dir)
+        chosen
+      },
+      error = function(e) {
+        if (length(local_matches) == 0) {
+          cli::cli_abort(
+            c(
+              "Can't download Shinylive assets {.field v{chosen}}.",
+              "i" = "Shinylive assets must be downloaded once while online.",
+              "i" = "Or pass the exact version of downloaded assets."
+            ),
+            parent = e
+          )
+        }
+        fallback <- max_version(local_matches)
+        cli::cli_warn(c(
+          "Can't download Shinylive assets {.field v{chosen}}. Using downloaded {.field v{fallback}} instead.",
+          "x" = conditionMessage(e)
+        ))
+        fallback
+      }
+    )
+  }
+
+  assets_version_memo[[key]] <- chosen
+  chosen
+}
+
+warn_outside_default <- function(version) {
+  key <- paste("warned", version)
+  default <- parse_assets_version(SHINYLIVE_ASSETS_VERSION_DEFAULT)
+  if (assets_version_matches(version, default) || isTRUE(assets_version_memo[[key]])) {
+    return(invisible())
+  }
+  assets_version_memo[[key]] <- TRUE
+  cli::cli_warn(c(
+    "Shinylive assets {.field v{version}} are outside the default {.val {SHINYLIVE_ASSETS_VERSION_DEFAULT}} series for this version of {.pkg shinylive}.",
+    "i" = "Unexpected behavior may occur."
+  ))
+}
