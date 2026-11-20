@@ -72,3 +72,17 @@ test_that("assets_dirs() skips entries that are not version folders", {
     fs::path(dir, c("shinylive-0.10.1", "shinylive-0.9.0"))
   )
 })
+
+test_that("assets_info() works when no assets are installed", {
+  dir <- withr::local_tempdir()
+  local_mocked_bindings(assets_cache_dir = function() dir)
+
+  info <- assets_info(quiet = TRUE)
+  expect_equal(nrow(info), 0)
+  expect_named(info, c("version", "path", "is_assets_version"))
+
+  fs::dir_create(fs::path(dir, "shinylive-0.9.0"))
+  info <- assets_info(quiet = TRUE)
+  expect_equal(info$version, "0.9.0")
+  expect_equal(info$path, as.character(fs::path(dir, "shinylive-0.9.0")))
+})

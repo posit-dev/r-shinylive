@@ -72,8 +72,8 @@ the one used by the current version of \pkg{shinylive}.
 \item \code{assets_remove()}: Removes a local copies of shinylive web assets.
 
 \item \code{assets_info()}: Prints information about the local shinylive assets that
-have been installed. Invisibly returns a table of installed asset versions
-and their associated paths.
+have been installed. Returns a table of installed asset versions and their
+associated paths, invisibly unless \code{quiet = TRUE}.
 
 \item \code{assets_version()}: Returns the version of the currently supported Shinylive
 assets version. If the \code{SHINYLIVE_ASSETS_VERSION} environment variable is set,

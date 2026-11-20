@@ -77,13 +77,6 @@ assets_cache_dir <- function() {
   normalizePath(cache_dir)
 }
 
-# Returns the directory used for caching Shinylive assets. This directory can
-# contain multiple versions of Shinylive assets.
-assets_cache_dir_exists <- function() {
-  fs::dir_exists(assets_cache_dir())
-}
-
-
 # Returns the directory containing cached Shinylive assets, for a particular
 # version of Shinylive.
 assets_dir <- function(
@@ -380,16 +373,13 @@ assets_dirs <- function(
 
 
 #' @describeIn assets Prints information about the local shinylive assets that
-#'   have been installed. Invisibly returns a table of installed asset versions
-#'   and their associated paths.
+#'   have been installed. Returns a table of installed asset versions and their
+#'   associated paths, invisibly unless `quiet = TRUE`.
 #' @param quiet In `assets_info()`, if `quiet = TRUE`, the function will not
 #'   print the assets information to the console.
 #' @export
 assets_info <- function(quiet = FALSE) {
   installed_versions <- assets_dirs()
-  if (length(installed_versions) == 0) {
-    installed_versions <- "(None)"
-  }
 
   local_quiet(quiet)
 
@@ -400,7 +390,9 @@ assets_info <- function(quiet = FALSE) {
   cli_bullets(c(">" = "{.path {assets_cache_dir()}}"))
   cli_text("")
   cli_text("Installed assets:")
-  if (assets_cache_dir_exists()) {
+  if (length(installed_versions) == 0) {
+    cli_bullets(c("*" = "(None)"))
+  } else {
     cli_installed <- c()
     for (i in seq_along(installed_versions)) {
       cli_installed <- c(
@@ -409,19 +401,13 @@ assets_info <- function(quiet = FALSE) {
       )
     }
     cli_bullets(cli_installed)
-  } else {
-    cli_bullets("(Cache dir does not exist)")
   }
 
-  versions <- vapply(
-    strsplit(installed_versions, "shinylive-", fixed = TRUE),
-    FUN.VALUE = character(1),
-    function(x) x[[2]]
-  )
+  versions <- sub(shinylive_prefix, "", basename(installed_versions))
 
   data <- data.frame(
-    version = versions,
-    path = installed_versions,
+    version = as.character(versions),
+    path = as.character(installed_versions),
     is_assets_version = versions == assets_version()
   )
 
