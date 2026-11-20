@@ -10,14 +10,14 @@
 \title{Manage shinylive assets}
 \usage{
 assets_download(
-  version = assets_version(),
+  version = "0.10.*",
   ...,
   dir = assets_cache_dir(),
   url = assets_bundle_url(version)
 )
 
 assets_ensure(
-  version = assets_version(),
+  version = "0.10.*",
   ...,
   dir = assets_cache_dir(),
   url = assets_bundle_url(version)
@@ -32,7 +32,10 @@ assets_info(quiet = FALSE)
 assets_version()
 }
 \arguments{
-\item{version}{The version of the assets to download.}
+\item{version}{The version of the assets: an exact version (\code{"0.10.16"}), a
+series (\code{"0.10.*"}), or \code{"latest"}. See \code{\link[=export]{export()}} for details. When not
+provided, the \code{SHINYLIVE_ASSETS_VERSION} environment variable is used if
+set.}
 
 \item{...}{Ignored.}
 
@@ -70,7 +73,7 @@ copy of shinylive is not installed, it will be downloaded and installed.
 If a local copy of shinylive is installed, its path will be returned.
 
 \item \code{assets_cleanup()}: Removes local copies of shinylive web assets, except for
-the one used by the current version of \pkg{shinylive}.
+the newest version of each series (such as \verb{0.10.*}).
 
 \item \code{assets_remove()}: Removes a local copies of shinylive web assets.
 
@@ -78,8 +81,11 @@ the one used by the current version of \pkg{shinylive}.
 have been installed. Returns a table of installed asset versions and their
 associated paths, invisibly unless \code{quiet = TRUE}.
 
-\item \code{assets_version()}: Returns the version of the currently supported Shinylive
-assets version. If the \code{SHINYLIVE_ASSETS_VERSION} environment variable is set,
-that value will be used.
+\item \code{assets_version()}: Returns the exact Shinylive assets version to use. It is
+the newest release in the default series (\code{"0.10.*"}), checked on GitHub
+at most once a day, or the highest downloaded version when offline. If
+the \code{SHINYLIVE_ASSETS_VERSION} environment variable is set, it is used
+instead (an exact version, a series, or \code{"latest"}). The result is
+remembered for the R session and may download the assets.
 
 }}

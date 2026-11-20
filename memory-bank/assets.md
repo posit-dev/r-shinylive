@@ -1,6 +1,6 @@
 ---
 title: "Assets cache"
-description: "How shinylive downloads, caches, installs, and removes the Shinylive web assets (R/assets.R, R/version.R): the cache folder layout, assets_version(), local builds of posit-dev/shinylive, and the webR R version lookup. Read before changing any assets_*() function or bumping the default assets version."
+description: "How shinylive downloads, caches, installs, and removes the Shinylive web assets (R/assets.R, R/assets_version.R, R/version.R): the cache folder layout, how the assets version is chosen (series patterns, versions.json, the daily GitHub check), local builds of posit-dev/shinylive, and the webR R version lookup. Read before changing any assets_*() function or bumping the default assets version."
 ---
 
 # Assets cache
@@ -20,12 +20,19 @@ the cache, and reads files from it.
 
 - `R/assets.R` - every `assets_*()` function, `check_assets_url()`, and the
   webR R version lookup.
-- `R/version.R` - `SHINYLIVE_ASSETS_VERSION` (default assets version) and
-  `SHINYLIVE_R_VERSION` (this package's version, from `utils::packageVersion()`).
+- `R/assets_version.R` - version inputs (exact, series, `"latest"`),
+  `versions.json`, the GitHub check, and `resolve_assets_version()`.
+- `R/version.R` - `SHINYLIVE_ASSETS_VERSION_DEFAULT` (default series, like
+  `"0.10.*"`), `SHINYLIVE_ASSETS_VERSION_FALLBACK` (known-good exact version),
+  and `SHINYLIVE_R_VERSION` (this package's version, from
+  `utils::packageVersion()`).
 - `R/utils.R` - `cran_is_testing()`, `unlink_path()`, `package_json_version()`.
 - `tests/testthat/test-assets.R` - asset tests, including the expected webR R
   version for the default assets, plus offline tests for `dir=`, stray cache
   entries, `assets_info()` with nothing installed, and `check_assets_url()`.
+- `tests/testthat/test-assets_version.R` - offline tests for version
+  parsing, `versions.json`, the check rules, and resolution (the network is
+  mocked).
 - `tests/testthat/test-assertions.R` - argument checks and the CRAN guard.
 - `.agents/skills/update-assets-version/SKILL.md` - steps to bump the default
   assets version.
@@ -34,6 +41,7 @@ the cache, and reads files from it.
 
 ```
 <assets_cache_dir()>/          e.g. ~/Library/Caches/shinylive on macOS
+  versions.json                last GitHub check (see below)
   shinylive-0.10.16/           one folder per version
     shinylive/                 the web assets (webr/, pyodide/, ...)
     scripts/                   codeblock-to-json.js for Quarto
@@ -59,26 +67,71 @@ the cache, and reads files from it.
 
 ## Which version is used
 
-`assets_version()` returns `Sys.getenv("SHINYLIVE_ASSETS_VERSION",
-SHINYLIVE_ASSETS_VERSION)`. The env var wins over the constant in
-`R/version.R`. `export(assets_version=)` lets a caller pick another version
-for one export.
+A version input is an exact version (`"0.10.16"`), a series (`"0.10.*"`,
+`"0.*"`: whole numbers and one trailing `.*`), or `"latest"`. Anything else
+errors in `parse_assets_version()`.
 
-To bump the default, follow the `update-assets-version` skill: change
-`R/version.R`, the expected webR R version test in `test-assets.R` if webR's
-R changed, the `NEWS.md` bullet, and examples that name the old version.
+The input comes from (first wins): the argument (`export(assets_version=)`,
+`assets_download(version=)`, `assets_ensure(version=)`), the
+`SHINYLIVE_ASSETS_VERSION` env var (empty counts as unset), then
+`SHINYLIVE_ASSETS_VERSION_DEFAULT`. See `assets_version_input()`. Those three
+exported functions show the default series literally in their formals; a test
+in `test-assets_version.R` checks they equal the constant.
+
+`resolve_assets_version(version, dir, download = TRUE)` turns an input into
+an exact version:
+
+- **Exact:** returned as is. Warns once per session if it is outside the
+  default series.
+- **Series or `"latest"`:** runs the GitHub check if due (always for
+  `"latest"`), then takes the highest match from the `versions.json` list and
+  the downloaded folders. With no match, it uses
+  `SHINYLIVE_ASSETS_VERSION_FALLBACK` if that matches, else errors. If the
+  pick is not downloaded and `download = TRUE`, it downloads it; if that
+  fails, it warns and uses the highest downloaded match. With none, it tries
+  to download the fallback version, and errors only if that fails too.
+- The result is remembered for the R session (`assets_version_memo`;
+  `assets_version_reset()` clears it). So one `export()` or Quarto call does
+  at most one check.
+
+`assets_version()` is `resolve_assets_version()` of the env var or default,
+so it can use the network and download assets.
+
+### versions.json and the GitHub check
+
+`versions.json` holds `checked_at` (UTC), `latest`, `versions`, and `error`
+when the last check failed. `update_versions_info()` runs the check when:
+there is no (valid) file, the last good check is 24 or more hours old, the
+last failed check is 1 or more hours old, `checked_at` is in the future, or
+`force = TRUE`.
+
+1. `fetch_latest_assets_version()`: HEAD request to
+   `github.com/posit-dev/shinylive/releases/latest`, reading the tag from the
+   redirect. Not the API, so no rate limit. 1 s connect, 3 s total timeout.
+2. Only if the tag differs from the stored `latest` (or the list is empty):
+   `fetch_assets_versions()` lists releases with `gh` (drafts and
+   prereleases skipped).
+3. Any error writes `error` and a new `checked_at` but keeps the old `latest`
+   and `versions`. A latest tag seen before the error is added to `versions`
+   (not to `latest`, so the next check fetches the full list).
+4. A failed write (read-only cache) is ignored.
+
+Both fetchers stop under `cran_is_testing()`. The file is written to a temp
+file in the same folder, then renamed.
+
+To start a new minor series, follow the `update-assets-version` skill.
 
 ## Functions
 
 | Function | Exported | What it does |
 |---|---|---|
-| `assets_download(version, dir, url)` | yes | Always downloads `url` with httr2 into a temp `.tar.gz`, then extracts it into `dir` with `archive::archive_extract()`. The tarball's top folder is `shinylive-<version>/`. Returns `invisible(dir)`. Deletes the temp file on exit. |
+| `assets_download(version, dir, url)` | yes | Resolves `version` (without downloading), then always downloads `url` with httr2 into a temp `.tar.gz`, extracts it into a temp folder inside `dir`, and moves `shinylive-<version>/` into place. A folder that existed before the call is replaced; one that appeared during the call (another R process) is kept and the new copy dropped. Returns `invisible(dir)`. |
 | `assets_bundle_url(version)` | no | `https://github.com/posit-dev/shinylive/releases/download/v<version>/shinylive-<version>.tar.gz` |
-| `assets_ensure(version, dir, url)` | yes | Creates `dir` if missing (and prints "Creating assets cache directory" with the path). If `<dir>/shinylive-<version>` is missing, calls `assets_download()` into `dir`. Returns that version folder invisibly. |
+| `assets_ensure(version, dir, url)` | yes | Creates `dir` if missing (and prints "Creating assets cache directory" with the path). Resolves `version`. If `<dir>/shinylive-<version>` is missing, calls `assets_download()` into `dir`. Returns that version folder invisibly. |
 | `assets_dir(version, dir)` | no | Path `<dir>/shinylive-<version>`. Does not check that it exists. |
-| `assets_cleanup(dir)` | yes | Removes every version in `dir` except `assets_version()`. |
+| `assets_cleanup(dir)` | yes | Keeps the newest version of each `major.minor` series in `dir`, plus an exact version pinned with `SHINYLIVE_ASSETS_VERSION`, and removes the rest. |
 | `assets_remove(versions, dir)` | yes | Removes the given versions. Errors if `versions` is not a non-empty character vector. Warns (does not error) for a version that is not there. |
-| `assets_info(quiet)` | yes | Prints package version, assets version, cache dir, and installed folders (or `(None)`). Returns a `tbl_df` with `version`, `path`, `is_assets_version`; zero rows when nothing is installed. |
+| `assets_info(quiet)` | yes | Prints package version, resolved assets version (never downloads), default series, last check time and error, cache dir, and installed folders (or `(None)`). Returns a `tbl_df` with `version`, `path`, `is_assets_version`; zero rows when nothing is installed. |
 | `assets_version()` | yes | See above. |
 | `assets_install_copy(assets_repo_dir, dir, version)` | yes | Copies a local build into the cache. |
 | `assets_install_link(assets_repo_dir, dir, version)` | yes | Symlinks a local build into the cache. |
@@ -107,9 +160,10 @@ Both call `install_local_helper()`, which:
 - Deletes any existing `<dir>/shinylive-<version>` (link or folder), then
   copies or links `build/` there. The contents of `build/` become the version
   folder.
-- Warns if the version is not `assets_version()`. Set
-  `SHINYLIVE_ASSETS_VERSION` to the local version, or pass `version =
-  assets_version()`, so export and Quarto pick it up.
+- Warns if the version is outside the default series. A local version in
+  the series is picked up automatically if it is the highest; otherwise set
+  `SHINYLIVE_ASSETS_VERSION` to the local version so export and Quarto use
+  it.
 
 ## webR R version
 
@@ -137,14 +191,17 @@ has no `dir` argument.
 - **`assets_info()` visibility is reversed from what you may expect.**
   `quiet = FALSE` prints and returns invisibly; `quiet = TRUE` returns the
   table visibly. The roxygen now says this.
-- **Empty `SHINYLIVE_ASSETS_VERSION` is not unset.** If the env var is set to
-  `""`, `assets_version()` returns `""`, not the default.
+- **`assets_version()` is not a constant.** It can change from day to day,
+  can use the network, and can download assets. In tests, mock
+  `fetch_latest_assets_version`, `fetch_assets_versions`, and
+  `assets_download`, pass `dir=`, and call `assets_version_reset()`.
+- **Session memo hides changes.** After changing the env var or the cache in
+  one R session, call `assets_version_reset()`.
+- **A backport release is missed** until the latest tag changes, because the
+  release list is only fetched when `latest` changes.
 - **Callers that do not pass `dir` still use the real cache.** For example
   `assets_webr_r_version()` calls `assets_ensure(version)` with the default
   `dir`, and `export()` calls `assets_dir(version = assets_version)`.
-- **`assets_download()` does not clear the target first.** It extracts over
-  any existing version folder, so stale files from a partial or local
-  install can remain. Use `assets_remove()` first.
 - **Calling the exported helpers in tests or scripts touches the real
   cache** unless you pass `dir=`. For code paths that do not take `dir`, mock
   `assets_cache_dir` with `testthat::local_mocked_bindings()` (as

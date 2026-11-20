@@ -11,22 +11,22 @@ local_fake_assets <- function(version, env = parent.frame()) {
 }
 
 test_that("shinylive_common_dep_htmldep() uses `version`", {
-  assets <- local_fake_assets("9.9.9")
+  assets <- local_fake_assets("0.10.99")
 
-  dep <- shinylive_common_dep_htmldep("base", version = "9.9.9")
-  expect_equal(dep$version, "9.9.9")
+  dep <- shinylive_common_dep_htmldep("base", version = "0.10.99")
+  expect_equal(dep$version, "0.10.99")
   expect_equal(
     dep$scripts[[1]]$path,
     file.path(assets, "shinylive", "load-shinylive-sw.js")
   )
 
-  r_dep <- shinylive_common_dep_htmldep("r", version = "9.9.9")
-  expect_equal(r_dep$version, "9.9.9")
+  r_dep <- shinylive_common_dep_htmldep("r", version = "0.10.99")
+  expect_equal(r_dep$version, "0.10.99")
   expect_equal(r_dep$resources[[1]]$name, "shinylive/webr/R.wasm")
 })
 
 test_that("shinylive_common_dep_htmldep() defaults to the base dependency", {
-  local_fake_assets("9.9.9")
-  dep <- shinylive_common_dep_htmldep(version = "9.9.9")
+  local_fake_assets("0.10.99")
+  dep <- shinylive_common_dep_htmldep(version = "0.10.99")
   expect_equal(dep$scripts[[1]]$name, "shinylive/load-shinylive-sw.js")
 })

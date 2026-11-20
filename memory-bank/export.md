@@ -179,7 +179,7 @@ So `subdir = "."` or `"./"` is the same as `""` (`REL_PATH` is `""`), and
 
 | Variable | Effect on export | Read in |
 |---|---|---|
-| `SHINYLIVE_ASSETS_VERSION` | Default `assets_version` | `assets_version()` |
+| `SHINYLIVE_ASSETS_VERSION` | `assets_version` when not passed (empty counts as unset) | `assets_version_input()` |
 | `SHINYLIVE_WASM_PACKAGES` | Default `wasm_packages` (`TRUE`/`1`, `FALSE`/`0`; other values error) | `sys_env_wasm_packages()` |
 | `SHINYLIVE_DEFAULT_MAX_FILESIZE` | Default `max_filesize` | `sys_env_max_filesize()` |
 | `SHINYLIVE_DOWNLOAD_WASM_CORE_PACKAGES` | Core packages to download anyway | `env_download_wasm_core_packages()` (called by `download_wasm_packages()`) |

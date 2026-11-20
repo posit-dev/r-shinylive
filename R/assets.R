@@ -6,7 +6,10 @@
 #'    extracts it to the specified directory. The bundle will always be
 #'    downloaded from GitHub, even if it already exists in the cache directory
 #'    (`dir=`).
-#' @param version The version of the assets to download.
+#' @param version The version of the assets: an exact version (`"0.10.16"`), a
+#'    series (`"0.10.*"`), or `"latest"`. See [export()] for details. When not
+#'    provided, the `SHINYLIVE_ASSETS_VERSION` environment variable is used if
+#'    set.
 #' @param ... Ignored.
 #' @param dir The asset cache directory. Unless testing, the default behavior
 #'    should be used.
@@ -21,7 +24,7 @@
 #'
 #' `assets_cleanup()` and `assets_remove()` return `invisible()`.
 assets_download <- function(
-  version = assets_version(),
+  version = "0.10.*",
   ...,
   # Note that this is the cache directory, which is the parent of the assets
   # directory. The tarball will have the assets directory as the top-level
@@ -29,6 +32,11 @@ assets_download <- function(
   dir = assets_cache_dir(),
   url = assets_bundle_url(version)
 ) {
+  version <- resolve_assets_version(
+    assets_version_input(version, missing(version)),
+    dir = dir,
+    download = FALSE
+  )
   tmp_targz <- tempfile(
     paste0("shinylive-", gsub(".", "_", version, fixed = TRUE), "-"),
     fileext = ".tar.gz"
@@ -43,6 +51,11 @@ assets_download <- function(
     add = TRUE
   )
 
+  existed_before <- fs::dir_exists(assets_dir_impl(
+    dir = dir,
+    version = version
+  ))
+
   cli_progress_step("Downloading shinylive assets {.field v{version}}")
   req <- httr2::request(url)
   req <- httr2::req_progress(req)
@@ -50,7 +63,24 @@ assets_download <- function(
 
   cli_progress_step("Unzipping shinylive assets to {.path {dir}}")
   fs::dir_create(dir)
-  archive::archive_extract(tmp_targz, dir)
+  # Extract to a temp dir, then move into place, so a half-extracted folder is
+  # never picked up as a version.
+  tmp_dir <- tempfile("extract-", tmpdir = dir)
+  on.exit(unlink(tmp_dir, recursive = TRUE), add = TRUE)
+  archive::archive_extract(tmp_targz, tmp_dir)
+  target_dir <- assets_dir_impl(dir = dir, version = version)
+  if (fs::dir_exists(target_dir)) {
+    if (existed_before) {
+      # A re-download replaces the old folder
+      unlink_path(target_dir)
+    } else {
+      # Another R process just finished the same download. Keep its folder,
+      # which it may be reading from.
+      cli_progress_done()
+      return(invisible(dir))
+    }
+  }
+  fs::file_move(fs::path(tmp_dir, basename(target_dir)), dir)
 
   cli_progress_done()
   invisible(dir)
@@ -130,12 +160,13 @@ install_local_helper <- function(
   unlink_path(target_dir)
   install_fn(repo_build_dir, target_dir)
 
-  if (version != assets_version()) {
+  default <- parse_assets_version(SHINYLIVE_ASSETS_VERSION_DEFAULT)
+  if (!assets_version_matches(version, default)) {
     cli::cli_warn(c(
-      "You are installing a local copy of shinylive assets that is not the same as the version used by the shinylive R package.",
+      "You are installing a local copy of shinylive assets outside of the series used by the shinylive R package.",
       "Unexpected behavior may occur!",
       x = "New assets version: {version}",
-      i = "Supported assets version: {assets_version()}"
+      i = "Supported assets series: {SHINYLIVE_ASSETS_VERSION_DEFAULT}"
     ))
   }
 }
@@ -211,7 +242,7 @@ assets_install_link <- function(
 #'    If a local copy of shinylive is installed, its path will be returned.
 #' @export
 assets_ensure <- function(
-  version = assets_version(),
+  version = "0.10.*",
   ...,
   dir = assets_cache_dir(),
   url = assets_bundle_url(version)
@@ -221,6 +252,10 @@ assets_ensure <- function(
     cli_alert_info("Creating assets cache directory {.path {dir}}")
     fs::dir_create(dir)
   }
+  version <- resolve_assets_version(
+    assets_version_input(version, missing(version)),
+    dir = dir
+  )
 
   assets_path <- assets_dir(version, dir = dir)
   if (!fs::dir_exists(assets_path)) {
@@ -275,18 +310,30 @@ assets_path_webr_r_version <- function(assets_path) {
 # """
 
 #' @describeIn assets Removes local copies of shinylive web assets, except for
-#'    the one used by the current version of \pkg{shinylive}.
+#'    the newest version of each series (such as `0.10.*`).
 #' @export
 assets_cleanup <- function(
   ...,
   dir = assets_cache_dir()
 ) {
   rlang::check_dots_empty()
-  versions <- assets_path_version(assets_dirs(dir = dir))
-  if (assets_version() %in% versions) {
-    cli_alert_info("Keeping version {assets_version()}")
-    versions <- setdiff(versions, assets_version())
+  versions <- local_assets_versions(dir)
+  # `assets_dirs()` sorts newest first, so keep the first of each series
+  series <- vapply(
+    versions,
+    function(v) paste(version_parts(v)[1:2], collapse = "."),
+    character(1)
+  )
+  keep <- versions[!duplicated(series)]
+  # Also keep an exact version pinned with `SHINYLIVE_ASSETS_VERSION`
+  pinned <- parse_assets_version(assets_version_input(NULL, TRUE))
+  if (pinned$kind == "exact") {
+    keep <- union(keep, intersect(versions, pinned$value))
   }
+  for (v in keep) {
+    cli_alert_info("Keeping version {v}")
+  }
+  versions <- setdiff(versions, keep)
 
   if (length(versions) > 0) {
     assets_remove(versions, dir = dir)
@@ -382,11 +429,25 @@ assets_dirs <- function(
 #' @export
 assets_info <- function(quiet = FALSE) {
   installed_versions <- assets_dirs()
+  # Report only: never download here
+  resolved <- resolve_assets_version(
+    assets_version_input(NULL, TRUE),
+    download = FALSE
+  )
 
   local_quiet(quiet)
 
   cli_text("shinylive R package version: {.field {SHINYLIVE_R_VERSION}}")
-  cli_text("shinylive web assets version: {.field {assets_version()}}")
+  cli_text("shinylive web assets version: {.field {resolved}}")
+  cli_text("Default assets series: {.field {SHINYLIVE_ASSETS_VERSION_DEFAULT}}")
+  check <- read_versions_json(assets_cache_dir())
+  if (!is.null(check)) {
+    checked_at <- format(check$checked_at, VERSIONS_TIME_FORMAT, tz = "UTC")
+    cli_text("Last checked for new assets: {.field {checked_at}}")
+    if (!is.null(check$error)) {
+      cli_text("Last check failed: {check$error}")
+    }
+  }
   cli_text("")
   cli_text("Local cached shinylive asset dir:")
   cli_bullets(c(">" = "{.path {assets_cache_dir()}}"))
@@ -410,7 +471,7 @@ assets_info <- function(quiet = FALSE) {
   data <- data.frame(
     version = as.character(versions),
     path = as.character(installed_versions),
-    is_assets_version = versions == assets_version()
+    is_assets_version = versions == resolved
   )
 
   class(data) <- c("tbl_df", "tbl", "data.frame")
@@ -419,12 +480,15 @@ assets_info <- function(quiet = FALSE) {
 }
 
 
-#' @describeIn assets Returns the version of the currently supported Shinylive
-#'    assets version. If the `SHINYLIVE_ASSETS_VERSION` environment variable is set,
-#'    that value will be used.
+#' @describeIn assets Returns the exact Shinylive assets version to use. It is
+#'    the newest release in the default series (`"0.10.*"`), checked on GitHub
+#'    at most once a day, or the highest downloaded version when offline. If
+#'    the `SHINYLIVE_ASSETS_VERSION` environment variable is set, it is used
+#'    instead (an exact version, a series, or `"latest"`). The result is
+#'    remembered for the R session and may download the assets.
 #' @export
 assets_version <- function() {
-  Sys.getenv("SHINYLIVE_ASSETS_VERSION", SHINYLIVE_ASSETS_VERSION)
+  resolve_assets_version(assets_version_input(NULL, TRUE))
 }
 
 # """Checks if the URL for the Shinylive assets bundle is valid.

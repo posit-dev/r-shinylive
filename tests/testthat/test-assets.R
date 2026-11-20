@@ -37,14 +37,17 @@ test_that("the default assets use the expected webR R version", {
 
   # Update this when a new default assets version changes the webR R version.
   # It catches an R version change that would otherwise go unnoticed.
-  expect_equal(assets_webr_r_version(SHINYLIVE_ASSETS_VERSION), "4.6.0")
+  expect_equal(
+    assets_webr_r_version(SHINYLIVE_ASSETS_VERSION_FALLBACK),
+    "4.6.0"
+  )
 })
 
 test_that("assets_dir() uses `dir`", {
   dir <- withr::local_tempdir()
   expect_equal(
-    assets_dir("1.2.3", dir = dir),
-    fs::path(dir, "shinylive-1.2.3")
+    assets_dir("0.10.99", dir = dir),
+    fs::path(dir, "shinylive-0.10.99")
   )
 })
 
@@ -56,8 +59,8 @@ test_that("assets_ensure() downloads to and returns a path in `dir`", {
       invisible(dir)
     }
   )
-  path <- assets_ensure("1.2.3", dir = dir)
-  expect_equal(path, fs::path(dir, "shinylive-1.2.3"))
+  path <- assets_ensure("0.10.99", dir = dir)
+  expect_equal(path, fs::path(dir, "shinylive-0.10.99"))
   expect_true(fs::dir_exists(path))
 })
 
@@ -75,7 +78,13 @@ test_that("assets_dirs() skips entries that are not version folders", {
 
 test_that("assets_info() works when no assets are installed", {
   dir <- withr::local_tempdir()
-  local_mocked_bindings(assets_cache_dir = function() dir)
+  assets_version_reset()
+  withr::defer(assets_version_reset())
+  local_mocked_bindings(
+    assets_cache_dir = function() dir,
+    fetch_latest_assets_version = function() stop("offline"),
+    assets_download = function(...) stop("must not download")
+  )
 
   info <- assets_info(quiet = TRUE)
   expect_equal(nrow(info), 0)
@@ -97,7 +106,7 @@ test_that("assets_ensure() shows the cache folder it creates", {
   )
   withr::local_options(shinylive.quiet = FALSE)
   expect_message(
-    assets_ensure("1.2.3", dir = dir),
+    assets_ensure("0.10.99", dir = dir),
     "Creating assets cache directory .*cache"
   )
 })
@@ -117,17 +126,155 @@ test_that("assets_path_version() returns the version of an assets folder", {
   expect_equal(assets_path_version(character(0)), character(0))
 })
 
-test_that("assets_cleanup() removes all but the current assets version", {
+test_that("assets_cleanup() keeps the highest version of each series", {
   dir <- withr::local_tempdir()
   fs::dir_create(fs::path(
     dir,
-    paste0("shinylive-", c("0.0.1", assets_version()))
+    paste0("shinylive-", c("0.11.0", "0.11.2", "0.10.16", "0.10.5", "dev"))
   ))
   withr::local_options(shinylive.quiet = TRUE)
 
   assets_cleanup(dir = dir)
   expect_equal(
     assets_dirs(dir = dir),
-    fs::path(dir, paste0("shinylive-", assets_version()))
+    fs::path(dir, c("shinylive-0.11.2", "shinylive-0.10.16"))
   )
+  # Not a version folder, so not touched
+  expect_true(fs::dir_exists(fs::path(dir, "shinylive-dev")))
+})
+
+local_assets_tarball <- function(version, env = parent.frame()) {
+  src <- withr::local_tempdir(.local_envir = env)
+  fs::dir_create(fs::path(src, paste0("shinylive-", version), "shinylive"))
+  writeLines(
+    "ok",
+    fs::path(src, paste0("shinylive-", version), "shinylive", "x.txt")
+  )
+  tarball <- withr::local_tempfile(fileext = ".tar.gz", .local_envir = env)
+  withr::with_dir(src, archive::archive_write_dir(tarball, "."))
+  tarball
+}
+
+test_that("assets_download() moves the extracted folder into place", {
+  dir <- withr::local_tempdir()
+  withr::local_options(shinylive.quiet = TRUE)
+  tarball <- local_assets_tarball("0.10.99")
+
+  assets_download("0.10.99", dir = dir, url = paste0("file://", tarball))
+  expect_true(fs::file_exists(
+    fs::path(dir, "shinylive-0.10.99", "shinylive", "x.txt")
+  ))
+  expect_equal(basename(fs::dir_ls(dir)), "shinylive-0.10.99")
+})
+
+test_that("assets_download() leaves no partial folder when extracting fails", {
+  dir <- withr::local_tempdir()
+  withr::local_options(shinylive.quiet = TRUE)
+  tarball <- local_assets_tarball("0.10.99")
+  local_mocked_bindings(
+    archive_extract = function(archive, dir, ...) {
+      fs::dir_create(fs::path(dir, "shinylive-0.10.99"))
+      stop("corrupt archive")
+    },
+    .package = "archive"
+  )
+
+  expect_error(
+    assets_download("0.10.99", dir = dir, url = paste0("file://", tarball)),
+    "corrupt archive"
+  )
+  expect_equal(fs::dir_ls(dir), character(0), ignore_attr = TRUE)
+})
+
+test_that("assets_info() shows the default series and the last check", {
+  dir <- withr::local_tempdir()
+  assets_version_reset()
+  withr::defer(assets_version_reset())
+  withr::local_envvar(SHINYLIVE_ASSETS_VERSION = NA)
+  write_versions_json(
+    list(
+      checked_at = Sys.time() - 3600 * 2,
+      latest = "0.10.16",
+      versions = "0.10.16",
+      error = "Could not resolve host"
+    ),
+    dir
+  )
+  local_mocked_bindings(
+    assets_cache_dir = function() dir,
+    fetch_latest_assets_version = function() stop("Could not resolve host")
+  )
+  fs::dir_create(fs::path(dir, "shinylive-0.10.16"))
+
+  msgs <- testthat::capture_messages(assets_info())
+  out <- paste(msgs, collapse = "")
+  expect_match(out, "0.10.*", fixed = TRUE)
+  expect_match(out, "0.10.16", fixed = TRUE)
+  expect_match(out, "Could not resolve host", fixed = TRUE)
+  expect_match(out, "Last checked", fixed = TRUE)
+})
+
+local_assets_repo <- function(env = parent.frame()) {
+  repo <- withr::local_tempdir(.local_envir = env)
+  fs::dir_create(fs::path(repo, "build"))
+  repo
+}
+
+test_that("assets_install_copy() warns outside the default series", {
+  dir <- withr::local_tempdir()
+  repo <- local_assets_repo()
+
+  expect_warning(
+    assets_install_copy(repo, dir = dir, version = "0.9.0"),
+    "0.10.*",
+    fixed = TRUE
+  )
+  expect_no_warning(assets_install_copy(repo, dir = dir, version = "0.10.99"))
+})
+
+test_that("assets_cleanup() keeps a version pinned by SHINYLIVE_ASSETS_VERSION", {
+  dir <- withr::local_tempdir()
+  fs::dir_create(fs::path(dir, paste0("shinylive-", c("0.10.17", "0.10.16"))))
+  withr::local_options(shinylive.quiet = TRUE)
+  withr::local_envvar(SHINYLIVE_ASSETS_VERSION = "0.10.16")
+
+  assets_cleanup(dir = dir)
+  expect_equal(
+    assets_dirs(dir = dir),
+    fs::path(dir, c("shinylive-0.10.17", "shinylive-0.10.16"))
+  )
+})
+
+test_that("assets_download() keeps a folder another process just made", {
+  dir <- withr::local_tempdir()
+  withr::local_options(shinylive.quiet = TRUE)
+  tarball <- local_assets_tarball("0.10.99")
+  target <- fs::path(dir, "shinylive-0.10.99")
+  real_extract <- archive::archive_extract
+  local_mocked_bindings(
+    archive_extract = function(archive, dir, ...) {
+      # Another process finishes the same download while we extract
+      fs::dir_create(target)
+      writeLines("other", fs::path(target, "marker.txt"))
+      real_extract(archive, dir, ...)
+    },
+    .package = "archive"
+  )
+
+  assets_download("0.10.99", dir = dir, url = paste0("file://", tarball))
+  expect_true(fs::file_exists(fs::path(target, "marker.txt")))
+  expect_equal(basename(fs::dir_ls(dir)), "shinylive-0.10.99")
+})
+
+test_that("assets_download() replaces a folder that existed before", {
+  dir <- withr::local_tempdir()
+  withr::local_options(shinylive.quiet = TRUE)
+  tarball <- local_assets_tarball("0.10.99")
+  target <- fs::path(dir, "shinylive-0.10.99")
+  fs::dir_create(target)
+  writeLines("stale", fs::path(target, "stale.txt"))
+
+  assets_download("0.10.99", dir = dir, url = paste0("file://", tarball))
+  expect_false(fs::file_exists(fs::path(target, "stale.txt")))
+  expect_true(fs::file_exists(fs::path(target, "shinylive", "x.txt")))
 })
