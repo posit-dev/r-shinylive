@@ -375,11 +375,12 @@ local_size_limit_env <- function(downloaded, env = parent.frame()) {
   withr::local_options(shinylive.quiet = TRUE, .local_envir = env)
   withr::local_envvar(SHINYLIVE_DEFAULT_MAX_FILESIZE = NA, .local_envir = env)
   mock_download_env(repo_version = "1.4.0", downloaded = downloaded, env = env)
-  # Every downloaded binary is 101 bytes
+  # Every downloaded binary is 101 bytes. `writeBin()` avoids the extra byte
+  # that `writeLines()` adds on Windows (CRLF).
   local_mocked_bindings(
     download.file = function(url, destfile, ...) {
       downloaded$called <- TRUE
-      writeLines(strrep("x", 100), destfile)
+      writeBin(charToRaw(strrep("x", 101)), destfile)
       invisible(0)
     },
     .package = "utils",
