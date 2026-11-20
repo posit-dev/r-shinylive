@@ -226,3 +226,22 @@ test_that("export - non utf8 paths", {
     export(app_dir, out_dir)
   })
 })
+
+test_that("check_subdir() keeps subdir inside destdir", {
+  expect_equal(check_subdir(""), "")
+  expect_equal(check_subdir("."), "")
+  expect_equal(check_subdir("./a//b/"), "a/b")
+  expect_error(check_subdir("../x"), "must not contain")
+  expect_error(check_subdir("a/../../x"), "must not contain")
+  expect_error(check_subdir("/abs"), "absolute path")
+  expect_error(check_subdir(c("a", "b")), "single string")
+})
+
+test_that("export() rejects a subdir outside destdir", {
+  appdir <- withr::local_tempdir()
+  writeLines("library(shiny)", fs::path(appdir, "app.R"))
+  expect_error(
+    export(appdir, withr::local_tempdir(), subdir = "../escape"),
+    "must not contain"
+  )
+})

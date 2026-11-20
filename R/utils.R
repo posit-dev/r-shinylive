@@ -43,15 +43,44 @@ assert_list <- function(
 
 
 unlink_path <- function(path) {
-  if (fs::dir_exists(path)) {
-    if (fs::is_link(path)) {
-      fs::link_delete(path)
-    } else {
-      fs::dir_delete(path)
-    }
+  if (fs::is_link(path)) {
+    fs::link_delete(path)
+  } else if (fs::dir_exists(path)) {
+    fs::dir_delete(path)
+  } else if (fs::file_exists(path)) {
+    fs::file_delete(path)
   }
 }
 
+
+# Absolute path with symlinks resolved. For a path that does not exist yet, the
+# symlinks in its nearest existing parent folder are resolved.
+full_path <- function(path) {
+  path <- fs::path_abs(path.expand(path))
+  if (file.exists(path)) {
+    return(fs::path(normalizePath(path, winslash = "/")))
+  }
+  parent <- fs::path_dir(path)
+  if (parent == path) {
+    return(path)
+  }
+  fs::path(full_path(parent), fs::path_file(path))
+}
+
+# Windows and macOS file systems ignore case by default
+is_case_insensitive_os <- function() {
+  .Platform$OS.type == "windows" || Sys.info()[["sysname"]] == "Darwin"
+}
+
+# `full_path()` for comparing two paths. It is lower case where the file system
+# ignores case, so only use it to compare paths, never to create files.
+comparable_path <- function(path) {
+  path <- full_path(path)
+  if (is_case_insensitive_os()) {
+    path <- fs::path(tolower(path))
+  }
+  path
+}
 
 collapse <- function(...) {
   paste0(..., collapse = "\n")
@@ -104,7 +133,7 @@ create_copy_fn <- function(overwrite = FALSE) {
 
   mark_file <- function(src_file_path, dst_file_path) {
     if (file.exists(dst_file_path)) {
-      if (!files_are_equal(src_file_path, dst_file_path)) {
+      if (!is_quiet() && !files_are_equal(src_file_path, dst_file_path)) {
         cli::cli_inform(c(
           x = "Source and destination copies differ for {.path {dst_file_path}}",
           "!" = "This is probably because your shinylive sources have been updated and differ from the copy in the exported app.",

@@ -5,7 +5,6 @@
 ^barret
 ^local$
 ^\.luarc\.json$
-^.github$
 ^shinylive\.Rproj$
 ^\.github$
 ^shinylive_assets$
@@ -15,7 +14,7 @@
 ^examples$
 ^\.Rproj\.user$
 ^venv$
-^.venv$
+^\.venv$
 ^_dev$
 ^node_modules$
 ^[.]?air[.]toml$

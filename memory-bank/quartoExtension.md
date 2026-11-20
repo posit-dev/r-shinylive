@@ -35,7 +35,8 @@ version.
 | `R/deps.R` | `html_dep_obj()`, `html_dep_serviceworker_obj()`, `quarto_html_dependency_obj()`, `serviceworker_dep()`, `shinylive_base_deps_htmldep()`, `shinylive_r_resources()`, `shinylive_common_dep_htmldep()`, `shinylive_common_files()` |
 | `R/utils.R` | `drop_nulls_rec()`, `assert_nzchar_string()`, `assert_list_items()` |
 | `R/packages.R` | `download_wasm_packages()`, `sys_env_wasm_packages()` (see the packages doc) |
-| `tests/testthat/test-quarto_ext.R` | Three argument-error tests, then one test each for `info`, `base-htmldeps`, `language-resources`, and two for `app-resources`; all skip unless assets are available |
+| `tests/testthat/test-quarto_ext.R` | Three argument-error tests, then one test each for `info`, `base-htmldeps`, `language-resources`, and two for `app-resources` (all skip unless assets are available); then two offline `build_app_resources()` tests (path check, bad binary) |
+| `tests/testthat/test-deps.R` | Offline `shinylive_common_dep_htmldep()` tests with a fake assets folder |
 | `local/quarto/` | Small Quarto project with one `shinylive-r` and one `shinylive-python` block |
 | `.github/workflows/R-CMD-check.yaml` | `integration` job: installs py-shinylive and the extension, renders `local/quarto/`, then builds assets from source and runs the tests against them |
 
@@ -104,7 +105,9 @@ from `<assets>/shinylive-sw.js` to `/shinylive-sw.js`, plus
 
 `shinylive_common_dep_htmldep(dep_type, version)` builds the dependency that
 must be named `shinylive`, because the extension attaches more files to it by
-that name.
+that name. `dep_type` goes through `match.arg()`, so it defaults to `"base"`.
+`version` is used for the file list (`shinylive_common_files(dep_type,
+version)`), the absolute paths, and the dependency `version` field.
 
 ## Which asset files go where
 
@@ -142,11 +145,14 @@ Input is the app JSON lines from stdin: an array of
 1. `projdir` is `QUARTO_PROJECT_DIR`, or `"."` if unset. Quarto sets it.
 2. `appdir` is `<projdir>/.quarto/_webr/appdir`. It is deleted and made again
    for every app. `destdir` is `<projdir>/.quarto/_webr/destdir` and is kept.
-3. Each file name goes through `fs::path_norm()`. Names matching
-   `^(/|[.]{2})` are rejected, so absolute paths and paths that climb out of
-   the app folder (`../x`, `a/../../x`, `..\x`) error.
+3. Each file name goes through `fs::path_norm()`, then is split on `/` and
+   `\`. It errors ("App file paths must be relative to the app directory")
+   if the name is absolute, starts with a drive letter (`C:`) or `~`, or has
+   a `..` part. So `../x`, `a/../../x`, `C:/x.R`, and `~/x.R` error, while
+   `..foo.R` is allowed.
 4. `type == "text"` is written with `writeLines()`. Anything else is base64
-   decoded and written with `writeBin()` inside `try()`.
+   decoded and written with `writeBin()`. A decode error stops with "Could
+   not decode binary app file".
 5. If `sys_env_wasm_packages()` is true (env `SHINYLIVE_WASM_PACKAGES`,
    default true) and `wasm_packages_able(assets_version())`, it calls
    `download_wasm_packages(appdir, destdir, package_cache = TRUE,
@@ -161,9 +167,10 @@ Files usually returned: `shinylive/webr/packages/metadata.rds` and
 
 ## Testing
 
-- `TEST_ASSETS=true Rscript -e 'devtools::test(filter = "quarto_ext")'`.
+- `TEST_ASSETS=1 Rscript -e 'devtools::test(filter = "quarto_ext")'`.
 - Tests use `capture.output()` around `quarto_ext()` and parse the JSON.
-  `app-resources` tests pass a file through `con =` instead of stdin.
+  `app-resources` tests pass a file through `con =` instead of stdin, and
+  run in a `withr::local_tempdir()` with `QUARTO_PROJECT_DIR` set.
 - To test the real command, install the package to a temp library and run
   `Rscript -e 'shinylive:::quarto_ext()' extension info`. Set
   `QUARTO_PROJECT_DIR` to a temp dir for `app-resources`, and
@@ -177,27 +184,13 @@ Files usually returned: `shinylive/webr/packages/metadata.rds` and
   shared with py-shinylive and the Lua filter. Change them in all three repos
   together.
 - **Extra stdout breaks renders.** Running through `pkgload::load_all()` (as the
-  README dev setup suggests) can print build output to stdout. The README
-  `sub()` pattern `shinylive::quarto_ext()` also does not match the Lua text,
-  which uses `shinylive:::quarto_ext()`.
-- **`version` is only partly used.** `shinylive_common_dep_htmldep()` uses
-  `version` for the absolute paths but calls `shinylive_common_files()` without
-  it, so the file list comes from `assets_version()`. The dependency `version`
-  field is also always `assets_version()`. With a different `version`, paths
-  point into a folder that may not exist.
-- **`dep_type` must be one value.** `shinylive_common_dep_htmldep()` with the
-  default vector fails with "EXPR must be a length 1 vector". An unknown value
-  fails in `match.arg()` inside `shinylive_common_files()`, so the
-  `"Unknown {.var dep_type}"` branches never run (and would print the literal
-  word `dep_type`, since `{.val dep_type}` has no inner braces).
-- **Path check is simple.** `..foo.R` is rejected even though it is a valid
-  name. `C:/x.R` and `~/x.R` pass the check (on macOS they become folders in
-  `appdir`).
+  README dev setup suggests) can print build output to stdout.
+- **The `"Unknown dep_type"` branches never run.** An unknown `dep_type`
+  fails in `match.arg()` first.
 - **Text files gain a final newline.** `writeLines()` adds `\n`, so
   `"abc"` becomes 4 bytes.
-- **Bad binary files are skipped quietly.** A base64 decode error is caught by
-  `try()`. The error text goes to stderr, the file is not written, and the
-  render goes on.
+- **A bad binary file stops the render.** A base64 decode error is an error
+  ("Could not decode binary app file"), not a skipped file.
 - **A file without `type` fails** with "argument is of length zero". Empty
   stdin fails with a jsonlite lexical error.
 - **`destdir` is shared by all apps in the project.** Every `app-resources`

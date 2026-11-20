@@ -8,6 +8,39 @@
   `assets_version` could bundle binaries that webR can't load. Cached binaries
   from another R version are now deleted and downloaded again (#209).
 
+* `export()` fixes (#216):
+  * Exporting into the app folder (`export(".", ".")`) or into a folder that
+    holds the app (`export("myapp", ".")`) is now an error instead of giving an
+    empty `app.json`. Keep the app and the export in separate folders, like
+    `export("myapp", "site")`.
+  * An app folder named `venv` or `rsconnect`, and a mix of relative and
+    absolute paths, no longer give an empty or wrong `app.json`. Paths are
+    compared without case on Windows and macOS.
+  * `subdir` can no longer point outside `destdir`, and `subdir = "."` is the
+    same as no subdir.
+  * App text files that are not valid UTF-8 are stored as binary, so
+    `app.json` stays valid JSON.
+  * Re-exporting with a custom template that has non-HTML files works.
+  * The message about differing asset copies respects `quiet = TRUE`.
+  * `max_filesize` (and `SHINYLIVE_DEFAULT_MAX_FILESIZE`) accept `"Inf"`,
+    `"NA"`, and `"-1"` to turn the limit off. Values that can't be parsed,
+    like `""`, now warn and use the default instead of turning the limit off.
+  * A package left out for being larger than `max_filesize` is downloaded
+    again once the limit allows its size, and the warning shows on every
+    export while it is left out. A cached package larger than a new, smaller
+    limit is now left out too (or is an error when the limit is set).
+
+* Assets fixes (#216): `assets_ensure(dir=)` and `assets_dir(dir=)` use `dir`
+  instead of the default cache, `assets_info()` works when no assets are
+  installed, stray `shinylive-*` files or folders in the cache no longer
+  break `assets_info()` and `assets_cleanup()`, and `assets_ensure()` shows
+  the cache folder it creates.
+
+* The Quarto extension's `app-resources` command checks app file paths by
+  their parts (so `..foo.R` is allowed and `C:/x.R` or `~/x.R` are not) and
+  errors on binary files that can't be decoded instead of skipping them
+  (#216).
+
 * Updated the default shinylive assets to
   [v0.10.16](https://github.com/posit-dev/shinylive/releases/tag/v0.10.16),
   which bundles Shiny for Python
@@ -83,7 +116,7 @@
 * `export()` gains an `assets_version` argument to choose the version of the Shinylive web assets to be used with the exported app. This is primarily useful for testing new versions of the Shinylive assets before they're officially released via a package update. In CI and other automated workflow settings, the `SHINYLIVE_ASSETS_VERSION` environment variable can be used to set the assets version. (#91)
 
 * `export()` gains `template_params` and `template_dir` arguments to control the template HTML files used in the export, allowing users to partially or completely customize the exported HTML. The export template is provided by the shinylive assets and may change from release-to-release. Use `assets_info()` to locate installed shinylive assets; the template files for a given release are in the `export_template` directory of the release. (#96)
-    * `template_params` takes a list of parameters to be interpolated into the template. The default template include `title` (the title for the page with the exported app), `include_in_head` (HTML added to the `<head>` of the page), and `include_before_body` (HTML added just after `<body>`) and `include_after_body` (HTML added just after `</body>`).
+    * `template_params` takes a list of parameters to be interpolated into the template. The default template include `title` (the title for the page with the exported app), `include_in_head` (HTML added to the `<head>` of the page), and `include_before_body` (HTML added just after `<body>`) and `include_after_body` (HTML added just before `</body>`).
     * `template_dir` is the directory containing the template files. The default is the `export_template` directory of the shinylive assets being used for the export. Use `assets_info()` to locate installed shinylive assets where you can find the default template files.
 
 * shinylive now uses `{cli}` for console printing. Console output can be suppressed via the global R option by calling `options(shinylive.quiet = TRUE)`. (#104)

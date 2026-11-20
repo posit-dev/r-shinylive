@@ -4,7 +4,12 @@
 #' using `httpuv`.
 #'
 #' @param appdir Directory containing the application.
-#' @param destdir Destination directory.
+#' @param destdir Destination directory. Keep `appdir` and `destdir` as
+#'   separate folders, like `export("myapp", "site")`. `destdir` must not be
+#'   `appdir` or a folder that holds `appdir`, so `export(".", ".")` and
+#'   `export("myapp", ".")` are errors. A `destdir` inside `appdir`, like
+#'   `export(".", "site")`, works (it is left out of the app), but is not
+#'   recommended.
 #' @param subdir Subdirectory of `destdir` to write the app to.
 #' @param quiet Suppress console output during export. Follows the global
 #'   `shinylive.quiet` option or defaults to `FALSE` in interactive sessions if
@@ -18,9 +23,10 @@
 #' @param package_cache Cache downloaded binary WebAssembly packages. Defaults
 #'   to `TRUE`.
 #' @param max_filesize Maximum file size for bundling of WebAssembly package
-#'   assets. Parsed by [fs::fs_bytes()]. Defaults to `"100M"`. The default
+#'   assets. Parsed by [fs::fs_bytes()]. Defaults to `"100MB"`. The default
 #'   value can be changed by setting the environment variable
-#'   `SHINYLIVE_DEFAULT_MAX_FILESIZE`. Set to `Inf`, `NA` or `-1` to disable.
+#'   `SHINYLIVE_DEFAULT_MAX_FILESIZE`. Set to `Inf`, `NA` or `-1` (or `"Inf"`,
+#'   `"NA"` or `"-1"`) to disable.
 #' @param assets_version The version of the Shinylive assets to use in the
 #'   exported app. Defaults to [assets_version()]. Note, not all custom assets
 #'   versions may work with this release of \pkg{shinylive}. Please visit the
@@ -39,7 +45,7 @@
 #'   With shinylive assets > 0.4.1, the default export template supports the
 #'   following parameters:
 #'
-#'   1. `title`: The title of the app. Defaults to `"Shiny app"`.
+#'   1. `title`: The title of the app. Defaults to `"Shiny App"`.
 #'   2. `include_in_head`, `include_before_body`, `include_after_body`: Raw
 #'      HTML to be included in the `<head>`, just after the opening `<body>`,
 #'      or just before the closing `</body>` tag, respectively.
@@ -103,11 +109,22 @@ export <- function(
     )
   }
 
-  if (fs::is_absolute_path(subdir)) {
-    cli::cli_abort(
-      "{.var subdir} was supplied an absolute path ({.path {subdir}}), but only relative paths are allowed."
-    )
+  appdir_cmp <- comparable_path(appdir)
+  destdir_cmp <- comparable_path(destdir)
+  if (appdir_cmp == destdir_cmp) {
+    cli::cli_abort(c(
+      "{.var destdir} must be a different folder than {.var appdir} ({.path {appdir}}).",
+      i = "Use separate folders, like {.code export(\"myapp\", \"site\")}."
+    ))
   }
+  if (fs::path_has_parent(appdir_cmp, destdir_cmp)) {
+    cli::cli_abort(c(
+      "{.var appdir} ({.path {appdir}}) must not be inside {.var destdir} ({.path {destdir}}).",
+      i = "Use separate folders, like {.code export(\"myapp\", \"site\")}."
+    ))
+  }
+
+  subdir <- check_subdir(subdir)
 
   if (!fs::dir_exists(destdir)) {
     fs::dir_create(destdir)
@@ -247,4 +264,27 @@ wasm_packages_able <- function(assets_version) {
   } else {
     TRUE
   }
+}
+
+# Check that `subdir` stays inside `destdir`, and drop empty and `.` parts so
+# that `REL_PATH` in the export template points back to `destdir`
+check_subdir <- function(subdir, call = rlang::caller_env()) {
+  if (!is.character(subdir) || length(subdir) != 1 || is.na(subdir)) {
+    cli::cli_abort("{.var subdir} must be a single string.", call = call)
+  }
+  if (fs::is_absolute_path(subdir)) {
+    cli::cli_abort(
+      "{.var subdir} was supplied an absolute path ({.path {subdir}}), but only relative paths are allowed.",
+      call = call
+    )
+  }
+  parts <- strsplit(subdir, "[/\\\\]")[[1]]
+  parts <- parts[!parts %in% c("", ".")]
+  if (".." %in% parts) {
+    cli::cli_abort(
+      "{.var subdir} must not contain {.val ..} ({.path {subdir}}).",
+      call = call
+    )
+  }
+  paste(parts, collapse = "/")
 }

@@ -129,9 +129,13 @@ shinylive_common_dep_htmldep <- function(
   dep_type = c("base", "python", "r"),
   version = assets_version()
 ) {
+  dep_type <- match.arg(dep_type)
   assets_path <- assets_dir(version = version)
   # In quarto ext, keep support for python engine
-  rel_common_files <- shinylive_common_files(dep_type = dep_type)
+  rel_common_files <- shinylive_common_files(
+    dep_type = dep_type,
+    version = version
+  )
   abs_common_files <- file.path(assets_path, rel_common_files)
 
   # `NULL` values can be inserted into;
@@ -220,7 +224,7 @@ shinylive_common_dep_htmldep <- function(
       }
     },
     {
-      cli::cli_abort("Unknown {.var dep_type}: {.val dep_type}")
+      cli::cli_abort("Unknown {.var dep_type}: {.val {dep_type}}")
     }
   )
 
@@ -230,7 +234,7 @@ shinylive_common_dep_htmldep <- function(
   quarto_html_dependency_obj(
     # MUST be called `"shinylive"` to match quarto ext name
     name = "shinylive",
-    version = assets_version(),
+    version = version,
     scripts = scripts,
     stylesheets = stylesheets,
     resources = resources
@@ -310,7 +314,7 @@ shinylive_common_files <- function(
         )
       },
       {
-        cli::cli_abort("Unknown {.var dep_type}: {.val dep_type}")
+        cli::cli_abort("Unknown {.var dep_type}: {.val {dep_type}}")
       }
     )
 

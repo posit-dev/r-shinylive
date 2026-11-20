@@ -9,7 +9,8 @@
 #' @return Nothing. Values are printed to stdout.
 #' @section Command arguments:
 #'
-#' The first argument must be `"extension"`. This is done to match
+#' The first argument must be `"extension"` (or `"--version"`, which prints the
+#' R package version). This is done to match
 #' `py-shinylive` so that it can nest other sub-commands under the `extension`
 #' argument to minimize the api clutter the user can see.
 #'
@@ -93,17 +94,19 @@
 #'     ]
 #' * `extension app-resources`
 #'   * Prints app-specific resource files as JSON that should be added to the `"shinylive"` quarto html dependency.
-#'   * Currently, r-shinylive does not return any resource files.
+#'   * Reads the app's files as JSON from `con` (stdin by default), downloads
+#'     WebAssembly binaries of the app's R packages, and prints those files and
+#'     their `metadata.rds` as resources.
 #'   * Example
 #'     ```
 #'     [
 #'       {
-#'         "name": "shinylive/pyodide/anyio-3.7.0-py3-none-any.whl",
-#'         "path": "/<ASSETS_CACHE_DIR>/shinylive-0.2.0/shinylive/pyodide/anyio-3.7.0-py3-none-any.whl"
+#'         "name": "shinylive/webr/packages/metadata.rds",
+#'         "path": "/<QUARTO_PROJECT_DIR>/.quarto/_webr/destdir/shinylive/webr/packages/metadata.rds"
 #'       },
 #'       {
-#'         "name": "shinylive/pyodide/appdirs-1.4.4-py2.py3-none-any.whl",
-#'         "path": "/<ASSETS_CACHE_DIR>/shinylive-0.2.0/shinylive/pyodide/appdirs-1.4.4-py2.py3-none-any.whl"
+#'         "name": "shinylive/webr/packages/brio/brio_1.1.5.tgz",
+#'         "path": "/<QUARTO_PROJECT_DIR>/.quarto/_webr/destdir/shinylive/webr/packages/brio/brio_1.1.5.tgz"
 #'       },
 #'       ... # [ truncated ]
 #'     ]
@@ -252,8 +255,10 @@ build_app_resources <- function(app_json) {
   )
   lapply(app, function(file) {
     file_name <- fs::path_norm(file$name)
+    file_parts <- strsplit(file_name, "[/\\\\]")[[1]]
 
-    if (grepl("^(/|[.]{2})", file_name)) {
+    # `fs::is_absolute_path()` is also `TRUE` for `C:x.R` and `~user/x.R`
+    if (fs::is_absolute_path(file_name) || ".." %in% file_parts) {
       cli::cli_abort(c(
         "App file paths must be relative to the app directory",
         x = "Invalid file path: {.path {file$name}}"
@@ -266,10 +271,16 @@ build_app_resources <- function(app_json) {
     if (file$type == "text") {
       writeLines(file$content, file_path)
     } else {
-      try({
-        raw_content <- jsonlite::base64_dec(file$content)
-        writeBin(raw_content, file_path, useBytes = TRUE)
-      })
+      raw_content <- tryCatch(
+        jsonlite::base64_dec(file$content),
+        error = function(err) {
+          cli::cli_abort(
+            "Could not decode binary app file {.path {file$name}}.",
+            parent = err
+          )
+        }
+      )
+      writeBin(raw_content, file_path, useBytes = TRUE)
     }
   })
 

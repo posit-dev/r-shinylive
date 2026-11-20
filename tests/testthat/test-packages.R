@@ -173,7 +173,11 @@ seed_packages_dir <- function(destdir, stale_file, ref, r_version = "4.6.0") {
   pkg_subdir
 }
 
-mock_download_env <- function(repo_version, downloaded) {
+mock_download_env <- function(
+  repo_version,
+  downloaded,
+  env = parent.frame()
+) {
   local_mocked_bindings(
     packageDescription = function(...) cran_desc("1.4.0"),
     download.file = function(url, destfile, ...) {
@@ -182,12 +186,12 @@ mock_download_env <- function(repo_version, downloaded) {
       invisible(0)
     },
     .package = "utils",
-    .env = parent.frame()
+    .env = env
   )
   local_mocked_bindings(
     dependencies = function(...) data.frame(Package = "scales"),
     .package = "renv",
-    .env = parent.frame()
+    .env = env
   )
   local_mocked_bindings(
     get_wasm_assets = function(desc, repo, r_version) {
@@ -195,7 +199,7 @@ mock_download_env <- function(repo_version, downloaded) {
       wasm_asset("scales", repo_version)
     },
     resolve_dependencies = function(pkgs, local = TRUE) pkgs,
-    .env = parent.frame()
+    .env = env
   )
 }
 
@@ -325,4 +329,126 @@ test_that("prepare_wasm_metadata() passes the R version to the repo lookup", {
 
   prepare_wasm_metadata("scales", list(), "4.7.0")
   expect_equal(seen, "4.7.0")
+})
+
+test_that("parse_max_filesize() turns the limit off for NA, Inf, and negatives", {
+  for (x in list(
+    NA,
+    NA_character_,
+    Inf,
+    -1,
+    "NA",
+    "Inf",
+    "inf",
+    "-1",
+    " -1 "
+  )) {
+    expect_equal(as.numeric(parse_max_filesize(x)), Inf, info = format(x))
+  }
+})
+
+test_that("parse_max_filesize() parses sizes and warns on bad values", {
+  expect_equal(parse_max_filesize("100MB"), fs::fs_bytes("100MB"))
+  expect_equal(parse_max_filesize(" 1K "), fs::fs_bytes("1K"))
+  expect_equal(parse_max_filesize(2048), fs::fs_bytes(2048))
+  for (x in c("", "+1GB", "abc")) {
+    expect_warning(
+      out <- parse_max_filesize(x),
+      "Could not parse",
+      info = x
+    )
+    expect_equal(out, fs::fs_bytes(SHINYLIVE_DEFAULT_MAX_FILESIZE))
+  }
+})
+
+test_that("parse_max_filesize() needs a single value", {
+  for (x in list(c(1, 2), character(0), list("1MB"))) {
+    expect_error(
+      parse_max_filesize(x),
+      "must be a single number or string",
+      info = format(x)
+    )
+  }
+})
+
+local_size_limit_env <- function(downloaded, env = parent.frame()) {
+  withr::local_options(shinylive.quiet = TRUE, .local_envir = env)
+  withr::local_envvar(SHINYLIVE_DEFAULT_MAX_FILESIZE = NA, .local_envir = env)
+  mock_download_env(repo_version = "1.4.0", downloaded = downloaded, env = env)
+  # Every downloaded binary is 101 bytes. `writeBin()` avoids the extra byte
+  # that `writeLines()` adds on Windows (CRLF).
+  local_mocked_bindings(
+    download.file = function(url, destfile, ...) {
+      downloaded$called <- TRUE
+      writeBin(charToRaw(strrep("x", 101)), destfile)
+      invisible(0)
+    },
+    .package = "utils",
+    .env = env
+  )
+}
+
+download_scales <- function(out, max_filesize) {
+  download_wasm_packages(
+    appdir = out,
+    destdir = out,
+    package_cache = TRUE,
+    max_filesize = max_filesize,
+    r_version = "4.6.0"
+  )
+  readRDS(fs::path(out, "shinylive", "webr", "packages", "metadata.rds"))$scales
+}
+
+test_that("a package dropped for its size is only tried again once it fits", {
+  skip_on_cran()
+  out <- withr::local_tempdir()
+  downloaded <- new.env()
+  local_size_limit_env(downloaded)
+  local_mocked_bindings(SHINYLIVE_DEFAULT_MAX_FILESIZE = "10B")
+  binary <- fs::path(out, "shinylive", "webr", "packages", "scales")
+
+  expect_warning(meta <- download_scales(out, NULL), "larger than the maximum")
+  expect_true(meta$cached)
+  expect_equal(meta$dropped_size, 101)
+  expect_length(meta$assets, 0)
+
+  # The same limit: no download, but the warning shows again
+  downloaded$called <- FALSE
+  expect_warning(meta <- download_scales(out, NULL), "larger than the maximum")
+  expect_false(downloaded$called)
+  expect_equal(meta$dropped_size, 101)
+
+  # A larger limit downloads it
+  meta <- download_scales(out, "1MB")
+  expect_true(downloaded$called)
+  expect_true(meta$cached)
+  expect_null(meta$dropped_size)
+  expect_equal(as.character(meta$path), "packages/scales/scales_1.4.0.tgz")
+  expect_true(fs::file_exists(fs::path(binary, "scales_1.4.0.tgz")))
+})
+
+test_that("a cached package over a smaller limit is dropped", {
+  skip_on_cran()
+  out <- withr::local_tempdir()
+  downloaded <- new.env()
+  local_size_limit_env(downloaded)
+  binary <- fs::path(out, "shinylive", "webr", "packages", "scales")
+  download_scales(out, "1MB")
+
+  # A limit you set yourself is an error, and nothing changes on disk
+  downloaded$called <- FALSE
+  expect_error(download_scales(out, "50B"), "larger than the maximum")
+  expect_false(downloaded$called)
+  expect_true(fs::file_exists(fs::path(binary, "scales_1.4.0.tgz")))
+  meta_file <- fs::path(out, "shinylive", "webr", "packages", "metadata.rds")
+  expect_length(readRDS(meta_file)$scales$assets, 1)
+
+  # The default limit warns and drops it
+  local_mocked_bindings(SHINYLIVE_DEFAULT_MAX_FILESIZE = "50B")
+  expect_warning(meta <- download_scales(out, NULL), "larger than the maximum")
+  expect_false(downloaded$called)
+  expect_false(fs::dir_exists(binary))
+  expect_length(meta$assets, 0)
+  expect_null(meta$path)
+  expect_equal(meta$dropped_size, 101)
 })

@@ -39,3 +39,95 @@ test_that("the default assets use the expected webR R version", {
   # It catches an R version change that would otherwise go unnoticed.
   expect_equal(assets_webr_r_version(SHINYLIVE_ASSETS_VERSION), "4.6.0")
 })
+
+test_that("assets_dir() uses `dir`", {
+  dir <- withr::local_tempdir()
+  expect_equal(
+    assets_dir("1.2.3", dir = dir),
+    fs::path(dir, "shinylive-1.2.3")
+  )
+})
+
+test_that("assets_ensure() downloads to and returns a path in `dir`", {
+  dir <- withr::local_tempdir()
+  local_mocked_bindings(
+    assets_download = function(version, ..., dir, url) {
+      fs::dir_create(fs::path(dir, paste0("shinylive-", version)))
+      invisible(dir)
+    }
+  )
+  path <- assets_ensure("1.2.3", dir = dir)
+  expect_equal(path, fs::path(dir, "shinylive-1.2.3"))
+  expect_true(fs::dir_exists(path))
+})
+
+test_that("assets_dirs() skips entries that are not version folders", {
+  dir <- withr::local_tempdir()
+  fs::dir_create(fs::path(dir, c("shinylive-0.9.0", "shinylive-0.10.1")))
+  fs::dir_create(fs::path(dir, "shinylive-dev"))
+  fs::file_create(fs::path(dir, "shinylive-1.0.0.tar.gz"))
+
+  expect_equal(
+    assets_dirs(dir = dir),
+    fs::path(dir, c("shinylive-0.10.1", "shinylive-0.9.0"))
+  )
+})
+
+test_that("assets_info() works when no assets are installed", {
+  dir <- withr::local_tempdir()
+  local_mocked_bindings(assets_cache_dir = function() dir)
+
+  info <- assets_info(quiet = TRUE)
+  expect_equal(nrow(info), 0)
+  expect_named(info, c("version", "path", "is_assets_version"))
+
+  fs::dir_create(fs::path(dir, "shinylive-0.9.0"))
+  info <- assets_info(quiet = TRUE)
+  expect_equal(info$version, "0.9.0")
+  expect_equal(info$path, as.character(fs::path(dir, "shinylive-0.9.0")))
+})
+
+test_that("assets_ensure() shows the cache folder it creates", {
+  dir <- fs::path(withr::local_tempdir(), "cache")
+  local_mocked_bindings(
+    assets_download = function(version, ..., dir, url) {
+      fs::dir_create(fs::path(dir, paste0("shinylive-", version)))
+      invisible(dir)
+    }
+  )
+  withr::local_options(shinylive.quiet = FALSE)
+  expect_message(
+    assets_ensure("1.2.3", dir = dir),
+    "Creating assets cache directory .*cache"
+  )
+})
+
+test_that("check_assets_url() returns FALSE for a missing release", {
+  skip_on_cran()
+  skip_if_offline("github.com")
+  expect_false(check_assets_url(url = assets_bundle_url("0.0.0-missing")))
+})
+
+test_that("assets_path_version() returns the version of an assets folder", {
+  expect_equal(
+    assets_path_version(c("/cache/shinylive-0.10.16", "shinylive-1.0.0")),
+    c("0.10.16", "1.0.0")
+  )
+  expect_equal(assets_path_version("/x/shinylive-shinylive-1"), "shinylive-1")
+  expect_equal(assets_path_version(character(0)), character(0))
+})
+
+test_that("assets_cleanup() removes all but the current assets version", {
+  dir <- withr::local_tempdir()
+  fs::dir_create(fs::path(
+    dir,
+    paste0("shinylive-", c("0.0.1", assets_version()))
+  ))
+  withr::local_options(shinylive.quiet = TRUE)
+
+  assets_cleanup(dir = dir)
+  expect_equal(
+    assets_dirs(dir = dir),
+    fs::path(dir, paste0("shinylive-", assets_version()))
+  )
+})

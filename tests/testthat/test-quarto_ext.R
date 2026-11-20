@@ -98,13 +98,9 @@ test_that("quarto_ext handles `extension app-resources`", {
 
   assets_ensure()
 
-  # Clean-up on exit
-  tmpdir <- tempdir()
-  wd <- setwd(tmpdir)
-  on.exit({
-    setwd(wd)
-    fs::dir_delete(tmpdir)
-  })
+  # Work in a temp folder that is removed on exit
+  withr::local_dir(withr::local_tempdir())
+  withr::local_envvar(QUARTO_PROJECT_DIR = ".")
 
   app_json <- '[{"name":"app.R","type":"text","content":"library(shiny)"}]'
   writeLines(app_json, "app.json")
@@ -127,13 +123,9 @@ test_that("quarto_ext handles `extension app-resources` with additional binary f
 
   assets_ensure()
 
-  # Clean-up on exit
-  tmpdir <- tempdir()
-  wd <- setwd(tmpdir)
-  on.exit({
-    setwd(wd)
-    fs::dir_delete(tmpdir)
-  })
+  # Work in a temp folder that is removed on exit
+  withr::local_dir(withr::local_tempdir())
+  withr::local_envvar(QUARTO_PROJECT_DIR = ".")
 
   # A binary file included in app.json should successfully be decoded while
   # building package metadata for app-resources.
@@ -151,4 +143,62 @@ test_that("quarto_ext handles `extension app-resources` with additional binary f
     vapply(resources, `[[`, character(1), "name"),
     fixed = TRUE
   )))
+})
+
+local_app_resources_project <- function(env = parent.frame()) {
+  projdir <- withr::local_tempdir(.local_envir = env)
+  withr::local_envvar(
+    QUARTO_PROJECT_DIR = projdir,
+    SHINYLIVE_WASM_PACKAGES = "FALSE",
+    .local_envir = env
+  )
+  projdir
+}
+
+app_json_with <- function(name, content = "x", type = "text") {
+  jsonlite::toJSON(
+    list(
+      list(name = "app.R", content = "library(shiny)", type = "text"),
+      list(name = name, content = content, type = type)
+    ),
+    auto_unbox = TRUE
+  )
+}
+
+test_that("build_app_resources() checks app file paths", {
+  projdir <- local_app_resources_project()
+  appdir <- fs::path(projdir, ".quarto", "_webr", "appdir")
+
+  bad_names <- c(
+    "/abs.R",
+    "../up.R",
+    "a/../../up.R",
+    "C:/x.R",
+    "C:x.R",
+    "~/x.R",
+    "~",
+    "~user/x.R"
+  )
+  for (bad in bad_names) {
+    expect_error(
+      build_app_resources(app_json_with(bad)),
+      "must be relative",
+      info = bad
+    )
+  }
+
+  expect_no_error(build_app_resources(app_json_with("..foo.R")))
+  expect_true(fs::file_exists(fs::path(appdir, "..foo.R")))
+})
+
+test_that("build_app_resources() errors on bad binary content", {
+  local_app_resources_project()
+  expect_error(
+    build_app_resources(app_json_with(
+      "img.png",
+      "!!!notbase64%%%",
+      type = "binary"
+    )),
+    "Could not decode"
+  )
 })

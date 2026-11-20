@@ -48,6 +48,16 @@ read_app_files <- function(
   is_excluded <- function(name) {
     name %in% exclude_names
   }
+  # Compare full paths, so that relative and absolute paths (and symlinks like
+  # macOS's /var -> /private/var) work together
+  appdir_abs <- comparable_path(appdir)
+  destdir_abs <- comparable_path(destdir)
+  # Only skip `destdir` when it is a subfolder of the app. `export()` rejects
+  # an app that is `destdir` or inside it, where every app file would be
+  # skipped.
+  skip_destdir <- appdir_abs != destdir_abs &&
+    fs::path_has_parent(destdir_abs, appdir_abs)
+
   # Recursively iterate over files in app directory, and collect the files into
   # app_files data structure.
 
@@ -70,14 +80,18 @@ read_app_files <- function(
       )
     }
 
-    # Check for excluded dirs
+    is_appdir <- curdur == appdir
+
+    # Check for excluded dirs. The app folder itself is never excluded.
     curdur_basename <- basename(curdur)
-    if (is_excluded(curdur_basename)) {
+    if (!is_appdir && is_excluded(curdur_basename)) {
       return(NULL)
     }
 
     # If the current directory is inside of the destdir, then do not inspect
-    if (fs::path_has_parent(curdur, destdir)) {
+    if (
+      skip_destdir && fs::path_has_parent(comparable_path(curdur), destdir_abs)
+    ) {
       return(NULL)
     }
 
@@ -127,7 +141,12 @@ read_app_files <- function(
 
         # Get file content
         file_content <- try(brio::read_file(cur_path), silent = TRUE)
-        if (!inherits(file_content, "try-error")) {
+        # Text that is not valid UTF-8 (like latin1) would make app.json
+        # invalid, so it is stored as binary
+        if (
+          !inherits(file_content, "try-error") &&
+            all(validUTF8(file_content))
+        ) {
           file_type <- "text"
         } else {
           # Try reading as binary
@@ -214,7 +233,7 @@ write_app_json <- function(
       )
       brio::write_file(file_content, dest_file)
     } else {
-      fs::file_copy(template_file, dest_file)
+      fs::file_copy(template_file, dest_file, overwrite = TRUE)
     }
   }
 

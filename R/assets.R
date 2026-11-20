@@ -16,7 +16,10 @@
 #' @return
 #' `assets_version()` returns the version of the currently supported Shinylive.
 #'
-#' All other methods return `invisible()`.
+#' `assets_download()` invisibly returns the cache directory and
+#' `assets_ensure()` invisibly returns the assets directory for `version`.
+#'
+#' `assets_cleanup()` and `assets_remove()` return `invisible()`.
 assets_download <- function(
   version = assets_version(),
   ...,
@@ -77,13 +80,6 @@ assets_cache_dir <- function() {
   normalizePath(cache_dir)
 }
 
-# Returns the directory used for caching Shinylive assets. This directory can
-# contain multiple versions of Shinylive assets.
-assets_cache_dir_exists <- function() {
-  fs::dir_exists(assets_cache_dir())
-}
-
-
 # Returns the directory containing cached Shinylive assets, for a particular
 # version of Shinylive.
 assets_dir <- function(
@@ -91,9 +87,14 @@ assets_dir <- function(
   ...,
   dir = assets_cache_dir()
 ) {
-  assets_dir_impl(dir = assets_cache_dir(), version = version)
+  assets_dir_impl(dir = dir, version = version)
 }
 shinylive_prefix <- "shinylive-"
+# Returns the version from an assets folder path, like `0.10.16` from
+# `<cache>/shinylive-0.10.16`
+assets_path_version <- function(path) {
+  sub(paste0("^", shinylive_prefix), "", basename(path))
+}
 assets_dir_impl <- function(
   ...,
   dir = assets_cache_dir(),
@@ -139,16 +140,16 @@ install_local_helper <- function(
   }
 }
 
-#' Install shinylive assets from from a local directory
+#' Install shinylive assets from a local directory
 #'
 #' Helper methods for testing updates to shinylive assets.
 #'
 #' @describeIn install Copies all shinylive assets from a local shinylive
 #'    repository (e.g.
-#'    [`posit-dev/shinylive`](https://github.com/posit-dev/py-shinylive)). This
+#'    [`posit-dev/shinylive`](https://github.com/posit-dev/shinylive)). This
 #'    must be repeated for any change in the assets.
 #' @param assets_repo_dir The local repository directory for shinylive assets
-#'    (e.g. [`posit-dev/shinylive`](https://github.com/posit-dev/py-shinylive))
+#'    (e.g. [`posit-dev/shinylive`](https://github.com/posit-dev/shinylive))
 #' @param version The version of the assets being installed.
 #' @inheritParams assets_download
 #' @seealso [`assets_download()`], [`assets_ensure()`], [`assets_cleanup()`]
@@ -175,7 +176,7 @@ assets_install_copy <- function(
 }
 
 #' @describeIn install Creates a symlink of the local shinylive assets to the
-#'    cached assets directory. After the first installation, the assets will the
+#'    cached assets directory. After the first installation, the assets will be the
 #'    same as the source due to the symlink.
 #' @export
 assets_install_link <- function(
@@ -217,7 +218,7 @@ assets_ensure <- function(
 ) {
   rlang::check_dots_empty()
   if (!fs::dir_exists(dir)) {
-    cli_alert_info("Creating assets cache directory ", dir)
+    cli_alert_info("Creating assets cache directory {.path {dir}}")
     fs::dir_create(dir)
   }
 
@@ -281,13 +282,7 @@ assets_cleanup <- function(
   dir = assets_cache_dir()
 ) {
   rlang::check_dots_empty()
-  versions <- vapply(
-    assets_dirs(dir = dir),
-    function(ver_path) {
-      sub(shinylive_prefix, "", basename(ver_path))
-    },
-    character(1)
-  )
+  versions <- assets_path_version(assets_dirs(dir = dir))
   if (assets_version() %in% versions) {
     cli_alert_info("Keeping version {assets_version()}")
     versions <- setdiff(versions, assets_version())
@@ -363,28 +358,30 @@ assets_dirs <- function(
     return(character(0))
   }
 
+  # Skip files and folders whose suffix is not a version, like `shinylive-dev`
+  path_versions_str <- assets_path_version(path_basenames)
+  path_versions <- numeric_version(path_versions_str, strict = FALSE)
+  is_version_dir <- !is.na(path_versions) &
+    dir.exists(file.path(dir, path_basenames))
+  path_basenames <- path_basenames[is_version_dir]
+  path_versions <- path_versions[is_version_dir]
+
   # Sort descending by version numbers
-  path_versions_str <- sub(shinylive_prefix, "", path_basenames)
-  path_versions <- as.character(
-    sort(numeric_version(path_versions_str), decreasing = TRUE)
-  )
+  path_basenames <- path_basenames[order(path_versions, decreasing = TRUE)]
 
   # Return full path to the versions
-  fs::path(dir, paste0(shinylive_prefix, path_versions))
+  fs::path(dir, path_basenames)
 }
 
 
 #' @describeIn assets Prints information about the local shinylive assets that
-#'   have been installed. Invisibly returns a table of installed asset versions
-#'   and their associated paths.
+#'   have been installed. Returns a table of installed asset versions and their
+#'   associated paths, invisibly unless `quiet = TRUE`.
 #' @param quiet In `assets_info()`, if `quiet = TRUE`, the function will not
 #'   print the assets information to the console.
 #' @export
 assets_info <- function(quiet = FALSE) {
   installed_versions <- assets_dirs()
-  if (length(installed_versions) == 0) {
-    installed_versions <- "(None)"
-  }
 
   local_quiet(quiet)
 
@@ -395,7 +392,9 @@ assets_info <- function(quiet = FALSE) {
   cli_bullets(c(">" = "{.path {assets_cache_dir()}}"))
   cli_text("")
   cli_text("Installed assets:")
-  if (assets_cache_dir_exists()) {
+  if (length(installed_versions) == 0) {
+    cli_bullets(c("*" = "(None)"))
+  } else {
     cli_installed <- c()
     for (i in seq_along(installed_versions)) {
       cli_installed <- c(
@@ -404,19 +403,13 @@ assets_info <- function(quiet = FALSE) {
       )
     }
     cli_bullets(cli_installed)
-  } else {
-    cli_bullets("(Cache dir does not exist)")
   }
 
-  versions <- vapply(
-    strsplit(installed_versions, "shinylive-", fixed = TRUE),
-    FUN.VALUE = character(1),
-    function(x) x[[2]]
-  )
+  versions <- assets_path_version(installed_versions)
 
   data <- data.frame(
-    version = versions,
-    path = installed_versions,
+    version = as.character(versions),
+    path = as.character(installed_versions),
     is_assets_version = versions == assets_version()
   )
 
@@ -447,6 +440,7 @@ check_assets_url <- function(
 ) {
   req <- httr2::request(url)
   req <- httr2::req_method(req, "HEAD")
+  req <- httr2::req_error(req, is_error = function(resp) FALSE)
   resp <- httr2::req_perform(req)
-  resp$status_code == 200
+  httr2::resp_status(resp) == 200
 }

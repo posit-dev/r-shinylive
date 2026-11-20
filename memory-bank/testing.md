@@ -29,12 +29,16 @@ Results on this machine (assets 0.10.16 already cached):
 |---|---|
 | `tests/testthat.R` | Standard `test_check("shinylive")`. |
 | `tests/spelling.R` | Spelling check during `R CMD check` (see below). |
-| `tests/testthat/setup-skip.R` | `can_test_assets()`, `is_interative_or_on_ci()`, `skip_if_assets_unavailable()`. |
+| `tests/testthat/setup-skip.R` | `can_test_assets()`, `is_interactive_or_test_assets()`, `skip_if_assets_unavailable()`. |
+| `tests/testthat/test-setup-skip.R` | Checks that `can_test_assets()` accepts `1`, `true`, `TRUE` and rejects `0`, `false`, `""`. |
 | `tests/testthat/test-assertions.R` | Argument checks in `R/utils.R`, `R/app_json.R`, `R/deps.R`, `R/assets.R`, `R/quarto_ext.R`; `cran_is_testing()` and the `assets_cache_dir()` CRAN guard. |
-| `tests/testthat/test-assets.R` | `assets_dirs()`, `assets_path_webr_r_version()`, and the webR R version of the default assets. |
-| `tests/testthat/test-export.R` | `export()` end to end: `app.R`, `ui.R`/`server.R`, `subdir`, custom template, Wasm packages, `max_filesize`, non-UTF-8 paths, deprecated `verbose`. |
-| `tests/testthat/test-packages.R` | Wasm package cache logic in `R/packages.R` (`prepare_wasm_metadata()`, `download_wasm_packages()`, `wasm_contrib_url()`), fully mocked. |
-| `tests/testthat/test-quarto_ext.R` | `quarto_ext()` subcommands and their JSON output. |
+| `tests/testthat/test-assets.R` | `assets_dirs()`, `assets_path_webr_r_version()`, the webR R version of the default assets; offline tests for `assets_dir(dir=)`, `assets_ensure(dir=)`, stray cache entries, `assets_info()` with nothing installed, and `check_assets_url()` on a 404. |
+| `tests/testthat/test-app_json.R` | Offline `read_app_files()` tests (non-UTF-8 text, app inside `destdir`, app folder with an excluded name, relative `destdir`), `export()` into its own `appdir`, and `write_app_json()` over a custom template's other files. |
+| `tests/testthat/test-deps.R` | `shinylive_common_dep_htmldep()` uses `version` and defaults `dep_type` to `"base"`. Uses a fake assets folder. |
+| `tests/testthat/test-export.R` | `export()` end to end: `app.R`, `ui.R`/`server.R`, `subdir`, custom template, Wasm packages, `max_filesize`, non-UTF-8 paths, deprecated `verbose`. Also offline `check_subdir()` tests. |
+| `tests/testthat/test-packages.R` | Wasm package cache logic in `R/packages.R` (`prepare_wasm_metadata()`, `download_wasm_packages()`, `wasm_contrib_url()`), `parse_max_filesize()`, and the size limit staying the same, growing, or shrinking between runs. Fully mocked. |
+| `tests/testthat/test-quarto_ext.R` | `quarto_ext()` subcommands and their JSON output; offline `build_app_resources()` path and bad-binary checks. |
+| `tests/testthat/test-utils.R` | `unlink_path()` on files, folders, and links; `create_copy_fn(overwrite = TRUE)`; the "copies differ" message staying quiet. |
 | `tests/testthat/apps/` | Test apps and the custom export template. |
 | `inst/WORDLIST` | Words the spelling check accepts. |
 
@@ -42,14 +46,15 @@ Results on this machine (assets 0.10.16 already cached):
 
 `tests/testthat/setup-skip.R`:
 
-- `can_test_assets()` is `isTRUE(as.logical(Sys.getenv("TEST_ASSETS", "false")))`.
-- `is_interative_or_on_ci()` is `interactive() || can_test_assets()`. Despite
-  the name (and its typo), it does not look at `CI`.
+- `can_test_assets()` is true when `TEST_ASSETS` is `"1"` or anything
+  `as.logical()` reads as `TRUE` (`true`, `TRUE`, `T`).
+- `is_interactive_or_test_assets()` is `interactive() || can_test_assets()`.
+  It does not look at `CI`.
 - `skip_if_assets_unavailable()` calls `skip_on_cran()`, then skips unless
-  `is_interative_or_on_ci()` is true.
+  `is_interactive_or_test_assets()` is true.
 
 So asset tests run when R is interactive (for example, `devtools::test()` in
-the RStudio console) or when `TEST_ASSETS` is `true`/`TRUE`/`T`.
+the RStudio console) or when `TEST_ASSETS` is `1`/`true`/`TRUE`/`T`.
 
 Tests that call `skip_if_assets_unavailable()` (the 20 skips):
 
@@ -57,8 +62,12 @@ Tests that call `skip_if_assets_unavailable()` (the 20 skips):
 |---|---|
 | `test-assertions.R` | The four `assets_remove()`, `assets_dirs()`, `assets_cleanup()` checks. |
 | `test-assets.R` | `assets_dirs() contains files`; `the default assets use the expected webR R version`. |
-| `test-export.R` | All six tests. |
-| `test-quarto_ext.R` | All eight tests, including the three argument-error tests. |
+| `test-export.R` | The six `export()` tests (not the two `check_subdir()`/`subdir` tests). |
+| `test-quarto_ext.R` | The first eight tests, including the three argument-error tests (not the two `build_app_resources()` tests). |
+
+The new offline tests in `test-app_json.R`, `test-assets.R`, `test-deps.R`,
+`test-quarto_ext.R`, and `test-utils.R` use temp folders (often a fake assets
+folder or `SHINYLIVE_WASM_PACKAGES = "FALSE"`), so they run without assets.
 
 Asset tests call `assets_ensure()`, which downloads the default assets into
 the real user cache (`assets_cache_dir()`) if they are missing. The export
@@ -123,13 +132,12 @@ version` call `skip_on_cran()`.
 `tests/spelling.R` runs, if `spelling` is installed:
 
 ```r
-spelling::spell_check_test(vignettes = TRUE, error = FALSE, skip_on_cran = TRUE)
+spelling::spell_check_test(vignettes = TRUE, error = TRUE, skip_on_cran = TRUE)
 ```
 
-`error = FALSE` means misspellings are printed but never fail `R CMD check`.
-Add accepted words to `inst/WORDLIST` (one per line, sorted). Check by hand
-with `spelling::spell_check_package()`. Right now it reports `pak`, `repo's`
-and `subfolder`, all in `README.md`.
+`error = TRUE` means a misspelling fails `R CMD check` (not on CRAN). Add
+accepted words to `inst/WORDLIST` (one per line). Check by hand with
+`spelling::spell_check_package()`; it also checks `NEWS.md` and `README.md`.
 
 ## Running tests
 
@@ -141,7 +149,7 @@ devtools::check()                      # full R CMD check
 ```
 
 ```sh
-TEST_ASSETS=true Rscript -e 'devtools::test()'   # include asset tests
+TEST_ASSETS=1 Rscript -e 'devtools::test()'   # include asset tests
 ```
 
 `devtools::test()` sets `NOT_CRAN=true`, so `skip_on_cran()` does not skip.
@@ -162,17 +170,15 @@ not skip there even with `--as-cran`.
 
 ## Pitfalls
 
-- **`TEST_ASSETS=1` does not work.** The skip message says "set environment
-  variable TEST_ASSETS=1", but `as.logical("1")` is `NA`, so
-  `can_test_assets()` returns `FALSE`. Use `TEST_ASSETS=true`.
 - **Asset tests write to your real cache.** `assets_ensure()` downloads into
   `assets_cache_dir()`. There is no temp cache for tests.
 - **Interactive runs include asset tests.** Running `devtools::test()` from
   the console downloads assets and hits the network.
-- **The `app-resources` tests in `test-quarto_ext.R` delete the session temp
-  folder.** They `setwd(tempdir())` and then `fs::dir_delete(tempdir())` on
-  exit. testthat recreates the folder, but anything else stored there (other
-  `tempfile()` paths) is gone. Use `withr::local_tempdir()` in new tests.
+- **`app-resources` writes under `QUARTO_PROJECT_DIR`.** The `app-resources`
+  tests in `test-quarto_ext.R` move into a `withr::local_tempdir()` and set
+  `QUARTO_PROJECT_DIR = "."`. The `build_app_resources()` tests use the
+  `local_app_resources_project()` helper for the same reason. Do the same in
+  new tests, or `.quarto/_webr/` is written into the working folder.
 - **`export - include R package in wasm assets` needs `utf8` installed
   locally.** `resolve_dependencies()` calls `find.package()` on the app's
   packages, which errors if one is missing. `shiny` is in the skip list, so it
@@ -183,5 +189,6 @@ not skip there even with `--as-cran`.
 - **`export with template` keeps an old guard**,
   `skip_if(assets_version() <= package_version("0.4.1"))`. It never skips with
   current assets.
-- **Spelling never fails the build** (`error = FALSE`). Run
-  `spelling::spell_check_package()` yourself after editing docs.
+- **Spelling fails the build** (`error = TRUE`). Run
+  `spelling::spell_check_package()` after editing docs, `NEWS.md`, or
+  roxygen, and add real words to `inst/WORDLIST`.

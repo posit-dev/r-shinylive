@@ -2,19 +2,19 @@
 
 Package workflows:
 
-- [`deploy-app`](#deploy-app) - A simple CI workflow to
-    check with the release version of R.
+- [`deploy-app`](#deploy-app) - Export a Shiny app with shinylive and deploy
+    it to GitHub Pages.
 
 ## Deploy App
 
-Reusable workflow that will deploy the root Shiny app dir to GitHub pages.
+Reusable workflow that will deploy a Shiny app dir (the repo root by default) to GitHub Pages.
 
 The agreed upon contract is:
 
-- Inspect the root directory for package dependencies
+- Inspect the app directory (`app-dir`, default: the repo root) for package dependencies
 - Install R and the found packages
 - Export the Shiny app directory to `./site`
-- On push events, deploy the exported app to GitHub Pages
+- On the default branch (and on scheduled runs), deploy the exported app to GitHub Pages
 
 If this contract is not met or could be easily improved for others, please open
 a new Issue https://github.com/posit-dev/r-shinylive/ .

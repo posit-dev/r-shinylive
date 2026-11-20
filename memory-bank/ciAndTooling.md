@@ -189,20 +189,15 @@ and more. A test `R CMD build` confirmed the tarball holds only
 - **The "PR package" matrix entry installs the PR from GitHub**
   (`posit-dev/r-shinylive#<n>`) with pak, not from the checkout. It tests the
   pushed PR head.
-- **`.Rbuildignore` has loose patterns.** `^.github$` (unescaped, a duplicate
-  of `^\.github$`) and `^.venv$` use `.` as "any character". They work but
-  could match other names.
+- **Escape dots in `.Rbuildignore`.** Patterns are regular expressions, so
+  write `^\.venv$`, not `^.venv$` (where `.` means "any character").
 - **`R_USER_CACHE_DIR` in the test-assets job sets the assets cache path.**
   rappdirs reads it before anything else. If you change it, change the
   `actions/cache` `path` to match, or the cache will miss.
-- **The second `sub()` in "Update lua script for debugging" is a no-op**
-  (pattern and replacement are both `-- print("res`).
-- **Docs that disagree with the workflows:** `README.md` says
-  "`posit-dev/r-shiny` has a workflow"; `examples/README.md` describes
-  `deploy-app` as a workflow to "check with the release version of R" and
-  says it deploys "the root Shiny app dir" on "push events". In fact
-  `app-dir` picks the folder and deploys happen for any event on the default
-  branch (including `workflow_dispatch`) plus `schedule`.
-- **Spelling and formatting do not fail CI.** `tests/spelling.R` uses
-  `error = FALSE`. air changes on PRs from this repo are committed by
-  `routine` instead of failing (fork PRs and pushes do fail).
+- **Deploys are not limited to push events.** `app-dir` picks the folder,
+  and deploys happen for any event on the default branch (including
+  `workflow_dispatch`) plus `schedule`. `examples/README.md` now says this.
+- **Spelling fails CI; formatting does not.** `tests/spelling.R` uses
+  `error = TRUE`, so a new word must go in `inst/WORDLIST`. air changes on
+  PRs from this repo are committed by `routine` instead of failing (fork PRs
+  and pushes do fail).

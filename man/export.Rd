@@ -22,7 +22,12 @@ export(
 \arguments{
 \item{appdir}{Directory containing the application.}
 
-\item{destdir}{Destination directory.}
+\item{destdir}{Destination directory. Keep \code{appdir} and \code{destdir} as
+separate folders, like \code{export("myapp", "site")}. \code{destdir} must not be
+\code{appdir} or a folder that holds \code{appdir}, so \code{export(".", ".")} and
+\code{export("myapp", ".")} are errors. A \code{destdir} inside \code{appdir}, like
+\code{export(".", "site")}, works (it is left out of the app), but is not
+recommended.}
 
 \item{...}{Ignored}
 
@@ -42,9 +47,10 @@ disable.}
 to \code{TRUE}.}
 
 \item{max_filesize}{Maximum file size for bundling of WebAssembly package
-assets. Parsed by \code{\link[fs:fs_bytes]{fs::fs_bytes()}}. Defaults to \code{"100M"}. The default
+assets. Parsed by \code{\link[fs:fs_bytes]{fs::fs_bytes()}}. Defaults to \code{"100MB"}. The default
 value can be changed by setting the environment variable
-\code{SHINYLIVE_DEFAULT_MAX_FILESIZE}. Set to \code{Inf}, \code{NA} or \code{-1} to disable.}
+\code{SHINYLIVE_DEFAULT_MAX_FILESIZE}. Set to \code{Inf}, \code{NA} or \code{-1} (or \code{"Inf"},
+\code{"NA"} or \code{"-1"}) to disable.}
 
 \item{assets_version}{The version of the Shinylive assets to use in the
 exported app. Defaults to \code{\link[=assets_version]{assets_version()}}. Note, not all custom assets
@@ -66,7 +72,7 @@ templates).
 With shinylive assets > 0.4.1, the default export template supports the
 following parameters:
 \enumerate{
-\item \code{title}: The title of the app. Defaults to \code{"Shiny app"}.
+\item \code{title}: The title of the app. Defaults to \code{"Shiny App"}.
 \item \code{include_in_head}, \code{include_before_body}, \code{include_after_body}: Raw
 HTML to be included in the \verb{<head>}, just after the opening \verb{<body>},
 or just before the closing \verb{</body>} tag, respectively.

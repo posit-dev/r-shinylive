@@ -50,7 +50,10 @@ print the assets information to the console.}
 \value{
 \code{assets_version()} returns the version of the currently supported Shinylive.
 
-All other methods return \code{invisible()}.
+\code{assets_download()} invisibly returns the cache directory and
+\code{assets_ensure()} invisibly returns the assets directory for \code{version}.
+
+\code{assets_cleanup()} and \code{assets_remove()} return \code{invisible()}.
 }
 \description{
 Helper methods for managing shinylive assets.
@@ -72,8 +75,8 @@ the one used by the current version of \pkg{shinylive}.
 \item \code{assets_remove()}: Removes a local copies of shinylive web assets.
 
 \item \code{assets_info()}: Prints information about the local shinylive assets that
-have been installed. Invisibly returns a table of installed asset versions
-and their associated paths.
+have been installed. Returns a table of installed asset versions and their
+associated paths, invisibly unless \code{quiet = TRUE}.
 
 \item \code{assets_version()}: Returns the version of the currently supported Shinylive
 assets version. If the \code{SHINYLIVE_ASSETS_VERSION} environment variable is set,

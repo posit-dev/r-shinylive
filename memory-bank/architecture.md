@@ -72,14 +72,14 @@ version of the webR inside the assets, which is read from the assets with
 
 | File | What it holds |
 |---|---|
-| `R/export.R` | `export()`, the main entry point; `wasm_packages_able()` |
+| `R/export.R` | `export()`, the main entry point; `wasm_packages_able()`, `check_subdir()` |
 | `R/app_json.R` | `read_app_files()`, `write_app_json()`; the file and app info objects |
 | `R/assets.R` | Download, cache, install, and remove assets; `assets_version()`; webR R version lookup |
 | `R/deps.R` | Lists asset files (`shinylive_common_files()`) and builds HTML dependency objects |
-| `R/packages.R` | Finds R package dependencies and downloads their Wasm binaries |
+| `R/packages.R` | Finds R package dependencies and downloads their Wasm binaries; `parse_max_filesize()` |
 | `R/quarto_ext.R` | `quarto_ext()` command-line interface; `build_app_resources()` |
 | `R/cli.R` | `cli` wrappers that respect the `shinylive.quiet` option |
-| `R/utils.R` | Argument checks, `create_copy_fn()`, `unlink_path()`, `cran_is_testing()` |
+| `R/utils.R` | Argument checks, `create_copy_fn()`, `unlink_path()`, `full_path()`, `comparable_path()`, `cran_is_testing()` |
 | `R/version.R` | `SHINYLIVE_ASSETS_VERSION`, `SHINYLIVE_R_VERSION` |
 | `R/release.R` | `release_bullets()` for `usethis::use_release_issue()` |
 | `R/shinylive-package.R` | Package doc and imports (`%||%`, `is_interactive`, `deprecated`) |
@@ -128,7 +128,7 @@ Other folders:
   R version (like `4.6.0`) is a third one, read from the assets.
 - **`SHINYLIVE_ASSETS_VERSION` the env var beats the constant.** A stale env
   var in your shell makes tests and exports use another assets version.
-- **Most tests skip by default.** Set `TEST_ASSETS=true` to run the tests
+- **Most tests skip by default.** Set `TEST_ASSETS=1` (or `true`) to run the tests
   that need the assets; see `testing.md`.
 - **stdout belongs to Quarto.** Inside `quarto_ext()`, only the final JSON may
   go to stdout. Use `cli` messages (stderr) for anything else.
