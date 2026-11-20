@@ -83,6 +83,12 @@ into a Shinylive app in `site/`:
 shinylive::export("myapp", "site")
 ```
 
+Keep the app and the exported site in separate folders, like `myapp/`
+and `site/` above. Run `export("myapp", "site")` from the folder that
+holds both, not `export(".", "site")` from inside `myapp/`. Exporting
+into the app folder, or into a folder that holds the app (like
+`export("myapp", ".")`), is an error.
+
 Then you can preview the application by running a web server and
 visiting it in a browser:
 
@@ -98,8 +104,8 @@ hosting service.
 
 If you have multiple applications that you want to put on the same site,
 you can export them to subdirectories of the site, so that they can all
-share the same Shinylive assets. You can do this with the `--subdir`
-option:
+share the same Shinylive assets. You can do this with the `subdir`
+argument:
 
 ``` r
 
@@ -109,9 +115,9 @@ shinylive::export("myapp2", "site", subdir = "app2")
 
 ### GitHub Pages
 
-`posit-dev/r-shiny` has a workflow to automatically deploy your Shiny
-app from the root directory in your GitHub repository to its GitHub
-Pages. You can add this workflow to your repo with help from
+`posit-dev/r-shinylive` has a workflow to automatically deploy your
+Shiny app from the root directory in your GitHub repository to its
+GitHub Pages. You can add this workflow to your repo with help from
 [usethis](https://usethis.r-lib.org/).
 
 ``` r
@@ -200,15 +206,15 @@ already installed locally:
 ``` r
 
 shinylive::assets_info()
-#> shinylive R package version:  0.1.0
+#> shinylive R package version: 0.1.0
 #> shinylive web assets version: 0.2.1
 #>
 #> Local cached shinylive asset dir:
-#>     /Users/username/Library/Caches/shinylive
+#> > /Users/username/Library/Caches/shinylive
 #>
 #> Installed assets:
-#>     /Users/username/Library/Caches/shinylive/0.2.1
-#>     /Users/username/Library/Caches/shinylive/0.2.0
+#> • /Users/username/Library/Caches/shinylive/shinylive-0.2.1
+#> • /Users/username/Library/Caches/shinylive/shinylive-0.2.0
 ```
 
 The web assets will be downloaded and cached the first time you run
@@ -220,21 +226,20 @@ to fetch them manually.
 ``` r
 
 shinylive::assets_download("0.1.5")
-#> Downloading shinylive v0.1.5...
-#> Unzipping to /Users/username/Library/Caches/shinylive/
+#> ℹ Downloading shinylive assets v0.1.5
+#> ℹ Unzipping shinylive assets to /Users/username/Library/Caches/shinylive
 ```
 
 You can remove old versions with
 [`shinylive::assets_cleanup()`](https://posit-dev.github.io/r-shinylive/dev/reference/assets.md).
-This will remove all versions except the one that the Python package
-wants to use:
+This will remove all versions except the one that this R package uses:
 
 ``` r
 
 shinylive::assets_cleanup()
-#> Keeping version 0.2.1
-#> Removing /Users/username/Library/Caches/shinylive/0.2.0
-#> Removing /Users/username/Library/Caches/shinylive/0.1.5
+#> ℹ Keeping version 0.2.1
+#> ℹ Removing /Users/username/Library/Caches/shinylive/shinylive-0.2.0
+#> ℹ Removing /Users/username/Library/Caches/shinylive/shinylive-0.1.5
 ```
 
 To remove a specific version, use
@@ -243,7 +248,7 @@ To remove a specific version, use
 ``` r
 
 shinylive::assets_remove("0.2.1")
-#> Removing /Users/username/Library/Caches/shinylive/0.2.1
+#> ℹ Removing /Users/username/Library/Caches/shinylive/shinylive-0.2.1
 ```
 
 ## Known limitations
@@ -314,8 +319,8 @@ shinylive_lua <- file.path("local", "quarto", "_extensions", "quarto-ext", "shin
 shinylive_lua |>
     brio::read_file() |>
     sub(
-        pattern = "shinylive::quarto_ext()",
-        replacement = "pkgload::load_all('../../', quiet = TRUE); shinylive::quarto_ext()",
+        pattern = "shinylive:::quarto_ext()",
+        replacement = "pkgload::load_all('../../', quiet = TRUE); shinylive:::quarto_ext()",
         fixed = TRUE
     ) |>
     brio::write_file(shinylive_lua)

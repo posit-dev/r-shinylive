@@ -38,9 +38,10 @@ Nothing. Values are printed to stdout.
 
 ## Command arguments
 
-The first argument must be `"extension"`. This is done to match
-`py-shinylive` so that it can nest other sub-commands under the
-`extension` argument to minimize the api clutter the user can see.
+The first argument must be `"extension"` (or `"--version"`, which prints
+the R package version). This is done to match `py-shinylive` so that it
+can nest other sub-commands under the `extension` argument to minimize
+the api clutter the user can see.
 
 ### CLI Interface
 
@@ -143,18 +144,20 @@ The first argument must be `"extension"`. This is done to match
   - Prints app-specific resource files as JSON that should be added to
     the `"shinylive"` quarto html dependency.
 
-  - Currently, r-shinylive does not return any resource files.
+  - Reads the app's files as JSON from `con` (stdin by default),
+    downloads WebAssembly binaries of the app's R packages, and prints
+    those files and their `metadata.rds` as resources.
 
   - Example
 
         [
           {
-            "name": "shinylive/pyodide/anyio-3.7.0-py3-none-any.whl",
-            "path": "/<ASSETS_CACHE_DIR>/shinylive-0.2.0/shinylive/pyodide/anyio-3.7.0-py3-none-any.whl"
+            "name": "shinylive/webr/packages/metadata.rds",
+            "path": "/<QUARTO_PROJECT_DIR>/.quarto/_webr/destdir/shinylive/webr/packages/metadata.rds"
           },
           {
-            "name": "shinylive/pyodide/appdirs-1.4.4-py2.py3-none-any.whl",
-            "path": "/<ASSETS_CACHE_DIR>/shinylive-0.2.0/shinylive/pyodide/appdirs-1.4.4-py2.py3-none-any.whl"
+            "name": "shinylive/webr/packages/brio/brio_1.1.5.tgz",
+            "path": "/<QUARTO_PROJECT_DIR>/.quarto/_webr/destdir/shinylive/webr/packages/brio/brio_1.1.5.tgz"
           },
           ... # [ truncated ]
         ]

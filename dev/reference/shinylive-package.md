@@ -2,7 +2,7 @@
 
 Exporting 'shiny' applications with 'shinylive' allows you to run them
 entirely in a web browser, without the need for a separate R server. The
-traditional way of deploying 'shiny' applications involves in a separate
+traditional way of deploying 'shiny' applications involves a separate
 server and client: the server runs R and 'shiny', and clients connect
 via the web browser. When an application is deployed with 'shinylive', R
 and 'shiny' run in the web browser (via 'webR'): the browser is

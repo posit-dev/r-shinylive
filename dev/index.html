@@ -13,8 +13,8 @@
 <link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Run shiny Applications in the Browser">
-<meta name="description" content="Exporting shiny applications with shinylive allows you to run them entirely in a web browser, without the need for a separate R server. The traditional way of deploying shiny applications involves in a separate server and client: the server runs R and shiny, and clients connect via the web browser. When an application is deployed with shinylive, R and shiny run in the web browser (via webR): the browser is effectively both the client and server for the application. This allows for your shiny application exported by shinylive to be hosted by a static web server.">
-<meta property="og:description" content="Exporting shiny applications with shinylive allows you to run them entirely in a web browser, without the need for a separate R server. The traditional way of deploying shiny applications involves in a separate server and client: the server runs R and shiny, and clients connect via the web browser. When an application is deployed with shinylive, R and shiny run in the web browser (via webR): the browser is effectively both the client and server for the application. This allows for your shiny application exported by shinylive to be hosted by a static web server.">
+<meta name="description" content="Exporting shiny applications with shinylive allows you to run them entirely in a web browser, without the need for a separate R server. The traditional way of deploying shiny applications involves a separate server and client: the server runs R and shiny, and clients connect via the web browser. When an application is deployed with shinylive, R and shiny run in the web browser (via webR): the browser is effectively both the client and server for the application. This allows for your shiny application exported by shinylive to be hosted by a static web server.">
+<meta property="og:description" content="Exporting shiny applications with shinylive allows you to run them entirely in a web browser, without the need for a separate R server. The traditional way of deploying shiny applications involves a separate server and client: the server runs R and shiny, and clients connect via the web browser. When an application is deployed with shinylive, R and shiny run in the web browser (via webR): the browser is effectively both the client and server for the application. This allows for your shiny application exported by shinylive to be hosted by a static web server.">
 <meta name="robots" content="noindex">
 <!-- See https://stackoverflow.com/questions/1865837/whats-the-difference-between-window-location-and-window-location-replace — we use .replace() because we don't want the old url to appear in the browser history. --><script>
   if (!/(\/|html?)$/.test(window.location.href)){
@@ -97,6 +97,7 @@
 <p>Once you have a Shiny application in <code>myapp/</code> and would like turn it into a Shinylive app in <code>site/</code>:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/export.html">export</a></span><span class="op">(</span><span class="st">"myapp"</span>, <span class="st">"site"</span><span class="op">)</span></span></code></pre></div>
+<p>Keep the app and the exported site in separate folders, like <code>myapp/</code> and <code>site/</code> above. Run <code>export("myapp", "site")</code> from the folder that holds both, not <code>export(".", "site")</code> from inside <code>myapp/</code>. Exporting into the app folder, or into a folder that holds the app (like <code>export("myapp", ".")</code>), is an error.</p>
 <p>Then you can preview the application by running a web server and visiting it in a browser:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">httpuv</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/httpuv/reference/runStaticServer.html" class="external-link">runStaticServer</a></span><span class="op">(</span><span class="st">"site/"</span><span class="op">)</span></span></code></pre></div>
@@ -104,7 +105,7 @@
 <div class="section level3">
 <h3 id="multiple-applications">Multiple applications<a class="anchor" aria-label="anchor" href="#multiple-applications"></a>
 </h3>
-<p>If you have multiple applications that you want to put on the same site, you can export them to subdirectories of the site, so that they can all share the same Shinylive assets. You can do this with the <code>--subdir</code> option:</p>
+<p>If you have multiple applications that you want to put on the same site, you can export them to subdirectories of the site, so that they can all share the same Shinylive assets. You can do this with the <code>subdir</code> argument:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/export.html">export</a></span><span class="op">(</span><span class="st">"myapp1"</span>, <span class="st">"site"</span>, subdir <span class="op">=</span> <span class="st">"app1"</span><span class="op">)</span></span>
 <span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/export.html">export</a></span><span class="op">(</span><span class="st">"myapp2"</span>, <span class="st">"site"</span>, subdir <span class="op">=</span> <span class="st">"app2"</span><span class="op">)</span></span></code></pre></div>
@@ -112,7 +113,7 @@
 <div class="section level3">
 <h3 id="github-pages">GitHub Pages<a class="anchor" aria-label="anchor" href="#github-pages"></a>
 </h3>
-<p><code>posit-dev/r-shiny</code> has a workflow to automatically deploy your Shiny app from the root directory in your GitHub repository to its GitHub Pages. You can add this workflow to your repo with help from <a href="https://usethis.r-lib.org/" class="external-link">usethis</a>.</p>
+<p><code>posit-dev/r-shinylive</code> has a workflow to automatically deploy your Shiny app from the root directory in your GitHub repository to its GitHub Pages. You can add this workflow to your repo with help from <a href="https://usethis.r-lib.org/" class="external-link">usethis</a>.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">usethis</span><span class="fu">::</span><span class="fu">use_github_action</span><span class="op">(</span>url<span class="op">=</span><span class="st">"https://github.com/posit-dev/r-shinylive/blob/actions-v1/examples/deploy-app.yaml"</span><span class="op">)</span></span></code></pre></div>
 <p>If your app is in a subfolder instead of the repo root, set the <code>app-dir</code> input:</p>
@@ -151,30 +152,30 @@
 <p>To see which version of this R package you have, and which version of the web assets it is associated with, simply run <code><a href="reference/assets.html">shinylive::assets_info()</a></code> in your R session. It will also show which asset versions you have already installed locally:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/assets.html">assets_info</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; shinylive R package version:  0.1.0</span></span>
+<span><span class="co">#&gt; shinylive R package version: 0.1.0</span></span>
 <span><span class="co">#&gt; shinylive web assets version: 0.2.1</span></span>
 <span><span class="co">#&gt;</span></span>
 <span><span class="co">#&gt; Local cached shinylive asset dir:</span></span>
-<span><span class="co">#&gt;     /Users/username/Library/Caches/shinylive</span></span>
+<span><span class="co">#&gt; &gt; /Users/username/Library/Caches/shinylive</span></span>
 <span><span class="co">#&gt;</span></span>
 <span><span class="co">#&gt; Installed assets:</span></span>
-<span><span class="co">#&gt;     /Users/username/Library/Caches/shinylive/0.2.1</span></span>
-<span><span class="co">#&gt;     /Users/username/Library/Caches/shinylive/0.2.0</span></span></code></pre></div>
+<span><span class="co">#&gt; • /Users/username/Library/Caches/shinylive/shinylive-0.2.1</span></span>
+<span><span class="co">#&gt; • /Users/username/Library/Caches/shinylive/shinylive-0.2.0</span></span></code></pre></div>
 <p>The web assets will be downloaded and cached the first time you run <code><a href="reference/export.html">shinylive::export()</a></code>. Or, you can run <code><a href="reference/assets.html">shinylive::assets_download()</a></code> to fetch them manually.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/assets.html">assets_download</a></span><span class="op">(</span><span class="st">"0.1.5"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Downloading shinylive v0.1.5...</span></span>
-<span><span class="co">#&gt; Unzipping to /Users/username/Library/Caches/shinylive/</span></span></code></pre></div>
-<p>You can remove old versions with <code><a href="reference/assets.html">shinylive::assets_cleanup()</a></code>. This will remove all versions except the one that the Python package wants to use:</p>
+<span><span class="co">#&gt; ℹ Downloading shinylive assets v0.1.5</span></span>
+<span><span class="co">#&gt; ℹ Unzipping shinylive assets to /Users/username/Library/Caches/shinylive</span></span></code></pre></div>
+<p>You can remove old versions with <code><a href="reference/assets.html">shinylive::assets_cleanup()</a></code>. This will remove all versions except the one that this R package uses:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/assets.html">assets_cleanup</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Keeping version 0.2.1</span></span>
-<span><span class="co">#&gt; Removing /Users/username/Library/Caches/shinylive/0.2.0</span></span>
-<span><span class="co">#&gt; Removing /Users/username/Library/Caches/shinylive/0.1.5</span></span></code></pre></div>
+<span><span class="co">#&gt; ℹ Keeping version 0.2.1</span></span>
+<span><span class="co">#&gt; ℹ Removing /Users/username/Library/Caches/shinylive/shinylive-0.2.0</span></span>
+<span><span class="co">#&gt; ℹ Removing /Users/username/Library/Caches/shinylive/shinylive-0.1.5</span></span></code></pre></div>
 <p>To remove a specific version, use <code><a href="reference/assets.html">shinylive::assets_remove()</a></code>:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/assets.html">assets_remove</a></span><span class="op">(</span><span class="st">"0.2.1"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Removing /Users/username/Library/Caches/shinylive/0.2.1</span></span></code></pre></div>
+<span><span class="co">#&gt; ℹ Removing /Users/username/Library/Caches/shinylive/shinylive-0.2.1</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="known-limitations">Known limitations<a class="anchor" aria-label="anchor" href="#known-limitations"></a>
@@ -225,8 +226,8 @@
 <span><span class="va">shinylive_lua</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu">brio</span><span class="fu">::</span><span class="fu"><a href="https://brio.r-lib.org/reference/read_file.html" class="external-link">read_file</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span></span>
-<span>        pattern <span class="op">=</span> <span class="st">"shinylive::quarto_ext()"</span>,</span>
-<span>        replacement <span class="op">=</span> <span class="st">"pkgload::load_all('../../', quiet = TRUE); shinylive::quarto_ext()"</span>,</span>
+<span>        pattern <span class="op">=</span> <span class="st">"shinylive:::quarto_ext()"</span>,</span>
+<span>        replacement <span class="op">=</span> <span class="st">"pkgload::load_all('../../', quiet = TRUE); shinylive:::quarto_ext()"</span>,</span>
 <span>        fixed <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span>    <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu">brio</span><span class="fu">::</span><span class="fu"><a href="https://brio.r-lib.org/reference/write_file.html" class="external-link">write_file</a></span><span class="op">(</span><span class="va">shinylive_lua</span><span class="op">)</span></span></code></pre></div>

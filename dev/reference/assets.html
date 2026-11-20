@@ -96,7 +96,9 @@ print the assets information to the console.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p><code>assets_version()</code> returns the version of the currently supported Shinylive.</p>
-<p>All other methods return <code><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible()</a></code>.</p>
+<p><code>assets_download()</code> invisibly returns the cache directory and
+<code>assets_ensure()</code> invisibly returns the assets directory for <code>version</code>.</p>
+<p><code>assets_cleanup()</code> and <code>assets_remove()</code> return <code><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible()</a></code>.</p>
     </div>
     <div class="section level2">
     <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
@@ -112,8 +114,8 @@ If a local copy of shinylive is installed, its path will be returned.</p></li>
 the one used by the current version of <span class="pkg">shinylive</span>.</p></li>
 <li><p><code>assets_remove()</code>: Removes a local copies of shinylive web assets.</p></li>
 <li><p><code>assets_info()</code>: Prints information about the local shinylive assets that
-have been installed. Invisibly returns a table of installed asset versions
-and their associated paths.</p></li>
+have been installed. Returns a table of installed asset versions and their
+associated paths, invisibly unless <code>quiet = TRUE</code>.</p></li>
 <li><p><code>assets_version()</code>: Returns the version of the currently supported Shinylive
 assets version. If the <code>SHINYLIVE_ASSETS_VERSION</code> environment variable is set,
 that value will be used.</p></li>

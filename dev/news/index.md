@@ -12,6 +12,52 @@
   Cached binaries from another R version are now deleted and downloaded
   again ([\#209](https://github.com/posit-dev/r-shinylive/issues/209)).
 
+- [`export()`](https://posit-dev.github.io/r-shinylive/dev/reference/export.md)
+  fixes ([\#216](https://github.com/posit-dev/r-shinylive/issues/216)):
+
+  - Exporting into the app folder (`export(".", ".")`) or into a folder
+    that holds the app (`export("myapp", ".")`) is now an error instead
+    of giving an empty `app.json`. Keep the app and the export in
+    separate folders, like `export("myapp", "site")`.
+  - An app folder named `venv` or `rsconnect`, and a mix of relative and
+    absolute paths, no longer give an empty or wrong `app.json`. Paths
+    are compared without case on Windows and macOS.
+  - `subdir` can no longer point outside `destdir`, and `subdir = "."`
+    is the same as no subdir.
+  - App text files that are not valid UTF-8 are stored as binary, so
+    `app.json` stays valid JSON.
+  - Re-exporting with a custom template that has non-HTML files works.
+  - The message about differing asset copies respects `quiet = TRUE`.
+  - `max_filesize` (and `SHINYLIVE_DEFAULT_MAX_FILESIZE`) accept
+    `"Inf"`, `"NA"`, and `"-1"` to turn the limit off. Values that can’t
+    be parsed, like `""`, now warn and use the default instead of
+    turning the limit off.
+  - A package left out for being larger than `max_filesize` is
+    downloaded again once the limit allows its size, and the warning
+    shows on every export while it is left out. A cached package larger
+    than a new, smaller limit is now left out too (or is an error when
+    the limit is set).
+
+- Assets fixes
+  ([\#216](https://github.com/posit-dev/r-shinylive/issues/216)):
+  `assets_ensure(dir=)` and `assets_dir(dir=)` use `dir` instead of the
+  default cache,
+  [`assets_info()`](https://posit-dev.github.io/r-shinylive/dev/reference/assets.md)
+  works when no assets are installed, stray `shinylive-*` files or
+  folders in the cache no longer break
+  [`assets_info()`](https://posit-dev.github.io/r-shinylive/dev/reference/assets.md)
+  and
+  [`assets_cleanup()`](https://posit-dev.github.io/r-shinylive/dev/reference/assets.md),
+  and
+  [`assets_ensure()`](https://posit-dev.github.io/r-shinylive/dev/reference/assets.md)
+  shows the cache folder it creates.
+
+- The Quarto extension’s `app-resources` command checks app file paths
+  by their parts (so `..foo.R` is allowed and `C:/x.R` or `~/x.R` are
+  not) and errors on binary files that can’t be decoded instead of
+  skipping them
+  ([\#216](https://github.com/posit-dev/r-shinylive/issues/216)).
+
 - Updated the default shinylive assets to
   [v0.10.16](https://github.com/posit-dev/shinylive/releases/tag/v0.10.16),
   which bundles Shiny for Python
@@ -161,8 +207,8 @@ CRAN release: 2024-07-19
     the template. The default template include `title` (the title for
     the page with the exported app), `include_in_head` (HTML added to
     the `<head>` of the page), and `include_before_body` (HTML added
-    just after `<body>`) and `include_after_body` (HTML added just after
-    `</body>`).
+    just after `<body>`) and `include_after_body` (HTML added just
+    before `</body>`).
   - `template_dir` is the directory containing the template files. The
     default is the `export_template` directory of the shinylive assets
     being used for the export. Use

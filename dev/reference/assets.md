@@ -62,7 +62,10 @@ assets_version()
 `assets_version()` returns the version of the currently supported
 Shinylive.
 
-All other methods return
+`assets_download()` invisibly returns the cache directory and
+`assets_ensure()` invisibly returns the assets directory for `version`.
+
+`assets_cleanup()` and `assets_remove()` return
 [`invisible()`](https://rdrr.io/r/base/invisible.html).
 
 ## Functions
@@ -83,8 +86,8 @@ All other methods return
 - `assets_remove()`: Removes a local copies of shinylive web assets.
 
 - `assets_info()`: Prints information about the local shinylive assets
-  that have been installed. Invisibly returns a table of installed asset
-  versions and their associated paths.
+  that have been installed. Returns a table of installed asset versions
+  and their associated paths, invisibly unless `quiet = TRUE`.
 
 - `assets_version()`: Returns the version of the currently supported
   Shinylive assets version. If the `SHINYLIVE_ASSETS_VERSION`

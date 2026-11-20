@@ -37,6 +37,21 @@
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
 <ul><li><p><code><a href="../reference/export.html">export()</a></code> and the Quarto extension now pick WebAssembly package binaries for the R version of the webR in the Shinylive assets being used. Before, they always used the R version of the package’s default assets, so a different <code>assets_version</code> could bundle binaries that webR can’t load. Cached binaries from another R version are now deleted and downloaded again (<a href="https://github.com/posit-dev/r-shinylive/issues/209" class="external-link">#209</a>).</p></li>
+<li>
+<p><code><a href="../reference/export.html">export()</a></code> fixes (<a href="https://github.com/posit-dev/r-shinylive/issues/216" class="external-link">#216</a>):</p>
+<ul><li>Exporting into the app folder (<code>export(".", ".")</code>) or into a folder that holds the app (<code>export("myapp", ".")</code>) is now an error instead of giving an empty <code>app.json</code>. Keep the app and the export in separate folders, like <code>export("myapp", "site")</code>.</li>
+<li>An app folder named <code>venv</code> or <code>rsconnect</code>, and a mix of relative and absolute paths, no longer give an empty or wrong <code>app.json</code>. Paths are compared without case on Windows and macOS.</li>
+<li>
+<code>subdir</code> can no longer point outside <code>destdir</code>, and <code>subdir = "."</code> is the same as no subdir.</li>
+<li>App text files that are not valid UTF-8 are stored as binary, so <code>app.json</code> stays valid JSON.</li>
+<li>Re-exporting with a custom template that has non-HTML files works.</li>
+<li>The message about differing asset copies respects <code>quiet = TRUE</code>.</li>
+<li>
+<code>max_filesize</code> (and <code>SHINYLIVE_DEFAULT_MAX_FILESIZE</code>) accept <code>"Inf"</code>, <code>"NA"</code>, and <code>"-1"</code> to turn the limit off. Values that can’t be parsed, like <code>""</code>, now warn and use the default instead of turning the limit off.</li>
+<li>A package left out for being larger than <code>max_filesize</code> is downloaded again once the limit allows its size, and the warning shows on every export while it is left out. A cached package larger than a new, smaller limit is now left out too (or is an error when the limit is set).</li>
+</ul></li>
+<li><p>Assets fixes (<a href="https://github.com/posit-dev/r-shinylive/issues/216" class="external-link">#216</a>): <code>assets_ensure(dir=)</code> and <code>assets_dir(dir=)</code> use <code>dir</code> instead of the default cache, <code><a href="../reference/assets.html">assets_info()</a></code> works when no assets are installed, stray <code>shinylive-*</code> files or folders in the cache no longer break <code><a href="../reference/assets.html">assets_info()</a></code> and <code><a href="../reference/assets.html">assets_cleanup()</a></code>, and <code><a href="../reference/assets.html">assets_ensure()</a></code> shows the cache folder it creates.</p></li>
+<li><p>The Quarto extension’s <code>app-resources</code> command checks app file paths by their parts (so <code>..foo.R</code> is allowed and <code>C:/x.R</code> or <code>~/x.R</code> are not) and errors on binary files that can’t be decoded instead of skipping them (<a href="https://github.com/posit-dev/r-shinylive/issues/216" class="external-link">#216</a>).</p></li>
 <li><p>Updated the default shinylive assets to <a href="https://github.com/posit-dev/shinylive/releases/tag/v0.10.16" class="external-link">v0.10.16</a>, which bundles Shiny for Python <a href="https://github.com/posit-dev/py-shiny/releases/tag/v1.9.0" class="external-link">v1.9.0</a>. The bundled webR is unchanged at <a href="https://github.com/r-wasm/webr/releases/tag/v0.6.0" class="external-link">v0.6.0</a>.</p></li>
 </ul></div>
 </div>
@@ -88,7 +103,7 @@
 <li>
 <p><code><a href="../reference/export.html">export()</a></code> gains <code>template_params</code> and <code>template_dir</code> arguments to control the template HTML files used in the export, allowing users to partially or completely customize the exported HTML. The export template is provided by the shinylive assets and may change from release-to-release. Use <code><a href="../reference/assets.html">assets_info()</a></code> to locate installed shinylive assets; the template files for a given release are in the <code>export_template</code> directory of the release. (<a href="https://github.com/posit-dev/r-shinylive/issues/96" class="external-link">#96</a>)</p>
 <ul><li>
-<code>template_params</code> takes a list of parameters to be interpolated into the template. The default template include <code>title</code> (the title for the page with the exported app), <code>include_in_head</code> (HTML added to the <code>&lt;head&gt;</code> of the page), and <code>include_before_body</code> (HTML added just after <code>&lt;body&gt;</code>) and <code>include_after_body</code> (HTML added just after <code>&lt;/body&gt;</code>).</li>
+<code>template_params</code> takes a list of parameters to be interpolated into the template. The default template include <code>title</code> (the title for the page with the exported app), <code>include_in_head</code> (HTML added to the <code>&lt;head&gt;</code> of the page), and <code>include_before_body</code> (HTML added just after <code>&lt;body&gt;</code>) and <code>include_after_body</code> (HTML added just before <code>&lt;/body&gt;</code>).</li>
 <li>
 <code>template_dir</code> is the directory containing the template files. The default is the <code>export_template</code> directory of the shinylive assets being used for the export. Use <code><a href="../reference/assets.html">assets_info()</a></code> to locate installed shinylive assets where you can find the default template files.</li>
 </ul></li>

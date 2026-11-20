@@ -30,7 +30,12 @@ export(
 
 - destdir:
 
-  Destination directory.
+  Destination directory. Keep `appdir` and `destdir` as separate
+  folders, like `export("myapp", "site")`. `destdir` must not be
+  `appdir` or a folder that holds `appdir`, so `export(".", ".")` and
+  `export("myapp", ".")` are errors. A `destdir` inside `appdir`, like
+  `export(".", "site")`, works (it is left out of the app), but is not
+  recommended.
 
 - ...:
 
@@ -62,9 +67,9 @@ export(
 
   Maximum file size for bundling of WebAssembly package assets. Parsed
   by [`fs::fs_bytes()`](https://fs.r-lib.org/reference/fs_bytes.html).
-  Defaults to `"100M"`. The default value can be changed by setting the
+  Defaults to `"100MB"`. The default value can be changed by setting the
   environment variable `SHINYLIVE_DEFAULT_MAX_FILESIZE`. Set to `Inf`,
-  `NA` or `-1` to disable.
+  `NA` or `-1` (or `"Inf"`, `"NA"` or `"-1"`) to disable.
 
 - assets_version:
 
@@ -92,7 +97,7 @@ export(
   With shinylive assets \> 0.4.1, the default export template supports
   the following parameters:
 
-  1.  `title`: The title of the app. Defaults to `"Shiny app"`.
+  1.  `title`: The title of the app. Defaults to `"Shiny App"`.
 
   2.  `include_in_head`, `include_before_body`, `include_after_body`:
       Raw HTML to be included in the `<head>`, just after the opening

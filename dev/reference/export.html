@@ -67,7 +67,12 @@ using <code>httpuv</code>.</p>
 
 
 <dt id="arg-destdir">destdir<a class="anchor" aria-label="anchor" href="#arg-destdir"></a></dt>
-<dd><p>Destination directory.</p></dd>
+<dd><p>Destination directory. Keep <code>appdir</code> and <code>destdir</code> as
+separate folders, like <code>export("myapp", "site")</code>. <code>destdir</code> must not be
+<code>appdir</code> or a folder that holds <code>appdir</code>, so <code>export(".", ".")</code> and
+<code>export("myapp", ".")</code> are errors. A <code>destdir</code> inside <code>appdir</code>, like
+<code>export(".", "site")</code>, works (it is left out of the app), but is not
+recommended.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -99,9 +104,10 @@ to <code>TRUE</code>.</p></dd>
 
 <dt id="arg-max-filesize">max_filesize<a class="anchor" aria-label="anchor" href="#arg-max-filesize"></a></dt>
 <dd><p>Maximum file size for bundling of WebAssembly package
-assets. Parsed by <code><a href="https://fs.r-lib.org/reference/fs_bytes.html" class="external-link">fs::fs_bytes()</a></code>. Defaults to <code>"100M"</code>. The default
+assets. Parsed by <code><a href="https://fs.r-lib.org/reference/fs_bytes.html" class="external-link">fs::fs_bytes()</a></code>. Defaults to <code>"100MB"</code>. The default
 value can be changed by setting the environment variable
-<code>SHINYLIVE_DEFAULT_MAX_FILESIZE</code>. Set to <code>Inf</code>, <code>NA</code> or <code>-1</code> to disable.</p></dd>
+<code>SHINYLIVE_DEFAULT_MAX_FILESIZE</code>. Set to <code>Inf</code>, <code>NA</code> or <code>-1</code> (or <code>"Inf"</code>,
+<code>"NA"</code> or <code>"-1"</code>) to disable.</p></dd>
 
 
 <dt id="arg-assets-version">assets_version<a class="anchor" aria-label="anchor" href="#arg-assets-version"></a></dt>
@@ -126,7 +132,7 @@ may support additional parameters (see <code>template_dir</code> for instruction
 creating a custom template or to find the current shinylive assets'
 templates).</p>
 <p>With shinylive assets &gt; 0.4.1, the default export template supports the
-following parameters:</p><ol><li><p><code>title</code>: The title of the app. Defaults to <code>"Shiny app"</code>.</p></li>
+following parameters:</p><ol><li><p><code>title</code>: The title of the app. Defaults to <code>"Shiny App"</code>.</p></li>
 <li><p><code>include_in_head</code>, <code>include_before_body</code>, <code>include_after_body</code>: Raw
 HTML to be included in the <code>&lt;head&gt;</code>, just after the opening <code>&lt;body&gt;</code>,
 or just before the closing <code>&lt;/body&gt;</code> tag, respectively.</p></li>

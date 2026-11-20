@@ -1,4 +1,4 @@
-# Install shinylive assets from from a local directory
+# Install shinylive assets from a local directory
 
 Helper methods for testing updates to shinylive assets.
 
@@ -25,7 +25,7 @@ assets_install_link(
 - assets_repo_dir:
 
   The local repository directory for shinylive assets (e.g.
-  [`posit-dev/shinylive`](https://github.com/posit-dev/py-shinylive))
+  [`posit-dev/shinylive`](https://github.com/posit-dev/shinylive))
 
 - ...:
 
@@ -49,12 +49,12 @@ All method return
 
 - `assets_install_copy()`: Copies all shinylive assets from a local
   shinylive repository (e.g.
-  [`posit-dev/shinylive`](https://github.com/posit-dev/py-shinylive)).
-  This must be repeated for any change in the assets.
+  [`posit-dev/shinylive`](https://github.com/posit-dev/shinylive)). This
+  must be repeated for any change in the assets.
 
 - `assets_install_link()`: Creates a symlink of the local shinylive
   assets to the cached assets directory. After the first installation,
-  the assets will the same as the source due to the symlink.
+  the assets will be the same as the source due to the symlink.
 
 ## See also
 

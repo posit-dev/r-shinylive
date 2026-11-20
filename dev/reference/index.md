@@ -13,6 +13,6 @@
   : Export a Shiny app to a directory
 - [`assets_install_copy()`](https://posit-dev.github.io/r-shinylive/dev/reference/install.md)
   [`assets_install_link()`](https://posit-dev.github.io/r-shinylive/dev/reference/install.md)
-  : Install shinylive assets from from a local directory
+  : Install shinylive assets from a local directory
 - [`quarto_ext()`](https://posit-dev.github.io/r-shinylive/dev/reference/quarto_ext.md)
   : Quarto extension for shinylive
