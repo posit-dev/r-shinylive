@@ -48,7 +48,9 @@ the cache, and reads files from it.
   `withr::local_envvar(R_USER_CACHE_DIR = tmp)` moves the cache to
   `tmp/shinylive`. `XDG_CACHE_HOME` is ignored on macOS.
 - `assets_dir_impl(dir, version)` builds `<dir>/shinylive-<version>`. The
-  prefix is the `shinylive_prefix` constant.
+  prefix is the `shinylive_prefix` constant. `assets_path_version(path)` does
+  the reverse: it returns the version from a folder path. Use it instead of
+  stripping the prefix by hand.
 - `assets_dirs(dir)` lists `shinylive-*` entries in `dir` (with base
   `dir()`, which is faster than `fs::dir_ls()`), keeps only folders whose
   suffix parses with `numeric_version(strict = FALSE)`, and sorts them newest

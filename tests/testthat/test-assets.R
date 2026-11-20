@@ -107,3 +107,27 @@ test_that("check_assets_url() returns FALSE for a missing release", {
   skip_if_offline("github.com")
   expect_false(check_assets_url(url = assets_bundle_url("0.0.0-missing")))
 })
+
+test_that("assets_path_version() returns the version of an assets folder", {
+  expect_equal(
+    assets_path_version(c("/cache/shinylive-0.10.16", "shinylive-1.0.0")),
+    c("0.10.16", "1.0.0")
+  )
+  expect_equal(assets_path_version("/x/shinylive-shinylive-1"), "shinylive-1")
+  expect_equal(assets_path_version(character(0)), character(0))
+})
+
+test_that("assets_cleanup() removes all but the current assets version", {
+  dir <- withr::local_tempdir()
+  fs::dir_create(fs::path(
+    dir,
+    paste0("shinylive-", c("0.0.1", assets_version()))
+  ))
+  withr::local_options(shinylive.quiet = TRUE)
+
+  assets_cleanup(dir = dir)
+  expect_equal(
+    assets_dirs(dir = dir),
+    fs::path(dir, paste0("shinylive-", assets_version()))
+  )
+})

@@ -90,6 +90,11 @@ assets_dir <- function(
   assets_dir_impl(dir = dir, version = version)
 }
 shinylive_prefix <- "shinylive-"
+# Returns the version from an assets folder path, like `0.10.16` from
+# `<cache>/shinylive-0.10.16`
+assets_path_version <- function(path) {
+  sub(paste0("^", shinylive_prefix), "", basename(path))
+}
 assets_dir_impl <- function(
   ...,
   dir = assets_cache_dir(),
@@ -277,13 +282,7 @@ assets_cleanup <- function(
   dir = assets_cache_dir()
 ) {
   rlang::check_dots_empty()
-  versions <- vapply(
-    assets_dirs(dir = dir),
-    function(ver_path) {
-      sub(shinylive_prefix, "", basename(ver_path))
-    },
-    character(1)
-  )
+  versions <- assets_path_version(assets_dirs(dir = dir))
   if (assets_version() %in% versions) {
     cli_alert_info("Keeping version {assets_version()}")
     versions <- setdiff(versions, assets_version())
@@ -360,7 +359,7 @@ assets_dirs <- function(
   }
 
   # Skip files and folders whose suffix is not a version, like `shinylive-dev`
-  path_versions_str <- sub(shinylive_prefix, "", path_basenames)
+  path_versions_str <- assets_path_version(path_basenames)
   path_versions <- numeric_version(path_versions_str, strict = FALSE)
   is_version_dir <- !is.na(path_versions) &
     dir.exists(file.path(dir, path_basenames))
@@ -406,7 +405,7 @@ assets_info <- function(quiet = FALSE) {
     cli_bullets(cli_installed)
   }
 
-  versions <- sub(shinylive_prefix, "", basename(installed_versions))
+  versions <- assets_path_version(installed_versions)
 
   data <- data.frame(
     version = as.character(versions),
