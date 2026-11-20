@@ -282,7 +282,8 @@ build_app_resources <- function(app_json) {
         appdir,
         destdir,
         package_cache = TRUE,
-        max_filesize = NULL
+        max_filesize = NULL,
+        r_version = assets_webr_r_version()
       )
     )
   }

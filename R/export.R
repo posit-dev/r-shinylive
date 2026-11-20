@@ -206,7 +206,13 @@ export <- function(
   # Copy app package dependencies as Wasm binaries
   # =========================================================================
   if (wasm_packages && wasm_packages_able(assets_version)) {
-    download_wasm_packages(appdir, destdir, package_cache, max_filesize)
+    download_wasm_packages(
+      appdir,
+      destdir,
+      package_cache,
+      max_filesize,
+      r_version = assets_webr_r_version(assets_version)
+    )
   }
 
   # =========================================================================
@@ -232,7 +238,7 @@ export <- function(
 }
 
 wasm_packages_able <- function(assets_version) {
-  if (assets_version <= package_version("0.7.0")) {
+  if (assets_version < package_version("0.8.0")) {
     cli::cli_warn(c(
       "Can't bundle WebAssembly R packages for legacy Shinylive assets version: {assets_version}.",
       "i" = "Use Shinylive assets version 0.8.0 or later to bundle WebAssembly R package binaries."

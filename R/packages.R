@@ -54,10 +54,15 @@ check_repo_pkg_version <- function(desc, ver, pkg) {
   }
 }
 
-get_wasm_assets <- function(desc, repo) {
+# URL of the folder of Wasm binaries built for the major.minor of `r_version`
+wasm_contrib_url <- function(repo, r_version) {
+  r_short <- gsub("\\.[^.]+$", "", r_version)
+  glue::glue("{repo}/bin/emscripten/contrib/{r_short}")
+}
+
+get_wasm_assets <- function(desc, repo, r_version) {
   pkg <- desc$Package
-  r_short <- gsub("\\.[^.]+$", "", WEBR_R_VERSION)
-  contrib <- glue::glue("{repo}/bin/emscripten/contrib/{r_short}")
+  contrib <- wasm_contrib_url(repo, r_version)
 
   # Cache the repository index in a persistent per-user cache (default 1h TTL)
   # so repeated lookups across renders avoid re-downloading the PACKAGES index.
@@ -170,7 +175,7 @@ repo_ref <- function(desc, repo, ver) {
 }
 
 # Lookup URL and metadata for Wasm binary package
-prepare_wasm_metadata <- function(pkg, metadata) {
+prepare_wasm_metadata <- function(pkg, metadata, r_version) {
   desc <- utils::packageDescription(pkg)
   repo <- desc$Repository
   prev_ref <- metadata$ref
@@ -228,18 +233,24 @@ prepare_wasm_metadata <- function(pkg, metadata) {
       metadata$ref <- desired_ref
     } else {
       if (is_runiverse) {
-        metadata$assets <- get_wasm_assets(desc, repo = desc$Repository)
+        metadata$assets <- get_wasm_assets(
+          desc,
+          repo = desc$Repository,
+          r_version = r_version
+        )
       } else if (grepl("Bioconductor", repo)) {
         # Use r-universe for Bioconductor packages
         metadata$assets <- get_wasm_assets(
           desc,
-          repo = "https://bioc.r-universe.dev"
+          repo = "https://bioc.r-universe.dev",
+          r_version = r_version
         )
       } else {
         # Fallback to repo.r-wasm.org lookup for CRAN and anything else
         metadata$assets <- get_wasm_assets(
           desc,
-          repo = "https://repo.r-wasm.org"
+          repo = "https://repo.r-wasm.org",
+          r_version = r_version
         )
       }
       metadata$type <- "package"
@@ -282,7 +293,8 @@ download_wasm_packages <- function(
   appdir,
   destdir,
   package_cache,
-  max_filesize
+  max_filesize,
+  r_version
 ) {
   max_filesize_missing <- is.null(sys_env_max_filesize()) &&
     is.null(max_filesize)
@@ -343,6 +355,7 @@ download_wasm_packages <- function(
   } else {
     list()
   }
+  prev_metadata <- drop_other_r_version(prev_metadata, pkg_dir, r_version)
 
   if (has_dependencies) {
     pkgs_app <- resolve_dependencies(pkgs_app)
@@ -386,7 +399,8 @@ download_wasm_packages <- function(
       list()
     }
     # Create package ref and lookup download URLs
-    meta <- prepare_wasm_metadata(pkg, prev_meta)
+    meta <- prepare_wasm_metadata(pkg, prev_meta, r_version)
+    meta[["_webr_r_version"]] <- r_version
 
     if (!meta$cached) {
       wanted <- vapply(
@@ -465,6 +479,28 @@ download_wasm_packages <- function(
   )
 
   invisible(metadata_file)
+}
+
+# Binaries built for another R version can't load in this webR, even when their
+# file name matches. Forget them and delete them from disk. Entries without
+# `_webr_r_version` come from older shinylive versions and are dropped too.
+#
+# The full R version is compared on purpose, even though binaries are grouped by
+# major.minor (see `wasm_contrib_url()`). A patch bump such as 4.6.0 -> 4.6.1
+# re-downloads everything. That costs a little time but keeps the check simple.
+drop_other_r_version <- function(metadata, pkg_dir, r_version) {
+  if (length(metadata) == 0) {
+    return(metadata)
+  }
+  keep <- vapply(
+    metadata,
+    function(item) identical(item[["_webr_r_version"]], r_version),
+    logical(1)
+  )
+  drop <- names(metadata)[!keep]
+  drop_dirs <- fs::path(pkg_dir, drop)
+  fs::dir_delete(drop_dirs[fs::dir_exists(drop_dirs)])
+  metadata[keep]
 }
 
 pkg_wrap <- function(x) {

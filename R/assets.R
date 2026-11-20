@@ -231,6 +231,38 @@ assets_ensure <- function(
 }
 
 
+# Returns the R version that the assets' webR was built with, such as "4.6.0".
+# WebAssembly package binaries must be built for this same R version.
+assets_webr_r_version <- function(version = assets_version()) {
+  assets_path <- assets_ensure(version = version)
+  assets_path_webr_r_version(assets_path)
+}
+
+assets_path_webr_r_version <- function(assets_path) {
+  # The `translations` base package ships with webR and its `Version` is the R
+  # version. Found in assets 0.8.0 and later.
+  desc_file <- fs::path(
+    assets_path,
+    "shinylive/webr/vfs/usr/lib/R/library/translations/DESCRIPTION"
+  )
+  r_version <- if (fs::file_exists(desc_file)) {
+    unname(read.dcf(desc_file, fields = "Version")[1, 1])
+  } else {
+    NA_character_
+  }
+
+  if (is.na(r_version)) {
+    cli::cli_abort(c(
+      "Can't find the webR R version in the Shinylive assets.",
+      "x" = "Missing or invalid file: {.path {desc_file}}",
+      "i" = "The assets may be incomplete. Delete {.path {assets_path}} so they are downloaded again."
+    ))
+  }
+
+  r_version
+}
+
+
 # """Removes local copies of shinylive web assets, except for the one used by the
 # current version of the shinylive python package.
 
