@@ -40,4 +40,4 @@ description: Update the default shinylive web assets version used by the R packa
 
 ## The deploy-app workflow
 
-`.github/workflows/deploy-app.yaml` does not name an assets version. Its `assets-version` input defaults to `latest`, which looks up the newest posit-dev/shinylive release when the workflow runs. No workflow change or `actions-v1` tag move is needed for an assets update.
+`.github/workflows/deploy-app.yaml` does not name an assets version. Its `assets-version` input defaults to `""`, which uses the installed package's `SHINYLIVE_ASSETS_VERSION`. No workflow change or `actions-v1` tag move is needed for an assets update: callers that install from GitHub get the new assets once it merges, and callers that install from CRAN get them with the next CRAN release.

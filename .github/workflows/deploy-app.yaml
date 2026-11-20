@@ -41,9 +41,9 @@ on:
         default: "posit-dev/r-shinylive"
         required: false
       assets-version:
-        description: "The shinylive web assets version to export with. `latest` (the default) uses the newest posit-dev/shinylive release. A version, such as `0.10.16`, pins it. An empty string uses the default of the installed shinylive R package."
+        description: "The shinylive web assets version to export with. Leave empty (the default) to use the default of the installed shinylive R package. A version, such as `0.10.16`, pins it. `latest` uses the newest posit-dev/shinylive release."
         type: string
-        default: "latest"
+        default: ""
         required: false
 
 jobs:
@@ -53,7 +53,6 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
       APP_DIR: ${{ inputs.app-dir }}
-      ASSETS_VERSION: ${{ inputs.assets-version }}
 
     steps:
       - uses: actions/checkout@v4
@@ -80,12 +79,14 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_ASSETS_VERSION: ${{ inputs.assets-version }}
         run: |
-          version="$ASSETS_VERSION"
+          version="$INPUT_ASSETS_VERSION"
           if [ "$version" = "latest" ]; then
             version="$(gh api repos/posit-dev/shinylive/releases/latest --jq .tag_name)"
-            version="${version#v}"
           fi
+          # Accept tag names, such as `v0.10.16`
+          version="${version#v}"
           echo "shinylive assets version: ${version:-(installed package default)}"
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
@@ -102,14 +103,16 @@ jobs:
             assets_version = if (nzchar(assets_version)) assets_version
           )
 
+      # Only deploy from the default branch. `schedule` events always run on the
+      # default branch, but have no `github.event.repository` to compare with.
       - name: Upload site artifact
-        if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        if: github.event_name == 'schedule' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         uses: actions/upload-pages-artifact@v3
         with:
           path: "site"
 
   deploy:
-    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    if: github.event_name == 'schedule' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     needs: build
 
     # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
