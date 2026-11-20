@@ -41,11 +41,9 @@ on:
         default: "posit-dev/r-shinylive"
         required: false
       assets-version:
-        description: "The shinylive web assets version to export with, for example `0.10.16`. Set to `\"\"` to use the default of the installed shinylive R package."
+        description: "The shinylive web assets version to export with, for example `0.10.16`. Leave empty to use the default of the installed shinylive R package."
         type: string
-        # Must match `SHINYLIVE_ASSETS_VERSION` in R/version.R.
-        # Checked by tests/testthat/test-deploy-app.R.
-        default: "0.10.16"
+        default: ""
         required: false
 
 jobs:
@@ -81,11 +79,26 @@ jobs:
         shell: Rscript {0}
         run: |
           assets_version <- Sys.getenv("ASSETS_VERSION")
+          if (!nzchar(assets_version)) {
+            # Use the installed shinylive's default assets version
+            assets_version <- NULL
+          } else if (assets_version != shinylive::assets_version()) {
+            # Shown as a warning on the workflow run's summary page
+            cat(
+              "::warning title=shinylive assets version::",
+              "Exporting with shinylive assets v", assets_version,
+              ", but the installed shinylive R package (v",
+              as.character(utils::packageVersion("shinylive")),
+              ") uses assets v", shinylive::assets_version(),
+              ". Remove the `assets-version` input to use the package's ",
+              "assets, or change `shinylive-version` to a matching package.\n",
+              sep = ""
+            )
+          }
           shinylive::export(
             Sys.getenv("APP_DIR"),
             "site",
-            # `NULL` uses the installed shinylive's default assets version
-            assets_version = if (nzchar(assets_version)) assets_version
+            assets_version = assets_version
           )
 
       - name: Upload site artifact

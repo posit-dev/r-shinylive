@@ -19,7 +19,7 @@ jobs:
     uses: posit-dev/r-shinylive/.github/workflows/deploy-app.yaml@actions-v1
     # If the app is not in the repo root, set the folder that contains `app.R`
     # Other optional inputs choose the shinylive R package (a {pak} reference)
-    # and the web assets version (`""` uses the package's default)
+    # and the web assets version (empty uses the package's default)
     # with:
     #   app-dir: app
     #   shinylive-version: shinylive
