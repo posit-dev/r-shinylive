@@ -16,7 +16,10 @@
 #' @return
 #' `assets_version()` returns the version of the currently supported Shinylive.
 #'
-#' All other methods return `invisible()`.
+#' `assets_download()` invisibly returns the cache directory and
+#' `assets_ensure()` invisibly returns the assets directory for `version`.
+#'
+#' `assets_cleanup()` and `assets_remove()` return `invisible()`.
 assets_download <- function(
   version = assets_version(),
   ...,
@@ -132,16 +135,16 @@ install_local_helper <- function(
   }
 }
 
-#' Install shinylive assets from from a local directory
+#' Install shinylive assets from a local directory
 #'
 #' Helper methods for testing updates to shinylive assets.
 #'
 #' @describeIn install Copies all shinylive assets from a local shinylive
 #'    repository (e.g.
-#'    [`posit-dev/shinylive`](https://github.com/posit-dev/py-shinylive)). This
+#'    [`posit-dev/shinylive`](https://github.com/posit-dev/shinylive)). This
 #'    must be repeated for any change in the assets.
 #' @param assets_repo_dir The local repository directory for shinylive assets
-#'    (e.g. [`posit-dev/shinylive`](https://github.com/posit-dev/py-shinylive))
+#'    (e.g. [`posit-dev/shinylive`](https://github.com/posit-dev/shinylive))
 #' @param version The version of the assets being installed.
 #' @inheritParams assets_download
 #' @seealso [`assets_download()`], [`assets_ensure()`], [`assets_cleanup()`]
@@ -168,7 +171,7 @@ assets_install_copy <- function(
 }
 
 #' @describeIn install Creates a symlink of the local shinylive assets to the
-#'    cached assets directory. After the first installation, the assets will the
+#'    cached assets directory. After the first installation, the assets will be the
 #'    same as the source due to the symlink.
 #' @export
 assets_install_link <- function(

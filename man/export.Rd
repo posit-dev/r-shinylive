@@ -67,7 +67,7 @@ templates).
 With shinylive assets > 0.4.1, the default export template supports the
 following parameters:
 \enumerate{
-\item \code{title}: The title of the app. Defaults to \code{"Shiny app"}.
+\item \code{title}: The title of the app. Defaults to \code{"Shiny App"}.
 \item \code{include_in_head}, \code{include_before_body}, \code{include_after_body}: Raw
 HTML to be included in the \verb{<head>}, just after the opening \verb{<body>},
 or just before the closing \verb{</body>} tag, respectively.

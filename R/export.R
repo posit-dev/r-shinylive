@@ -40,7 +40,7 @@
 #'   With shinylive assets > 0.4.1, the default export template supports the
 #'   following parameters:
 #'
-#'   1. `title`: The title of the app. Defaults to `"Shiny app"`.
+#'   1. `title`: The title of the app. Defaults to `"Shiny App"`.
 #'   2. `include_in_head`, `include_before_body`, `include_after_body`: Raw
 #'      HTML to be included in the `<head>`, just after the opening `<body>`,
 #'      or just before the closing `</body>` tag, respectively.
