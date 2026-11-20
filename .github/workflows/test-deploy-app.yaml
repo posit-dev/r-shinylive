@@ -1,0 +1,39 @@
+# Test the reusable deploy-app workflow by exporting a small app.
+#
+# Runs on pull requests only. On the default branch, deploy-app.yaml deploys
+# to GitHub Pages, which would replace this repo's pkgdown site.
+
+name: Test deploy-app workflow
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/deploy-app.yaml"
+      - ".github/workflows/test-deploy-app.yaml"
+      - ".github/deploy-app-test/**"
+
+jobs:
+  deploy-app:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The defaults: GitHub package with its own assets version
+          - name: GitHub package, package assets
+            shinylive-version: posit-dev/r-shinylive
+            assets-version: ""
+          # CRAN package with the newest posit-dev/shinylive release
+          - name: CRAN package, latest assets
+            shinylive-version: shinylive
+            assets-version: latest
+    uses: ./.github/workflows/deploy-app.yaml
+    with:
+      app-dir: .github/deploy-app-test
+      shinylive-version: ${{ matrix.shinylive-version }}
+      assets-version: ${{ matrix.assets-version }}
+    # The deploy job asks for these, even though it is skipped on pull requests
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
