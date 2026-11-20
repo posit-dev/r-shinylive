@@ -33,6 +33,20 @@ on:
         type: string
         default: "."
         required: false
+      shinylive-version:
+        description: "The shinylive R package to install, as a {pak} reference. For example: `shinylive` (CRAN), `shinylive@0.5.0` (a CRAN version) or `posit-dev/r-shinylive` (GitHub)."
+        type: string
+        # TODO: Change to `shinylive` (CRAN) after the next CRAN release.
+        # Listed in `release_bullets()` (R/release.R).
+        default: "posit-dev/r-shinylive"
+        required: false
+      assets-version:
+        description: "The shinylive web assets version to export with, for example `0.10.16`. Set to `\"\"` to use the default of the installed shinylive R package."
+        type: string
+        # Must match `SHINYLIVE_ASSETS_VERSION` in R/version.R.
+        # Checked by tests/testthat/test-deploy-app.R.
+        default: "0.10.16"
+        required: false
 
 jobs:
   build:
@@ -41,6 +55,7 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
       APP_DIR: ${{ inputs.app-dir }}
+      ASSETS_VERSION: ${{ inputs.assets-version }}
 
     steps:
       - uses: actions/checkout@v4
@@ -49,9 +64,9 @@ jobs:
         with:
           packages: |
             renv
-            posit-dev/r-shinylive
+            ${{ inputs.shinylive-version }}
             sessioninfo
-          cache-version: ${{ github.event.inputs.cache-version }}
+          cache-version: ${{ inputs.cache-version }}
 
       - name: Find package dependencies
         shell: Rscript {0}
@@ -65,16 +80,22 @@ jobs:
       - name: Build site
         shell: Rscript {0}
         run: |
-          shinylive::export(Sys.getenv("APP_DIR"), "site")
+          assets_version <- Sys.getenv("ASSETS_VERSION")
+          shinylive::export(
+            Sys.getenv("APP_DIR"),
+            "site",
+            # `NULL` uses the installed shinylive's default assets version
+            assets_version = if (nzchar(assets_version)) assets_version
+          )
 
       - name: Upload site artifact
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         uses: actions/upload-pages-artifact@v3
         with:
           path: "site"
 
   deploy:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     needs: build
 
     # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
