@@ -11,6 +11,10 @@ on:
       - ".github/workflows/deploy-app.yaml"
       - ".github/workflows/test-deploy-app.yaml"
       - ".github/deploy-app-test/**"
+      # The PR's own package is installed, so also test package changes
+      - "R/**"
+      - "inst/**"
+      - "DESCRIPTION"
 
 jobs:
   deploy-app:
@@ -19,9 +23,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # The defaults: GitHub package with its own assets version
-          - name: GitHub package, package assets
-            shinylive-version: posit-dev/r-shinylive
+          # The PR's package with its own assets version
+          - name: PR package, package assets
+            shinylive-version: posit-dev/r-shinylive#${{ github.event.pull_request.number }}
             assets-version: ""
           # CRAN package with the newest posit-dev/shinylive release
           - name: CRAN package, latest assets
