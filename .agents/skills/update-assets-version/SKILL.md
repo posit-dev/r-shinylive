@@ -1,9 +1,11 @@
 ---
 name: update-assets-version
-description: Update the default shinylive web assets version used by the R package. Use when a new posit-dev/shinylive release is out, or when asked to bump, update or change `SHINYLIVE_ASSETS_VERSION`.
+description: Update the default shinylive web assets version used by the R package and the deploy-app GitHub Actions workflow. Use when a new posit-dev/shinylive release is out, or when asked to bump, update or change `SHINYLIVE_ASSETS_VERSION`.
 ---
 
 # Update the shinylive assets version
+
+The assets version is set in more than one place. Update all of them in the same PR.
 
 ## Steps
 
@@ -17,7 +19,9 @@ description: Update the default shinylive web assets version used by the R packa
 
 2. **`R/version.R`:** set `SHINYLIVE_ASSETS_VERSION <- "<VERSION>"`. If the webR version changes the R version, also update `WEBR_R_VERSION`.
 
-3. **`NEWS.md`:** under the development version, keep a single bullet for the assets update. Replace the old version in it instead of adding a new bullet:
+3. **`.github/workflows/deploy-app.yaml`:** set the `default:` of the `assets-version` input to `"<VERSION>"`. `tests/testthat/test-deploy-app.R` fails if this does not match `R/version.R`.
+
+4. **`NEWS.md`:** under the development version, keep a single bullet for the assets update. Replace the old version in it instead of adding a new bullet:
 
    ```md
    * Updated the default shinylive assets to
@@ -30,14 +34,24 @@ description: Update the default shinylive web assets version used by the R packa
 
    If webR changed, say what it changed from and to.
 
-4. **Update examples that name the old version.** The `assets-version` examples in `README.md` and `examples/deploy-app.yaml` show the current version. Find every place:
+5. **Check:**
+
+   ```r
+   devtools::test(filter = "deploy-app")
+   ```
+
+   Then confirm no other file still names the old version:
 
    ```sh
    git grep -n "<OLD_VERSION>" -- ':!NEWS.md'
    ```
 
-5. **Open the PR** with the title `chore: Update shinylive assets to v<VERSION>`.
+6. **Open the PR** with the title `chore: Update shinylive assets to v<VERSION>`.
 
-## The deploy-app workflow
+7. **After the PR is merged:** the workflow change only reaches users once the `actions-v1` tag points at the merge commit. Ask the maintainer before moving the tag, since it changes every app that uses `@actions-v1`:
 
-`.github/workflows/deploy-app.yaml` does not name an assets version. Its `assets-version` input is empty by default, so it uses the default of whichever shinylive it installs. No workflow change or `actions-v1` tag move is needed for an assets update.
+   ```sh
+   git fetch origin
+   git tag -f actions-v1 origin/main
+   git push -f origin actions-v1
+   ```
