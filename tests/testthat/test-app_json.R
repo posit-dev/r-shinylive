@@ -26,12 +26,6 @@ app_file_names <- function(files) {
   vapply(files, `[[`, character(1), "name")
 }
 
-test_that("read_app_files() reads an app that is inside destdir", {
-  root <- withr::local_tempdir()
-  appdir <- local_app(fs::path(root, "myapp"))
-  expect_equal(app_file_names(read_app_files(appdir, root)), "app.R")
-})
-
 test_that("read_app_files() reads an app folder with an excluded name", {
   root <- withr::local_tempdir()
   appdir <- local_app(fs::path(root, "venv"))
@@ -63,6 +57,18 @@ test_that("read_app_files() skips destdir given as a relative path", {
 test_that("export() errors when destdir is appdir", {
   appdir <- local_app(withr::local_tempdir())
   expect_error(export(appdir, appdir), "different folder")
+})
+
+test_that("export() errors when appdir is inside destdir", {
+  root <- withr::local_tempdir()
+  appdir <- local_app(fs::path(root, "myapp"))
+  expect_error(export(appdir, root), "must not be inside")
+  withr::with_dir(appdir, {
+    expect_error(export(".", ".."), "must not be inside")
+  })
+  withr::with_dir(root, {
+    expect_error(export("myapp", "."), "must not be inside")
+  })
 })
 
 test_that("write_app_json() can write over a custom template's other files", {

@@ -52,8 +52,9 @@ read_app_files <- function(
   # macOS's /var -> /private/var) work together
   appdir_abs <- comparable_path(appdir)
   destdir_abs <- comparable_path(destdir)
-  # Only skip `destdir` when it is a subfolder of the app. When the app is
-  # inside `destdir`, every app file would be skipped.
+  # Only skip `destdir` when it is a subfolder of the app. `export()` rejects
+  # an app that is `destdir` or inside it, where every app file would be
+  # skipped.
   skip_destdir <- appdir_abs != destdir_abs &&
     fs::path_has_parent(destdir_abs, appdir_abs)
 

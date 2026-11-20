@@ -22,7 +22,12 @@ export(
 \arguments{
 \item{appdir}{Directory containing the application.}
 
-\item{destdir}{Destination directory.}
+\item{destdir}{Destination directory. Keep \code{appdir} and \code{destdir} as
+separate folders, like \code{export("myapp", "site")}. \code{destdir} must not be
+\code{appdir} or a folder that holds \code{appdir}, so \code{export(".", ".")} and
+\code{export("myapp", ".")} are errors. A \code{destdir} inside \code{appdir}, like
+\code{export(".", "site")}, works (it is left out of the app), but is not
+recommended.}
 
 \item{...}{Ignored}
 

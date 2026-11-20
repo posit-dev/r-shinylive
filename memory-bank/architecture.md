@@ -79,7 +79,7 @@ version of the webR inside the assets, which is read from the assets with
 | `R/packages.R` | Finds R package dependencies and downloads their Wasm binaries; `parse_max_filesize()` |
 | `R/quarto_ext.R` | `quarto_ext()` command-line interface; `build_app_resources()` |
 | `R/cli.R` | `cli` wrappers that respect the `shinylive.quiet` option |
-| `R/utils.R` | Argument checks, `create_copy_fn()`, `unlink_path()`, `full_path()`, `cran_is_testing()` |
+| `R/utils.R` | Argument checks, `create_copy_fn()`, `unlink_path()`, `full_path()`, `comparable_path()`, `cran_is_testing()` |
 | `R/version.R` | `SHINYLIVE_ASSETS_VERSION`, `SHINYLIVE_R_VERSION` |
 | `R/release.R` | `release_bullets()` for `usethis::use_release_issue()` |
 | `R/shinylive-package.R` | Package doc and imports (`%||%`, `is_interactive`, `deprecated`) |

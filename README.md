@@ -57,6 +57,8 @@ Once you have a Shiny application in `myapp/` and would like turn it into a Shin
 shinylive::export("myapp", "site")
 ```
 
+Keep the app and the exported site in separate folders, like `myapp/` and `site/` above. Run `export("myapp", "site")` from the folder that holds both, not `export(".", "site")` from inside `myapp/`. Exporting into the app folder, or into a folder that holds the app (like `export("myapp", ".")`), is an error.
+
 Then you can preview the application by running a web server and visiting it in a browser:
 
 ``` r

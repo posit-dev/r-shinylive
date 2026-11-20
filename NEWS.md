@@ -9,10 +9,13 @@
   from another R version are now deleted and downloaded again (#209).
 
 * `export()` fixes (#216):
-  * An app inside `destdir` (like `export("myapp", ".")`), an app folder named
-    `venv` or `rsconnect`, and a mix of relative and absolute paths no longer
-    give an empty or wrong `app.json`. Exporting into the app folder itself is
-    now an error.
+  * Exporting into the app folder (`export(".", ".")`) or into a folder that
+    holds the app (`export("myapp", ".")`) is now an error instead of giving an
+    empty `app.json`. Keep the app and the export in separate folders, like
+    `export("myapp", "site")`.
+  * An app folder named `venv` or `rsconnect`, and a mix of relative and
+    absolute paths, no longer give an empty or wrong `app.json`. Paths are
+    compared without case on Windows and macOS.
   * `subdir` can no longer point outside `destdir`, and `subdir = "."` is the
     same as no subdir.
   * App text files that are not valid UTF-8 are stored as binary, so

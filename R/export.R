@@ -4,7 +4,12 @@
 #' using `httpuv`.
 #'
 #' @param appdir Directory containing the application.
-#' @param destdir Destination directory.
+#' @param destdir Destination directory. Keep `appdir` and `destdir` as
+#'   separate folders, like `export("myapp", "site")`. `destdir` must not be
+#'   `appdir` or a folder that holds `appdir`, so `export(".", ".")` and
+#'   `export("myapp", ".")` are errors. A `destdir` inside `appdir`, like
+#'   `export(".", "site")`, works (it is left out of the app), but is not
+#'   recommended.
 #' @param subdir Subdirectory of `destdir` to write the app to.
 #' @param quiet Suppress console output during export. Follows the global
 #'   `shinylive.quiet` option or defaults to `FALSE` in interactive sessions if
@@ -104,10 +109,19 @@ export <- function(
     )
   }
 
-  if (comparable_path(appdir) == comparable_path(destdir)) {
-    cli::cli_abort(
-      "{.var destdir} must be a different folder than {.var appdir} ({.path {appdir}})."
-    )
+  appdir_cmp <- comparable_path(appdir)
+  destdir_cmp <- comparable_path(destdir)
+  if (appdir_cmp == destdir_cmp) {
+    cli::cli_abort(c(
+      "{.var destdir} must be a different folder than {.var appdir} ({.path {appdir}}).",
+      i = "Use separate folders, like {.code export(\"myapp\", \"site\")}."
+    ))
+  }
+  if (fs::path_has_parent(appdir_cmp, destdir_cmp)) {
+    cli::cli_abort(c(
+      "{.var appdir} ({.path {appdir}}) must not be inside {.var destdir} ({.path {destdir}}).",
+      i = "Use separate folders, like {.code export(\"myapp\", \"site\")}."
+    ))
   }
 
   subdir <- check_subdir(subdir)

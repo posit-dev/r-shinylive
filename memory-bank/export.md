@@ -11,8 +11,8 @@ description: "How export() turns an app folder into a static site: copying asset
 It runs these steps in order:
 
 1. Check arguments: `appdir` must be a folder with `app.R` or `server.R`;
-   `destdir` must not be the same folder as `appdir` (compared with
-   `full_path()`); `subdir` is checked and cleaned by `check_subdir()`.
+   `destdir` must not be `appdir` or a folder that holds it (compared with
+   `comparable_path()`); `subdir` is checked and cleaned by `check_subdir()`.
    Create `destdir` if needed.
 2. Copy the base Shinylive asset files (the `base` and `r` sets) from the
    assets cache into `destdir` (`create_copy_fn()`).
@@ -31,7 +31,7 @@ Asset download and caching are covered in `assets.md`.
 |---|---|
 | `R/export.R` | `export()`, `wasm_packages_able()`, `check_subdir()` |
 | `R/app_json.R` | `file_content_obj()`, `app_info_obj()`, `read_app_files()`, `write_app_json()` |
-| `R/utils.R` | `create_copy_fn()`, `unlink_path()`, `files_are_equal()`, `full_path()` |
+| `R/utils.R` | `create_copy_fn()`, `unlink_path()`, `files_are_equal()`, `full_path()`, `comparable_path()` |
 | `R/deps.R` | `shinylive_common_files()` (which asset files are copied) |
 | `R/cli.R` | `local_quiet()`, `is_quiet()`, and the `cli_*()` wrappers |
 | `tests/testthat/test-export.R` | End-to-end tests (need the assets, see `TEST_ASSETS` in `AGENTS.md`), plus offline `check_subdir()` tests |
@@ -71,12 +71,12 @@ relative to `appdir`. This list is written as-is to `app.json`.
   any depth below `appdir`. Only folders are checked. A *file* named `venv`
   is kept. The `appdir` folder itself is never excluded, so an app folder
   named `venv` still works.
-- **destdir inside appdir:** both paths go through `full_path()` first
-  (absolute, symlinks resolved, works for paths that do not exist yet), so
-  relative and absolute forms (and macOS `/var` vs `/private/var`) compare
-  correctly. Folders under `destdir` are skipped only when `destdir` is a
-  subfolder of `appdir`. When `appdir` is inside `destdir` (for example
-  `export("myapp", ".")`), nothing is skipped for that reason.
+- **destdir inside appdir:** both paths go through `comparable_path()` first
+  (`full_path()`: absolute, symlinks resolved, also for paths that do not
+  exist yet; lower case on Windows and macOS), so relative and absolute forms
+  (and macOS `/var` vs `/private/var`) compare correctly. Folders under
+  `destdir` are skipped only when `destdir` is a subfolder of `appdir`.
+  `export()` rejects `appdir` inside `destdir` before this runs.
 - **`shinylive.js` found:** gives a warning that you may be bundling a
   Shinylive copy into the app.
 - **Text or binary:** `brio::read_file()` is tried first. If it errors (on
@@ -198,14 +198,15 @@ and `index.html` are not written. Details are in `wasmPackages.md`.
 
 ## Pitfalls
 
-- **`destdir` equal to `appdir` is an error.** `export(".", ".")` (or any two
-  paths that `full_path()` resolves to the same folder) stops with
-  "`destdir` must be a different folder than `appdir`".
-- **A `destdir` that holds the app is not read into `app.json`, but the
-  export is still written there.** `export("myapp", ".")` reads the app
-  normally and writes the site files next to `myapp/`.
-- **Use `full_path()` to compare paths.** Plain `fs::path_has_parent()` on
-  raw paths misses relative vs absolute forms and symlinks.
+- **Keep `appdir` and `destdir` separate.** `destdir` equal to `appdir`
+  (`export(".", ".")`) or holding it (`export("myapp", ".")`) is an error.
+  Before, those silently gave an empty `app.json` (every app file sat inside
+  `destdir` and was skipped), or wrote `index.html`/`app.json` into the app
+  source. `destdir` inside `appdir` (`export(".", "site")`) still works but
+  is not recommended.
+- **Use `comparable_path()` to compare paths.** Plain `fs::path_has_parent()`
+  on raw paths misses relative vs absolute forms, symlinks, and case. Never
+  use its result to create files: it is lower case on Windows and macOS.
 - **Empty files become `"content": []`** in `app.json`, not `""`, because
   `brio::read_file()` returns `character(0)` for an empty file.
 - **The "copies differ" message keeps the stale file.** It only warns; delete
