@@ -210,7 +210,7 @@ assets_ensure <- function(
 ) {
   rlang::check_dots_empty()
   if (!fs::dir_exists(dir)) {
-    cli_alert_info("Creating assets cache directory ", dir)
+    cli_alert_info("Creating assets cache directory {.path {dir}}")
     fs::dir_create(dir)
   }
 

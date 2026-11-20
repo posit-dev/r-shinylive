@@ -86,3 +86,18 @@ test_that("assets_info() works when no assets are installed", {
   expect_equal(info$version, "0.9.0")
   expect_equal(info$path, as.character(fs::path(dir, "shinylive-0.9.0")))
 })
+
+test_that("assets_ensure() shows the cache folder it creates", {
+  dir <- fs::path(withr::local_tempdir(), "cache")
+  local_mocked_bindings(
+    assets_download = function(version, ..., dir, url) {
+      fs::dir_create(fs::path(dir, paste0("shinylive-", version)))
+      invisible(dir)
+    }
+  )
+  withr::local_options(shinylive.quiet = FALSE)
+  expect_message(
+    assets_ensure("1.2.3", dir = dir),
+    "Creating assets cache directory .*cache"
+  )
+})
