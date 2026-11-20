@@ -98,13 +98,9 @@ test_that("quarto_ext handles `extension app-resources`", {
 
   assets_ensure()
 
-  # Clean-up on exit
-  tmpdir <- tempdir()
-  wd <- setwd(tmpdir)
-  on.exit({
-    setwd(wd)
-    fs::dir_delete(tmpdir)
-  })
+  # Work in a temp folder that is removed on exit
+  withr::local_dir(withr::local_tempdir())
+  withr::local_envvar(QUARTO_PROJECT_DIR = ".")
 
   app_json <- '[{"name":"app.R","type":"text","content":"library(shiny)"}]'
   writeLines(app_json, "app.json")
@@ -127,13 +123,9 @@ test_that("quarto_ext handles `extension app-resources` with additional binary f
 
   assets_ensure()
 
-  # Clean-up on exit
-  tmpdir <- tempdir()
-  wd <- setwd(tmpdir)
-  on.exit({
-    setwd(wd)
-    fs::dir_delete(tmpdir)
-  })
+  # Work in a temp folder that is removed on exit
+  withr::local_dir(withr::local_tempdir())
+  withr::local_envvar(QUARTO_PROJECT_DIR = ".")
 
   # A binary file included in app.json should successfully be decoded while
   # building package metadata for app-resources.
