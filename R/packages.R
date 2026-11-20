@@ -482,10 +482,10 @@ download_wasm_packages <- function(
 }
 
 # Binaries built for another R version can't load in this webR, even when their
-# file name matches. Forget them and delete them from disk. Entries without a
-# `_webr_r_version` come from older shinylive versions and are treated the same
-# way.
-# The full version is compared on purpose, even though binaries are grouped by
+# file name matches. Forget them and delete them from disk. Entries without
+# `_webr_r_version` come from older shinylive versions and are dropped too.
+#
+# The full R version is compared on purpose, even though binaries are grouped by
 # major.minor (see `wasm_contrib_url()`). A patch bump such as 4.6.0 -> 4.6.1
 # re-downloads everything. That costs a little time but keeps the check simple.
 drop_other_r_version <- function(metadata, pkg_dir, r_version) {
