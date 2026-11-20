@@ -73,7 +73,7 @@ copy of shinylive is not installed, it will be downloaded and installed.
 If a local copy of shinylive is installed, its path will be returned.
 
 \item \code{assets_cleanup()}: Removes local copies of shinylive web assets, except for
-the one used by the current version of \pkg{shinylive}.
+the newest version of each series (such as \verb{0.10.*}).
 
 \item \code{assets_remove()}: Removes a local copies of shinylive web assets.
 
