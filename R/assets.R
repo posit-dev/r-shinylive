@@ -51,7 +51,10 @@ assets_download <- function(
     add = TRUE
   )
 
-  existed_before <- fs::dir_exists(assets_dir_impl(dir = dir, version = version))
+  existed_before <- fs::dir_exists(assets_dir_impl(
+    dir = dir,
+    version = version
+  ))
 
   cli_progress_step("Downloading shinylive assets {.field v{version}}")
   req <- httr2::request(url)

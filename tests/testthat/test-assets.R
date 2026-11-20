@@ -37,7 +37,10 @@ test_that("the default assets use the expected webR R version", {
 
   # Update this when a new default assets version changes the webR R version.
   # It catches an R version change that would otherwise go unnoticed.
-  expect_equal(assets_webr_r_version(SHINYLIVE_ASSETS_VERSION_FALLBACK), "4.6.0")
+  expect_equal(
+    assets_webr_r_version(SHINYLIVE_ASSETS_VERSION_FALLBACK),
+    "4.6.0"
+  )
 })
 
 test_that("assets_dir() uses `dir`", {
@@ -143,7 +146,10 @@ test_that("assets_cleanup() keeps the highest version of each series", {
 local_assets_tarball <- function(version, env = parent.frame()) {
   src <- withr::local_tempdir(.local_envir = env)
   fs::dir_create(fs::path(src, paste0("shinylive-", version), "shinylive"))
-  writeLines("ok", fs::path(src, paste0("shinylive-", version), "shinylive", "x.txt"))
+  writeLines(
+    "ok",
+    fs::path(src, paste0("shinylive-", version), "shinylive", "x.txt")
+  )
   tarball <- withr::local_tempfile(fileext = ".tar.gz", .local_envir = env)
   withr::with_dir(src, archive::archive_write_dir(tarball, "."))
   tarball

@@ -116,7 +116,10 @@ test_that("a fresh check skips the network unless forced", {
   expect_equal(update_versions_info(dir, now = now)$checked_at, now - 3600)
 
   local_mocked_bindings(fetch_latest_assets_version = function() "0.10.16")
-  expect_equal(update_versions_info(dir, force = TRUE, now = now)$checked_at, now)
+  expect_equal(
+    update_versions_info(dir, force = TRUE, now = now)$checked_at,
+    now
+  )
 })
 
 test_that("an unchanged latest tag skips the release list", {
@@ -186,7 +189,9 @@ test_that("a failed release list keeps the old latest and versions", {
 
 test_that("a failed check with no file still records the error", {
   dir <- withr::local_tempdir()
-  local_mocked_bindings(fetch_latest_assets_version = function() stop("offline"))
+  local_mocked_bindings(fetch_latest_assets_version = function() {
+    stop("offline")
+  })
   info <- update_versions_info(dir, now = now)
   expect_equal(info$versions, character(0))
   expect_null(info$latest)
@@ -289,7 +294,10 @@ test_that("a pattern resolves to the highest matching release and downloads it",
   downloaded <- local_resolve_env(dir, c("0.11.0", "0.10.17", "0.10.16"))
   add_local_assets(dir, "0.10.16")
 
-  expect_equal(resolve_assets_version("0.10.*", dir = dir, now = now), "0.10.17")
+  expect_equal(
+    resolve_assets_version("0.10.*", dir = dir, now = now),
+    "0.10.17"
+  )
   expect_equal(downloaded(), "0.10.17")
 })
 
@@ -298,7 +306,10 @@ test_that("a downloaded version newer than the list is used", {
   downloaded <- local_resolve_env(dir, c("0.10.16"))
   add_local_assets(dir, c("0.10.16", "0.10.18"))
 
-  expect_equal(resolve_assets_version("0.10.*", dir = dir, now = now), "0.10.18")
+  expect_equal(
+    resolve_assets_version("0.10.*", dir = dir, now = now),
+    "0.10.18"
+  )
   expect_equal(downloaded(), character(0))
 })
 
@@ -320,7 +331,9 @@ test_that("offline with a newer release not downloaded uses the downloaded one",
 
 test_that("offline with nothing downloaded errors clearly", {
   dir <- withr::local_tempdir()
-  local_resolve_env(dir, download = function(...) stop("Could not resolve host"))
+  local_resolve_env(dir, download = function(...) {
+    stop("Could not resolve host")
+  })
 
   expect_error(
     resolve_assets_version("0.10.*", dir = dir, now = now),
@@ -406,7 +419,10 @@ test_that("exact versions are returned as is and warn outside the default", {
 test_that("assets_version_input() prefers explicit, then env var, then default", {
   withr::local_envvar(SHINYLIVE_ASSETS_VERSION = NA)
   expect_equal(assets_version_input("0.10.1", FALSE), "0.10.1")
-  expect_equal(assets_version_input(NULL, FALSE), SHINYLIVE_ASSETS_VERSION_DEFAULT)
+  expect_equal(
+    assets_version_input(NULL, FALSE),
+    SHINYLIVE_ASSETS_VERSION_DEFAULT
+  )
   expect_equal(
     assets_version_input("0.10.*", TRUE),
     SHINYLIVE_ASSETS_VERSION_DEFAULT
@@ -457,7 +473,10 @@ test_that("a read-only cache does not stop resolution", {
     write_versions_json = function(...) stop("cannot open the connection")
   )
 
-  expect_equal(resolve_assets_version("0.10.*", dir = dir, now = now), "0.10.16")
+  expect_equal(
+    resolve_assets_version("0.10.*", dir = dir, now = now),
+    "0.10.16"
+  )
 })
 
 test_that("a newly seen latest tag is kept when the release list fails", {
@@ -479,7 +498,9 @@ test_that("a failed download with nothing downloaded tries the fallback", {
     dir,
     c("0.10.17", SHINYLIVE_ASSETS_VERSION_FALLBACK),
     download = function(version, dir) {
-      if (version == "0.10.17") stop("HTTP 404 Not Found")
+      if (version == "0.10.17") {
+        stop("HTTP 404 Not Found")
+      }
       fs::dir_create(fs::path(dir, paste0("shinylive-", version)))
     }
   )

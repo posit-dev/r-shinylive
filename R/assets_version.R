@@ -131,7 +131,11 @@ versions_check_due <- function(info, now = Sys.time()) {
     # The clock changed
     return(TRUE)
   }
-  wait <- if (is.null(info$error)) VERSIONS_CHECK_HOURS else VERSIONS_RETRY_HOURS
+  wait <- if (is.null(info$error)) {
+    VERSIONS_CHECK_HOURS
+  } else {
+    VERSIONS_RETRY_HOURS
+  }
   hours >= wait
 }
 
@@ -228,7 +232,10 @@ fetch_assets_versions <- function() {
 assets_version_memo <- new.env(parent = emptyenv())
 
 assets_version_reset <- function() {
-  rm(list = ls(assets_version_memo, all.names = TRUE), envir = assets_version_memo)
+  rm(
+    list = ls(assets_version_memo, all.names = TRUE),
+    envir = assets_version_memo
+  )
 }
 
 # Returns the version input to use: an explicit value wins, then the
@@ -342,7 +349,10 @@ resolve_assets_version <- function(
 warn_outside_default <- function(version) {
   key <- paste("warned", version)
   default <- parse_assets_version(SHINYLIVE_ASSETS_VERSION_DEFAULT)
-  if (assets_version_matches(version, default) || isTRUE(assets_version_memo[[key]])) {
+  if (
+    assets_version_matches(version, default) ||
+      isTRUE(assets_version_memo[[key]])
+  ) {
     return(invisible())
   }
   assets_version_memo[[key]] <- TRUE
