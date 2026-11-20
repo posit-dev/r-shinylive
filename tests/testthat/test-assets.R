@@ -33,8 +33,24 @@ test_that("assets_path_webr_r_version() falls back to WEBR_R_VERSION", {
   expect_equal(r_version, WEBR_R_VERSION)
 })
 
+test_that("assets_path_webr_r_version(warn = FALSE) falls back quietly", {
+  assets_path <- withr::local_tempdir()
+
+  expect_no_warning(
+    r_version <- assets_path_webr_r_version(assets_path, warn = FALSE)
+  )
+  expect_equal(r_version, WEBR_R_VERSION)
+})
+
 test_that("the package's own assets use WEBR_R_VERSION", {
   skip_if_assets_unavailable()
 
-  expect_equal(assets_webr_r_version(), WEBR_R_VERSION)
+  # The fallback also returns WEBR_R_VERSION, so check that the version was
+  # read from the assets and not from the fallback.
+  expect_true(fs::file_exists(fs::path(
+    assets_ensure(),
+    "shinylive/webr/vfs/usr/lib/R/library/translations/DESCRIPTION"
+  )))
+  expect_no_warning(r_version <- assets_webr_r_version())
+  expect_equal(r_version, WEBR_R_VERSION)
 })
