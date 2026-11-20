@@ -41,11 +41,9 @@ on:
         default: "posit-dev/r-shinylive"
         required: false
       assets-version:
-        description: "The shinylive web assets version to export with, for example `0.10.16`. Set to `\"\"` to use the default of the installed shinylive R package."
+        description: "The shinylive web assets version to export with. `latest` (the default) uses the newest posit-dev/shinylive release. A version, such as `0.10.16`, pins it. An empty string uses the default of the installed shinylive R package."
         type: string
-        # Must match `SHINYLIVE_ASSETS_VERSION` in R/version.R.
-        # Checked by tests/testthat/test-deploy-app.R.
-        default: "0.10.16"
+        default: "latest"
         required: false
 
 jobs:
@@ -77,8 +75,24 @@ jobs:
             unique(renv::dependencies(Sys.getenv("APP_DIR"))$Package)
           )
 
+      - name: Find shinylive assets version
+        id: assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="$ASSETS_VERSION"
+          if [ "$version" = "latest" ]; then
+            version="$(gh api repos/posit-dev/shinylive/releases/latest --jq .tag_name)"
+            version="${version#v}"
+          fi
+          echo "shinylive assets version: ${version:-(installed package default)}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - name: Build site
         shell: Rscript {0}
+        env:
+          ASSETS_VERSION: ${{ steps.assets.outputs.version }}
         run: |
           assets_version <- Sys.getenv("ASSETS_VERSION")
           shinylive::export(
