@@ -229,6 +229,8 @@ test_that("stale .tgz binaries are removed when the repo version changes", {
 test_that("`webr` is never downloaded, whether used directly or as a dependency", {
   skip_on_cran()
   withr::local_options(shinylive.quiet = TRUE)
+  # Even when listed here, the built-in `webr` must not be swapped for CRAN's
+  withr::local_envvar(SHINYLIVE_DOWNLOAD_WASM_CORE_PACKAGES = "webr")
   out <- withr::local_tempdir()
 
   downloaded <- new.env()
@@ -248,7 +250,8 @@ test_that("`webr` is never downloaded, whether used directly or as a dependency"
     appdir = out,
     destdir = out,
     package_cache = TRUE,
-    max_filesize = "100MB"
+    max_filesize = "100MB",
+    r_version = "4.6.0"
   ))
 
   pkg_dir <- fs::path(out, "shinylive", "webr", "packages")

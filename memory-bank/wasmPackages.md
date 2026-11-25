@@ -52,8 +52,13 @@ Steps in `download_wasm_packages()`:
    (`env_download_wasm_core_packages()`). Values are split on spaces, commas,
    and new lines. This is a developer tool to force a core package to be
    bundled.
-3. Scan the app with `renv::dependencies(appdir)` and drop skipped packages.
-4. If anything is left, `resolve_dependencies(pkgs_app)` (local mode) and drop
+3. Add `WEBR_BUILTIN_PKGS` (just `webr`) to the skip list. This happens after
+   step 2 on purpose, so the env var can't opt it back in. webR loads its own
+   built-in `webr` package before the app runs, so R can't load the unrelated
+   CRAN `webr` package, which also pulls in 100+ packages. Apps that call
+   `webr::install()` would otherwise bundle all of them for nothing.
+4. Scan the app with `renv::dependencies(appdir)` and drop skipped packages.
+5. If anything is left, `resolve_dependencies(pkgs_app)` (local mode) and drop
    skipped packages again.
 
 `resolve_dependencies()` uses `pkgdepends::new_pkg_deps()` with

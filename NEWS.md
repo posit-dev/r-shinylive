@@ -50,8 +50,11 @@
 
 * `export()` no longer downloads the CRAN package `webr` when an app calls
   webR's built-in `webr` package, such as `webr::install()`. The CRAN package
-  shares the name but is unrelated, and it pulled in over 100 other packages,
-  which made the exported app much slower to load (#206).
+  shares the name but is unrelated, and it pulled in many other packages,
+  which made the exported app much slower to load. The CRAN package could
+  never be loaded in Shinylive anyway, since webR loads its own `webr` package
+  first. If your app needs functions from the CRAN `webr` package, copy them
+  into your app's code (#206).
 
 # shinylive 0.5.0
 
