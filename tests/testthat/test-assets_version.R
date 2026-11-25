@@ -826,3 +826,72 @@ test_that("drop_versions_newer_than() keeps other series and older matches", {
   expect_equal(out$error, "boom")
   expect_equal(out$checked_at, now)
 })
+
+# py-shinylive follow-ups -------------------------------------------------
+
+test_that("latest_tag_version() rejects tags that are not versions", {
+  base <- "https://github.com/posit-dev/shinylive/releases/tag/"
+  expect_equal(latest_tag_version(paste0(base, "v1")), "1")
+  expect_error(latest_tag_version(paste0(base, "v0.10.")), "latest")
+  expect_error(latest_tag_version(paste0(base, "v..")), "latest")
+})
+
+test_that("a new patch in an older series is missed until the latest tag changes", {
+  # Releases are assumed to only move forward. If this changes, update the
+  # check in `check_versions_info()` on purpose.
+  dir <- withr::local_tempdir()
+  downloaded <- local_resolve_env(dir, hours_ago = 48)
+  write_versions_json(
+    list(
+      checked_at = now - 48 * 3600,
+      latest = "0.11.0",
+      versions = c("0.11.0", "0.10.16")
+    ),
+    dir
+  )
+  local_mocked_bindings(
+    fetch_latest_assets_version = function() "0.11.0",
+    # 0.10.17 came out after 0.11.0
+    fetch_assets_versions = function() c("0.11.0", "0.10.17", "0.10.16")
+  )
+
+  expect_equal(
+    resolve_assets_version("0.10.*", dir = dir, now = now),
+    "0.10.16"
+  )
+  expect_equal(downloaded(), "0.10.16")
+})
+
+test_that("the error says why the fallback download failed", {
+  dir <- withr::local_tempdir()
+  local_resolve_env(
+    dir,
+    c("0.10.17", SHINYLIVE_ASSETS_VERSION_FALLBACK),
+    download = function(version, dir) stop("HTTP 404 for v", version)
+  )
+
+  expect_error(
+    resolve_assets_version("0.10.*", dir = dir, now = now),
+    paste0(
+      "fallback v",
+      SHINYLIVE_ASSETS_VERSION_FALLBACK,
+      " also failed: HTTP 404 for v",
+      SHINYLIVE_ASSETS_VERSION_FALLBACK
+    ),
+    fixed = TRUE
+  )
+})
+
+test_that("the failed check warning says when GitHub is checked again", {
+  dir <- withr::local_tempdir()
+  local_resolve_env(dir, c("0.10.17", "0.10.16"))
+  add_local_assets(dir, "0.10.17")
+
+  expect_warning(
+    resolve_assets_version("latest", dir = dir, now = now),
+    paste0(
+      "at 2026-11-20T12:00:00Z failed: offline.*",
+      "checked again after 2026-11-20T13:00:00Z"
+    )
+  )
+})

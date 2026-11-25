@@ -43,8 +43,11 @@ of \pkg{shinylive} (\code{"0.10.*"}).}
 \item{dir}{The asset cache directory. Unless testing, the default behavior
 should be used.}
 
-\item{url}{The URL to download the assets from. Unless testing, the default
-behavior should be used.}
+\item{url}{The URL of an assets tarball to download, such as a mirror.
+When set, GitHub is never used: the version is chosen from the saved
+release list and the downloaded assets. For a series or \code{"latest"}, the
+tarball may hold any matching version. For an exact version, the tarball
+must hold a \verb{shinylive-<version>} folder.}
 
 \item{keep}{In \code{assets_cleanup()}, the versions to keep: exact versions
 (\code{"0.10.16"}) and series (\code{"0.10.*"}) or \code{"latest"}. For a series, only
@@ -70,8 +73,8 @@ Helper methods for managing shinylive assets.
 }
 \section{Functions}{
 \itemize{
-\item \code{assets_download()}: Downloads the shinylive assets bundle from GitHub and
-extracts it to the specified directory. The bundle will always be
+\item \code{assets_download()}: Downloads the shinylive assets bundle from GitHub (or
+\code{url}) and extracts it to the specified directory. The bundle will always be
 downloaded from GitHub, even if it already exists in the cache directory
 (\verb{dir=}).
 

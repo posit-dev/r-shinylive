@@ -75,7 +75,9 @@ The input comes from (first wins): a non-`NULL` argument
 (`export(assets_version=)`, `assets_download(version=)`,
 `assets_ensure(version=)`, all `NULL` by default), the
 `SHINYLIVE_ASSETS_VERSION` env var (empty counts as unset), then
-`SHINYLIVE_ASSETS_VERSION_DEFAULT`. See `assets_version_input()`.
+`SHINYLIVE_ASSETS_VERSION_DEFAULT`. See `assets_version_input()`, which
+also checks the env var and errors with "Bad `SHINYLIVE_ASSETS_VERSION`
+environment variable" (`assets_cleanup_keep_default()` uses it too).
 
 `resolve_assets_version(version, dir, download = TRUE, check = TRUE)` turns
 an input into an exact version:
@@ -88,10 +90,14 @@ an input into an exact version:
   `SHINYLIVE_ASSETS_VERSION_FALLBACK` if that matches, else errors. If the
   pick is not downloaded and `download = TRUE`, it downloads it; if that
   fails, it warns and uses the highest downloaded match. With none, it tries
-  to download the fallback version, and errors only if that fails too.
+  to download the fallback version, and errors only if that fails too (the
+  error includes why the fallback failed).
 - If the check failed and no listed release matches (for example, GitHub
   rate-limited the release list and only a newer series' latest tag is
-  known), it warns that the pick may be old.
+  known), it warns that the pick may be old. The warning names when the
+  check failed and when GitHub is checked again (`checked_at +
+  VERSIONS_RETRY_HOURS`). It repeats in every R process until the next check,
+  on purpose: each process may use an old version.
 - `check = FALSE` reads `versions.json` only, with no network. `assets_info()`
   uses it, and shows "unresolved (<reason>)" if resolution errors.
 - The result is remembered for the R session (`assets_version_memo`;
@@ -150,9 +156,9 @@ To start a new minor series, follow the `update-assets-version` skill.
 
 | Function | Exported | What it does |
 |---|---|---|
-| `assets_download(version, dir, url)` | yes | Resolves `version` (without downloading), then always downloads `url` with httr2 into a temp `.tar.gz`, extracts it into a temp folder inside `dir`, and moves `shinylive-<version>/` into place. A folder that existed before the call is replaced; one that appeared during the call (another R process), even between the check and the move, is kept and the new copy dropped. Returns `invisible(dir)`. |
+| `assets_download(version, dir, url)` | yes | Resolves `version` (without downloading; with a custom `url`, also without the GitHub check), then calls `download_assets_tarball()`: always downloads `url` with httr2 into a temp `.tar.gz` (fails after 60 s with no data: `low_speed_limit`/`low_speed_time`), extracts it into a temp folder inside `dir`, and moves `shinylive-<version>/` into place. For a series or `"latest"`, if the tarball has no `shinylive-<version>/` but has another matching version (`tarball_assets_version()`), that folder is used; otherwise it errors. A folder that existed before the call is replaced; one that appeared during the call (another R process), even between the check and the move, is kept and the new copy dropped. Returns `invisible(dir)`. |
 | `assets_bundle_url(version, dir)` | no | `https://github.com/posit-dev/shinylive/releases/download/v<version>/shinylive-<version>.tar.gz`. A series or `"latest"` is resolved first (no download), so the `url` defaults work before or after the caller resolves `version`. |
-| `assets_ensure(version, dir, url)` | yes | Creates `dir` if missing (and prints "Creating assets cache directory" with the path). Resolves `version`. If `<dir>/shinylive-<version>` is missing, calls `assets_download()` into `dir`. Returns that version folder invisibly. |
+| `assets_ensure(version, dir, url)` | yes | Creates `dir` if missing (and prints "Creating assets cache directory" with the path). Resolves `version`. If `<dir>/shinylive-<version>` is missing, calls `assets_download()` into `dir`. With a custom `url` (checked with `missing(url)`), it resolves with `check = FALSE, download = FALSE` and downloads from `url`, so GitHub is never used; a series may end up on the tarball's matching version. Returns that version folder invisibly. |
 | `assets_dir(version, dir)` | no | Path `<dir>/shinylive-<version>`. Does not check that it exists. |
 | `assets_cleanup(keep, dir)` | yes | Keeps the versions in `dir` matched by `keep` (exact versions kept as is; for a series or `"latest"`, only the newest local match) and removes the rest. `keep = NULL` means `SHINYLIVE_ASSETS_VERSION_DEFAULT` plus `SHINYLIVE_ASSETS_VERSION` if set (`assets_cleanup_keep_default()`). |
 | `assets_remove(versions, dir)` | yes | Removes the given versions. Errors if `versions` is not a non-empty character vector. Warns (does not error) for a version that is not there. |
@@ -225,7 +231,8 @@ has no `dir` argument.
 - **A backport release is missed** until the latest tag changes, because the
   release list is only fetched when `latest` changes. This is on purpose:
   releases only move forward, and an older series gets no new patch after a
-  newer series is out.
+  newer series is out. A test in `test-assets_version.R` pins this, so a
+  change is on purpose.
 - **Callers that do not pass `dir` still use the real cache.** For example
   `assets_webr_r_version()` calls `assets_ensure(version)` with the default
   `dir`, and `export()` calls `assets_dir(version = assets_version)`.
