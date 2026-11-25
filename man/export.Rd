@@ -53,11 +53,21 @@ value can be changed by setting the environment variable
 \code{"NA"} or \code{"-1"}) to disable.}
 
 \item{assets_version}{The version of the Shinylive assets to use in the
-exported app. Defaults to \code{\link[=assets_version]{assets_version()}}. Note, not all custom assets
-versions may work with this release of \pkg{shinylive}. Please visit the
+exported app. One of:
+\itemize{
+\item A series, such as \code{"0.10.*"}: the newest matching release. GitHub is
+checked for new releases at most once a day.
+\item \code{"latest"}: the newest release, checked on GitHub once per R session.
+\item An exact version, such as \code{"0.10.16"}. Use this for builds that must
+repeat exactly.
+}
+
+When \code{NULL} (the default), the \code{SHINYLIVE_ASSETS_VERSION} environment
+variable is used if set, and otherwise the default series of this version
+of \pkg{shinylive} (\code{"0.10.*"}). Versions outside the default series may not work with this
+release of \pkg{shinylive}. See the
 \href{https://github.com/posit-dev/shinylive/releases}{shinylive asset releases}
-website to learn more information about the available \code{assets_version}
-values.}
+for the available versions.}
 
 \item{template_dir}{Path to a custom template directory to use when exporting
 the shinylive app. The template can be copied from the shinylive assets

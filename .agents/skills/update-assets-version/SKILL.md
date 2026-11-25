@@ -1,9 +1,22 @@
 ---
 name: update-assets-version
-description: Update the default shinylive web assets version used by the R package. Use when a new posit-dev/shinylive release is out, or when asked to bump, update or change `SHINYLIVE_ASSETS_VERSION`.
+description: Update the Shinylive web assets series or fallback version used by the R package. Use when a new posit-dev/shinylive minor release is out (such as 0.11.0), when the package must require a newer assets patch, or when asked to bump, update or change `SHINYLIVE_ASSETS_VERSION_DEFAULT` or `SHINYLIVE_ASSETS_VERSION_FALLBACK`.
 ---
 
 # Update the shinylive assets version
+
+The package does not pin one assets version. `SHINYLIVE_ASSETS_VERSION_DEFAULT`
+in `R/version.R` is a series, such as `"0.10.*"`, and the newest release in it
+is used (see `memory-bank/assets.md`).
+
+**Patch releases (0.10.17, 0.10.18, ...) need no change.** Users get them within
+a day.
+
+Change the package only when:
+
+- **A new minor series is out (0.11.0).** It may change the files the package
+  reads, so the package opts in with a release.
+- **The package needs a newer patch** to work. Raise the fallback.
 
 ## Steps
 
@@ -13,31 +26,50 @@ description: Update the default shinylive web assets version used by the R packa
    gh release view v<VERSION> -R posit-dev/shinylive
    ```
 
-   Note the Shiny for Python version and the webR version it bundles. If a version was released but not deployed to shinylive.io, skip it and say so in the PR description.
+   Note the Shiny for Python version and the webR version it bundles.
 
-2. **`R/version.R`:** set `SHINYLIVE_ASSETS_VERSION <- "<VERSION>"`. `export()` reads the webR R version from the assets. If the webR version changes the R version, update the expected R version in the "default assets use the expected webR R version" test in `tests/testthat/test-assets.R`.
+2. **Test the new assets** with `TEST_ASSETS=1` and
+   `SHINYLIVE_ASSETS_VERSION=<VERSION>`. Check that `export()` and the Quarto
+   extension still work, since a new series may move files.
 
-3. **`NEWS.md`:** under the development version, keep a single bullet for the assets update. Replace the old version in it instead of adding a new bullet:
+3. **`R/version.R`:**
+   - New series: set `SHINYLIVE_ASSETS_VERSION_DEFAULT <- "<MAJOR>.<MINOR>.*"`
+     and `SHINYLIVE_ASSETS_VERSION_FALLBACK <- "<VERSION>"`.
+   - Newer patch required: set only `SHINYLIVE_ASSETS_VERSION_FALLBACK`.
+
+4. **New series only: update the docs.** The roxygen docs of
+   `export(assets_version=)`, `assets_download(version=)`, `assets_cleanup()`,
+   and `assets_version()` name the series. Update them, then run
+   `devtools::document()`. Their defaults are `NULL`, so no formals change.
+
+5. **webR R version.** If webR's R version changed, update the expected R
+   version in the "default assets use the expected webR R version" test in
+   `tests/testthat/test-assets.R`.
+
+6. **`NEWS.md`:** under the development version, add a bullet:
 
    ```md
-   * Updated the default shinylive assets to
-     [v<VERSION>](https://github.com/posit-dev/shinylive/releases/tag/v<VERSION>),
+   * The default shinylive assets series is now
+     [`<MAJOR>.<MINOR>.*`](https://github.com/posit-dev/shinylive/releases/tag/v<VERSION>),
      which bundles Shiny for Python
-     [v<PY_SHINY>](https://github.com/posit-dev/py-shiny/releases/tag/v<PY_SHINY>). The
-     bundled webR is unchanged at
-     [v<WEBR>](https://github.com/r-wasm/webr/releases/tag/v<WEBR>).
+     [v<PY_SHINY>](https://github.com/posit-dev/py-shiny/releases/tag/v<PY_SHINY>)
+     and webR [v<WEBR>](https://github.com/r-wasm/webr/releases/tag/v<WEBR>).
    ```
 
-   If webR changed, say what it changed from and to.
-
-4. **Update examples that name the old version.** The `assets-version` examples in `README.md` and `examples/deploy-app.yaml` show a version. Find every place:
+7. **Update examples that name the old version.** The `assets-version` examples
+   in `README.md` and `examples/deploy-app.yaml` show a version:
 
    ```sh
    git grep -n "<OLD_VERSION>" -- ':!NEWS.md'
    ```
 
-5. **Open the PR** with the title `chore: Update shinylive assets to v<VERSION>`.
+8. **Open the PR** with the title `feat: Use the shinylive assets <MAJOR>.<MINOR>.* series`
+   (or `chore: Require shinylive assets v<VERSION>` for a fallback bump).
 
 ## The deploy-app workflow
 
-`.github/workflows/deploy-app.yaml` does not name an assets version. Its `assets-version` input defaults to `""`, which uses the installed package's `SHINYLIVE_ASSETS_VERSION`. No workflow change or `actions-v1` tag move is needed for an assets update: callers that install from GitHub get the new assets once it merges, and callers that install from CRAN get them with the next CRAN release.
+`.github/workflows/deploy-app.yaml` does not name an assets version. Its
+`assets-version` input defaults to `""`, which uses the installed package's
+default series. No workflow change or `actions-v1` tag move is needed: callers
+get new patch releases without a package release, and a new series with the
+next shinylive release.

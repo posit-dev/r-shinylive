@@ -28,11 +28,20 @@
 #'   `SHINYLIVE_DEFAULT_MAX_FILESIZE`. Set to `Inf`, `NA` or `-1` (or `"Inf"`,
 #'   `"NA"` or `"-1"`) to disable.
 #' @param assets_version The version of the Shinylive assets to use in the
-#'   exported app. Defaults to [assets_version()]. Note, not all custom assets
-#'   versions may work with this release of \pkg{shinylive}. Please visit the
+#'   exported app. One of:
+#'
+#'   * A series, such as `"0.10.*"`: the newest matching release. GitHub is
+#'     checked for new releases at most once a day.
+#'   * `"latest"`: the newest release, checked on GitHub once per R session.
+#'   * An exact version, such as `"0.10.16"`. Use this for builds that must
+#'     repeat exactly.
+#'
+#'   When `NULL` (the default), the `SHINYLIVE_ASSETS_VERSION` environment
+#'   variable is used if set, and otherwise the default series of this version
+#'   of \pkg{shinylive} (`"0.10.*"`). Versions outside the default series may not work with this
+#'   release of \pkg{shinylive}. See the
 #'   [shinylive asset releases](https://github.com/posit-dev/shinylive/releases)
-#'   website to learn more information about the available `assets_version`
-#'   values.
+#'   for the available versions.
 #' @param template_dir Path to a custom template directory to use when exporting
 #'   the shinylive app. The template can be copied from the shinylive assets
 #'   using: `fs::path(shinylive:::assets_dir(), "export_template")`.
@@ -89,10 +98,6 @@ export <- function(
   cli_alert_info("Exporting Shiny app from: {.path {appdir}}")
   cli_alert("Destination: {.path {destdir}}")
 
-  if (is.null(assets_version)) {
-    assets_version <- assets_version()
-  }
-
   wasm_packages <- wasm_packages %||% sys_env_wasm_packages()
 
   if (!fs::is_dir(appdir)) {
@@ -125,6 +130,11 @@ export <- function(
   }
 
   subdir <- check_subdir(subdir)
+
+  # Resolve after the argument checks: it may use the network or download
+  assets_version <- resolve_assets_version(
+    assets_version_input(assets_version)
+  )
 
   if (!fs::dir_exists(destdir)) {
     fs::dir_create(destdir)
