@@ -59,6 +59,14 @@ export(
   `SHINYLIVE_WASM_PACKAGES` to `TRUE` or `1` to enable, `FALSE` or `0`
   to disable.
 
+  The CRAN package `webr` is never included. webR has its own built-in
+  package named `webr` (with functions like `webr::install()`), and it
+  is loaded before the app starts, so the CRAN package can't be loaded
+  in Shinylive. If your app needs functions from the CRAN `webr`
+  package, copy them into your app's code instead. Packages that the
+  CRAN `webr` package uses, like `moonBook` or `rrtable`, are still
+  included when your app uses them directly.
+
 - package_cache:
 
   Cache downloaded binary WebAssembly packages. Defaults to `TRUE`.

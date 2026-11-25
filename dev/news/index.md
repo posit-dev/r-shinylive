@@ -96,6 +96,16 @@
   The bundled webR is unchanged at
   [v0.6.0](https://github.com/r-wasm/webr/releases/tag/v0.6.0).
 
+- [`export()`](https://posit-dev.github.io/r-shinylive/dev/reference/export.md)
+  no longer downloads the CRAN package `webr` when an app calls the
+  `webr` package built into webR, such as `webr::install()`. The CRAN
+  package shares the name but is unrelated, and it pulled in many other
+  packages, which made the exported app much slower to load. The CRAN
+  package could never be loaded in Shinylive anyway, since webR loads
+  its own `webr` package first. If your app needs functions from the
+  CRAN `webr` package, copy them into your app’s code
+  ([\#206](https://github.com/posit-dev/r-shinylive/issues/206)).
+
 ## shinylive 0.5.0
 
 CRAN release: 2026-06-08

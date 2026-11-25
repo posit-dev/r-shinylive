@@ -94,7 +94,14 @@ not set.</p></dd>
 of the output app's static assets. Logical, defaults to <code>TRUE</code>. The default
 value can be changed by setting the environment variable
 <code>SHINYLIVE_WASM_PACKAGES</code> to <code>TRUE</code> or <code>1</code> to enable, <code>FALSE</code> or <code>0</code> to
-disable.</p></dd>
+disable.</p>
+<p>The CRAN package <code>webr</code> is never included. webR has its own built-in
+package named <code>webr</code> (with functions like <code>webr::install()</code>), and it is
+loaded before the app starts, so the CRAN package can't be loaded in
+Shinylive. If your app needs functions from the CRAN <code>webr</code> package, copy
+them into your app's code instead. Packages that the CRAN <code>webr</code> package
+uses, like <code>moonBook</code> or <code>rrtable</code>, are still included when your app uses
+them directly.</p></dd>
 
 
 <dt id="arg-package-cache">package_cache<a class="anchor" aria-label="anchor" href="#arg-package-cache"></a></dt>
