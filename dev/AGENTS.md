@@ -80,6 +80,34 @@ holds what.
 - **NEWS:** add a bullet to `NEWS.md` under the development version for
   any user-facing change.
 
+## Keep py-shinylive in sync
+
+[posit-dev/py-shinylive](https://github.com/posit-dev/py-shinylive) is
+the Python version of this package. The two packages share:
+
+- the
+  [`quarto_ext()`](https://posit-dev.github.io/r-shinylive/dev/reference/quarto_ext.md)
+  commands and the JSON they print, used by quarto-ext/shinylive for
+  both `shinylive-r` and `shinylive-python` blocks;
+- the assets cache folder, its `shinylive-<version>` folders, and its
+  `versions.json` file;
+- how the assets version is chosen: the `SHINYLIVE_ASSETS_VERSION`
+  environment variable, and exact versions, series (`0.10.*`), and
+  `latest`.
+
+When you add a feature or fix a bug, check whether py-shinylive needs
+the same change. Skip this for changes that only apply to R, such as
+finding the Wasm binaries of an app’s R packages. If py-shinylive needs
+it:
+
+- Open an issue in posit-dev/py-shinylive that links to your PR and says
+  what to change. Or open the py-shinylive PR yourself.
+- Link that issue or PR in your PR’s description.
+
+Changes to the shared items above must be released in both packages at
+about the same time. Otherwise, a Quarto document with both
+`shinylive-r` and `shinylive-python` blocks can fail to render.
+
 ## Memory Bank
 
 The `memory-bank/` directory holds contributor documentation with YAML

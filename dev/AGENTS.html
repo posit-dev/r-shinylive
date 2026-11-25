@@ -78,6 +78,17 @@
 <strong>NEWS:</strong> add a bullet to <code>NEWS.md</code> under the development version for any user-facing change.</li>
 </ul></div>
 <div class="section level2">
+<h2 id="keep-py-shinylive-in-sync">Keep py-shinylive in sync<a class="anchor" aria-label="anchor" href="#keep-py-shinylive-in-sync"></a></h2>
+<p><a href="https://github.com/posit-dev/py-shinylive" class="external-link">posit-dev/py-shinylive</a> is the Python version of this package. The two packages share:</p>
+<ul><li>the <code><a href="reference/quarto_ext.html">quarto_ext()</a></code> commands and the JSON they print, used by quarto-ext/shinylive for both <code>shinylive-r</code> and <code>shinylive-python</code> blocks;</li>
+<li>the assets cache folder, its <code>shinylive-&lt;version&gt;</code> folders, and its <code>versions.json</code> file;</li>
+<li>how the assets version is chosen: the <code>SHINYLIVE_ASSETS_VERSION</code> environment variable, and exact versions, series (<code>0.10.*</code>), and <code>latest</code>.</li>
+</ul><p>When you add a feature or fix a bug, check whether py-shinylive needs the same change. Skip this for changes that only apply to R, such as finding the Wasm binaries of an app’s R packages. If py-shinylive needs it:</p>
+<ul><li>Open an issue in posit-dev/py-shinylive that links to your PR and says what to change. Or open the py-shinylive PR yourself.</li>
+<li>Link that issue or PR in your PR’s description.</li>
+</ul><p>Changes to the shared items above must be released in both packages at about the same time. Otherwise, a Quarto document with both <code>shinylive-r</code> and <code>shinylive-python</code> blocks can fail to render.</p>
+</div>
+<div class="section level2">
 <h2 id="memory-bank">Memory Bank<a class="anchor" aria-label="anchor" href="#memory-bank"></a></h2>
 <p>The <code>memory-bank/</code> directory holds contributor documentation with YAML frontmatter (<code>title</code>, <code>description</code>). <strong>Before exploring the codebase</strong>, invoke the <code>memory-bank</code> skill to find and read the relevant docs. Start with <code>memory-bank/architecture.md</code>; it explains how the pieces fit and which doc covers each <code>R/</code> file. Update or add docs when you learn something future contributors will need (see the skill for conventions).</p>
 </div>
