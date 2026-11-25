@@ -6,20 +6,20 @@ Helper methods for managing shinylive assets.
 
 ``` r
 assets_download(
-  version = assets_version(),
+  version = NULL,
   ...,
   dir = assets_cache_dir(),
-  url = assets_bundle_url(version)
+  url = assets_bundle_url(version, dir = dir)
 )
 
 assets_ensure(
-  version = assets_version(),
+  version = NULL,
   ...,
   dir = assets_cache_dir(),
-  url = assets_bundle_url(version)
+  url = assets_bundle_url(version, dir = dir)
 )
 
-assets_cleanup(..., dir = assets_cache_dir())
+assets_cleanup(..., keep = NULL, dir = assets_cache_dir())
 
 assets_remove(versions, ..., dir = assets_cache_dir())
 
@@ -32,7 +32,12 @@ assets_version()
 
 - version:
 
-  The version of the assets to download.
+  The version of the assets: an exact version (`"0.10.16"`), a series
+  (`"0.10.*"`), or `"latest"`. See
+  [`export()`](https://posit-dev.github.io/r-shinylive/dev/reference/export.md)
+  for details. When `NULL` (the default), the `SHINYLIVE_ASSETS_VERSION`
+  environment variable is used if set, and otherwise the default series
+  of this version of shinylive (`"0.10.*"`).
 
 - ...:
 
@@ -47,6 +52,14 @@ assets_version()
 
   The URL to download the assets from. Unless testing, the default
   behavior should be used.
+
+- keep:
+
+  In `assets_cleanup()`, the versions to keep: exact versions
+  (`"0.10.16"`) and series (`"0.10.*"`) or `"latest"`. For a series,
+  only the newest downloaded match is kept. Defaults to the default
+  series of this version of shinylive (`"0.10.*"`), plus the
+  `SHINYLIVE_ASSETS_VERSION` environment variable if set.
 
 - versions:
 
@@ -81,7 +94,8 @@ Shinylive.
   returned.
 
 - `assets_cleanup()`: Removes local copies of shinylive web assets,
-  except for the one used by the current version of shinylive.
+  except for those matched by `keep`. Also removes temp files older than
+  10 minutes that an interrupted download left in `dir`.
 
 - `assets_remove()`: Removes a local copies of shinylive web assets.
 
@@ -89,6 +103,10 @@ Shinylive.
   that have been installed. Returns a table of installed asset versions
   and their associated paths, invisibly unless `quiet = TRUE`.
 
-- `assets_version()`: Returns the version of the currently supported
-  Shinylive assets version. If the `SHINYLIVE_ASSETS_VERSION`
-  environment variable is set, that value will be used.
+- `assets_version()`: Returns the exact Shinylive assets version to use.
+  It is the newest release in the default series (`"0.10.*"`), checked
+  on GitHub at most once a day, or the highest downloaded version when
+  offline. If the `SHINYLIVE_ASSETS_VERSION` environment variable is
+  set, it is used instead (an exact version, a series, or `"latest"`).
+  The result is remembered for the R session and may download the
+  assets.

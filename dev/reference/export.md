@@ -73,13 +73,24 @@ export(
 
 - assets_version:
 
-  The version of the Shinylive assets to use in the exported app.
-  Defaults to
-  [`assets_version()`](https://posit-dev.github.io/r-shinylive/dev/reference/assets.md).
-  Note, not all custom assets versions may work with this release of
-  shinylive. Please visit the [shinylive asset
-  releases](https://github.com/posit-dev/shinylive/releases) website to
-  learn more information about the available `assets_version` values.
+  The version of the Shinylive assets to use in the exported app. One
+  of:
+
+  - A series, such as `"0.10.*"`: the newest matching release. GitHub is
+    checked for new releases at most once a day.
+
+  - `"latest"`: the newest release, checked on GitHub once per R
+    session.
+
+  - An exact version, such as `"0.10.16"`. Use this for builds that must
+    repeat exactly.
+
+  When `NULL` (the default), the `SHINYLIVE_ASSETS_VERSION` environment
+  variable is used if set, and otherwise the default series of this
+  version of shinylive (`"0.10.*"`). Versions outside the default series
+  may not work with this release of shinylive. See the [shinylive asset
+  releases](https://github.com/posit-dev/shinylive/releases) for the
+  available versions.
 
 - template_dir:
 

@@ -140,9 +140,11 @@ To choose which shinylive R package and web assets are used, set the
 `shinylive-version` and `assets-version` inputs. `shinylive-version` is
 a [pak](https://pak.r-lib.org/) reference, such as `shinylive` (CRAN),
 `shinylive@0.5.0` or `posit-dev/r-shinylive` (GitHub). By default,
-`assets-version` is empty, which uses the assets version of the
-installed shinylive package. Set it to a version to pin it, or to
-`latest` to look up the newest [posit-dev/shinylive
+`assets-version` is empty, which uses the installed shinylive package’s
+default: in shinylive 0.6.0 and later, the newest release in its assets
+series (such as `0.10.*`). Set it to a version to pin it, to a series
+such as `0.11.*` (shinylive 0.6.0 and later), or to `latest` to look up
+the newest [posit-dev/shinylive
 release](https://github.com/posit-dev/shinylive/releases) when the
 workflow runs. Assets that differ from the package’s default may not
 work with that package version:
@@ -232,7 +234,9 @@ shinylive::assets_download("0.1.5")
 
 You can remove old versions with
 [`shinylive::assets_cleanup()`](https://posit-dev.github.io/r-shinylive/dev/reference/assets.md).
-This will remove all versions except the one that this R package uses:
+This will remove all versions except the newest one in the series that
+this R package uses (and any set by `SHINYLIVE_ASSETS_VERSION`). Use
+`keep=` to choose other versions to keep:
 
 ``` r
 

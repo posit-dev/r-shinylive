@@ -95,7 +95,8 @@ Task-specific instructions live in `.agents/skills/` (`.claude/skills`
 is a symlink to it):
 
 - `memory-bank`: find, read, and update the docs in `memory-bank/`.
-- `update-assets-version`: bump `SHINYLIVE_ASSETS_VERSION`.
+- `update-assets-version`: start a new assets series or raise the
+  fallback version.
 - `update-actions-tag`: move the `actions-v1` tag after changes to the
   reusable `deploy-app` workflow or `examples/`.
 

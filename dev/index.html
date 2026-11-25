@@ -8,8 +8,8 @@
 <title>Run shiny Applications in the Browser • shinylive</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/Source_Sans_Pro-0.4.10/font.css" rel="stylesheet">
-<link href="deps/Source_Code_Pro-0.4.10/font.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/Source_Sans_Pro-0.5.0/font.css" rel="stylesheet">
+<link href="deps/Source_Code_Pro-0.5.0/font.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Run shiny Applications in the Browser">
@@ -122,7 +122,7 @@
 <span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="at">    </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> posit-dev/r-shinylive/.github/workflows/deploy-app.yaml@actions-v1</span></span>
 <span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="at">    </span><span class="fu">with</span><span class="kw">:</span></span>
 <span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="at">      </span><span class="fu">app-dir</span><span class="kw">:</span><span class="at"> app</span></span></code></pre></div>
-<p>To choose which shinylive R package and web assets are used, set the <code>shinylive-version</code> and <code>assets-version</code> inputs. <code>shinylive-version</code> is a <a href="https://pak.r-lib.org/" class="external-link">pak</a> reference, such as <code>shinylive</code> (CRAN), <code>shinylive@0.5.0</code> or <code>posit-dev/r-shinylive</code> (GitHub). By default, <code>assets-version</code> is empty, which uses the assets version of the installed shinylive package. Set it to a version to pin it, or to <code>latest</code> to look up the newest <a href="https://github.com/posit-dev/shinylive/releases" class="external-link">posit-dev/shinylive release</a> when the workflow runs. Assets that differ from the package’s default may not work with that package version:</p>
+<p>To choose which shinylive R package and web assets are used, set the <code>shinylive-version</code> and <code>assets-version</code> inputs. <code>shinylive-version</code> is a <a href="https://pak.r-lib.org/" class="external-link">pak</a> reference, such as <code>shinylive</code> (CRAN), <code>shinylive@0.5.0</code> or <code>posit-dev/r-shinylive</code> (GitHub). By default, <code>assets-version</code> is empty, which uses the installed shinylive package’s default: in shinylive 0.6.0 and later, the newest release in its assets series (such as <code>0.10.*</code>). Set it to a version to pin it, to a series such as <code>0.11.*</code> (shinylive 0.6.0 and later), or to <code>latest</code> to look up the newest <a href="https://github.com/posit-dev/shinylive/releases" class="external-link">posit-dev/shinylive release</a> when the workflow runs. Assets that differ from the package’s default may not work with that package version:</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="at">    </span><span class="fu">with</span><span class="kw">:</span></span>
 <span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="at">      </span><span class="fu">shinylive-version</span><span class="kw">:</span><span class="at"> shinylive@0.5.0</span></span>
 <span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="at">      </span><span class="fu">assets-version</span><span class="kw">:</span><span class="at"> </span><span class="st">"0.10.16"</span></span></code></pre></div>
@@ -166,7 +166,7 @@
 <code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/assets.html">assets_download</a></span><span class="op">(</span><span class="st">"0.1.5"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ℹ Downloading shinylive assets v0.1.5</span></span>
 <span><span class="co">#&gt; ℹ Unzipping shinylive assets to /Users/username/Library/Caches/shinylive</span></span></code></pre></div>
-<p>You can remove old versions with <code><a href="reference/assets.html">shinylive::assets_cleanup()</a></code>. This will remove all versions except the one that this R package uses:</p>
+<p>You can remove old versions with <code><a href="reference/assets.html">shinylive::assets_cleanup()</a></code>. This will remove all versions except the newest one in the series that this R package uses (and any set by <code>SHINYLIVE_ASSETS_VERSION</code>). Use <code>keep=</code> to choose other versions to keep:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">shinylive</span><span class="fu">::</span><span class="fu"><a href="reference/assets.html">assets_cleanup</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ℹ Keeping version 0.2.1</span></span>

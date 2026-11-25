@@ -2,6 +2,37 @@
 
 ## shinylive (development version)
 
+### New features
+
+- Shinylive web assets are no longer pinned to one version per package
+  release, so new assets releases no longer need a new version of
+  shinylive. By default, the newest release in the `0.10.*` series is
+  used. GitHub is checked for new releases at most once a day (once an
+  hour after a failed check), and the result is saved in `versions.json`
+  in the assets cache folder. Offline, the newest downloaded matching
+  version is used. A new series, like `0.11.*`, is only used by default
+  after a shinylive update.
+
+  `export(assets_version=)`, `assets_download(version=)`,
+  `assets_ensure(version=)`, and the `SHINYLIVE_ASSETS_VERSION`
+  environment variable now accept an exact version (`"0.10.16"`), a
+  series (`"0.11.*"`), or `"latest"` (check GitHub once per R session).
+  Pin an exact version for builds that must repeat exactly, such as in
+  CI.
+
+  Because of this,
+  [`assets_version()`](https://posit-dev.github.io/r-shinylive/dev/reference/assets.md)
+  can return different values over time and may use the network or
+  download assets.
+  [`assets_cleanup()`](https://posit-dev.github.io/r-shinylive/dev/reference/assets.md)
+  gains a `keep` argument (exact versions and series). By default it
+  keeps the newest downloaded version of the default series and of
+  `SHINYLIVE_ASSETS_VERSION`. It also removes temp files left by
+  interrupted downloads.
+  [`assets_info()`](https://posit-dev.github.io/r-shinylive/dev/reference/assets.md)
+  shows the default series and the last check. An empty
+  `SHINYLIVE_ASSETS_VERSION` is now treated as unset.
+
 ### Bug fixes and minor improvements
 
 - [`export()`](https://posit-dev.github.io/r-shinylive/dev/reference/export.md)
