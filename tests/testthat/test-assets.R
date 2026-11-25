@@ -126,21 +126,44 @@ test_that("assets_path_version() returns the version of an assets folder", {
   expect_equal(assets_path_version(character(0)), character(0))
 })
 
-test_that("assets_cleanup() keeps the highest version of each series", {
+test_that("assets_cleanup() keeps the newest of the default series only", {
   dir <- withr::local_tempdir()
   fs::dir_create(fs::path(
     dir,
-    paste0("shinylive-", c("0.11.0", "0.11.2", "0.10.16", "0.10.5", "dev"))
+    paste0("shinylive-", c("0.11.0", "0.10.16", "0.10.5", "0.9.3", "dev"))
+  ))
+  withr::local_options(shinylive.quiet = TRUE)
+  withr::local_envvar(SHINYLIVE_ASSETS_VERSION = NA)
+  local_mocked_bindings(SHINYLIVE_ASSETS_VERSION_DEFAULT = "0.10.*")
+
+  assets_cleanup(dir = dir)
+  expect_equal(assets_dirs(dir = dir), fs::path(dir, "shinylive-0.10.16"))
+  # Not a version folder, so not touched
+  expect_true(fs::dir_exists(fs::path(dir, "shinylive-dev")))
+})
+
+test_that("assets_cleanup(keep=) takes exact versions and series", {
+  dir <- withr::local_tempdir()
+  fs::dir_create(fs::path(
+    dir,
+    paste0("shinylive-", c("0.11.2", "0.11.0", "0.10.16", "0.10.5", "0.9.3"))
   ))
   withr::local_options(shinylive.quiet = TRUE)
 
-  assets_cleanup(dir = dir)
+  assets_cleanup(keep = c("0.11.*", "0.10.5"), dir = dir)
   expect_equal(
     assets_dirs(dir = dir),
-    fs::path(dir, c("shinylive-0.11.2", "shinylive-0.10.16"))
+    fs::path(dir, c("shinylive-0.11.2", "shinylive-0.10.5"))
   )
-  # Not a version folder, so not touched
-  expect_true(fs::dir_exists(fs::path(dir, "shinylive-dev")))
+
+  assets_cleanup(keep = character(0), dir = dir)
+  expect_equal(assets_dirs(dir = dir), character(0))
+})
+
+test_that("assets_cleanup(keep=) rejects invalid values", {
+  dir <- withr::local_tempdir()
+  expect_error(assets_cleanup(keep = 1, dir = dir), "character")
+  expect_error(assets_cleanup(keep = "0.10.x", dir = dir), "keep")
 })
 
 local_assets_tarball <- function(version, env = parent.frame()) {
@@ -232,16 +255,28 @@ test_that("assets_install_copy() warns outside the default series", {
   expect_no_warning(assets_install_copy(repo, dir = dir, version = "0.10.99"))
 })
 
-test_that("assets_cleanup() keeps a version pinned by SHINYLIVE_ASSETS_VERSION", {
+test_that("assets_cleanup() keeps what SHINYLIVE_ASSETS_VERSION selects", {
   dir <- withr::local_tempdir()
-  fs::dir_create(fs::path(dir, paste0("shinylive-", c("0.10.17", "0.10.16"))))
+  fs::dir_create(fs::path(
+    dir,
+    paste0("shinylive-", c("0.11.1", "0.11.0", "0.10.17", "0.10.16"))
+  ))
   withr::local_options(shinylive.quiet = TRUE)
-  withr::local_envvar(SHINYLIVE_ASSETS_VERSION = "0.10.16")
+  local_mocked_bindings(SHINYLIVE_ASSETS_VERSION_DEFAULT = "0.10.*")
 
+  withr::local_envvar(SHINYLIVE_ASSETS_VERSION = "0.10.16")
   assets_cleanup(dir = dir)
   expect_equal(
     assets_dirs(dir = dir),
-    fs::path(dir, c("shinylive-0.10.17", "shinylive-0.10.16"))
+    fs::path(dir, paste0("shinylive-", c("0.10.17", "0.10.16")))
+  )
+
+  fs::dir_create(fs::path(dir, paste0("shinylive-", c("0.11.1", "0.11.0"))))
+  withr::local_envvar(SHINYLIVE_ASSETS_VERSION = "0.11.*")
+  assets_cleanup(dir = dir)
+  expect_equal(
+    assets_dirs(dir = dir),
+    fs::path(dir, paste0("shinylive-", c("0.11.1", "0.10.17")))
   )
 })
 
@@ -266,6 +301,56 @@ test_that("assets_download() keeps a folder another process just made", {
   expect_equal(basename(fs::dir_ls(dir)), "shinylive-0.10.99")
 })
 
+test_that("assets_download() keeps a folder moved in just before its own move", {
+  dir <- withr::local_tempdir()
+  withr::local_options(shinylive.quiet = TRUE)
+  tarball <- local_assets_tarball("0.10.99")
+  target <- fs::path(dir, "shinylive-0.10.99")
+  local_mocked_bindings(
+    file_move = function(path, new_path) {
+      # Another process wins the race between the check and the move
+      fs::dir_create(target)
+      writeLines("other", fs::path(target, "marker.txt"))
+      stop("Directory not empty")
+    },
+    .package = "fs"
+  )
+
+  assets_download("0.10.99", dir = dir, url = paste0("file://", tarball))
+  expect_true(fs::file_exists(fs::path(target, "marker.txt")))
+  expect_equal(basename(fs::dir_ls(dir)), "shinylive-0.10.99")
+})
+
+test_that("assets_download() still errors when the move fails", {
+  dir <- withr::local_tempdir()
+  withr::local_options(shinylive.quiet = TRUE)
+  tarball <- local_assets_tarball("0.10.99")
+  local_mocked_bindings(
+    file_move = function(path, new_path) stop("Permission denied"),
+    .package = "fs"
+  )
+
+  expect_error(
+    assets_download("0.10.99", dir = dir, url = paste0("file://", tarball)),
+    "Permission denied"
+  )
+})
+
+test_that("assets_info() shows unresolved when nothing matches", {
+  dir <- withr::local_tempdir()
+  assets_version_reset()
+  withr::defer(assets_version_reset())
+  withr::local_envvar(SHINYLIVE_ASSETS_VERSION = "0.99.*")
+  local_mocked_bindings(
+    assets_cache_dir = function() dir,
+    fetch_latest_assets_version = function() stop("must not check")
+  )
+
+  msgs <- testthat::capture_messages(info <- assets_info())
+  expect_match(paste(msgs, collapse = ""), "unresolved", fixed = TRUE)
+  expect_equal(nrow(info), 0)
+})
+
 test_that("assets_download() replaces a folder that existed before", {
   dir <- withr::local_tempdir()
   withr::local_options(shinylive.quiet = TRUE)
@@ -276,5 +361,23 @@ test_that("assets_download() replaces a folder that existed before", {
 
   assets_download("0.10.99", dir = dir, url = paste0("file://", tarball))
   expect_false(fs::file_exists(fs::path(target, "stale.txt")))
-  expect_true(fs::file_exists(fs::path(target, "shinylive", "x.txt")))
+  expect_true(fs::file_exists(fs::path(target, "shinylive", "x.txt"))) # The old folder moved aside is removed
+  expect_equal(basename(fs::dir_ls(dir)), "shinylive-0.10.99")
+})
+
+test_that("assets_cleanup() removes old temp files only", {
+  dir <- withr::local_tempdir()
+  withr::local_options(shinylive.quiet = TRUE)
+  local_mocked_bindings(SHINYLIVE_ASSETS_VERSION_DEFAULT = "0.10.*")
+  withr::local_envvar(SHINYLIVE_ASSETS_VERSION = NA)
+  fs::dir_create(fs::path(dir, c("extract-old", "old-old", "extract-new")))
+  fs::file_create(fs::path(dir, c("versions-old.json", "versions.json")))
+  stale <- fs::path(dir, c("extract-old", "old-old", "versions-old.json"))
+  Sys.setFileTime(stale, Sys.time() - 11 * 60)
+
+  assets_cleanup(dir = dir)
+  expect_setequal(
+    basename(fs::dir_ls(dir)),
+    c("extract-new", "versions.json")
+  )
 })

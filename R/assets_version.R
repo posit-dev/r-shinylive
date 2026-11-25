@@ -3,7 +3,7 @@
 # A version input is one of:
 # * an exact version, such as `"0.10.16"`
 # * a series pattern, such as `"0.10.*"` (highest 0.10.x)
-# * `"latest"` (the newest release, checked on GitHub right away)
+# * `"latest"` (the newest release, checked on GitHub once per R session)
 
 parse_assets_version <- function(x, arg = rlang::caller_arg(x)) {
   is_string <- is.character(x) && length(x) == 1 && !is.na(x)
@@ -143,7 +143,8 @@ versions_check_due <- function(info, now = Sys.time()) {
 # versions info. A failed check records `error` but keeps the old versions.
 update_versions_info <- function(dir, force = FALSE, now = Sys.time()) {
   info <- read_versions_json(dir)
-  if (!force && !versions_check_due(info, now)) {
+  # No network or cache writes during CRAN checks
+  if (cran_is_testing() || (!force && !versions_check_due(info, now))) {
     return(info)
   }
 
@@ -152,6 +153,9 @@ update_versions_info <- function(dir, force = FALSE, now = Sys.time()) {
     {
       latest <- fetch_latest_assets_version()
       versions <- info$versions
+      # Fetch the full list only when the latest tag changes. This assumes
+      # releases only move forward: an older series gets no new patch release
+      # after a newer series is out.
       if (!identical(latest, info$latest) || length(versions) == 0) {
         versions <- fetch_assets_versions()
       }
@@ -170,7 +174,7 @@ update_versions_info <- function(dir, force = FALSE, now = Sys.time()) {
   )
 
   # A read-only cache (such as in a Docker image) must not stop the export
-  try(write_versions_json(new_info, dir), silent = TRUE)
+  suppressWarnings(try(write_versions_json(new_info, dir), silent = TRUE))
   new_info
 }
 
@@ -238,15 +242,14 @@ assets_version_reset <- function() {
   )
 }
 
-# Returns the version input to use: an explicit value wins, then the
+# Returns the version input to use: a non-`NULL` value wins, then the
 # `SHINYLIVE_ASSETS_VERSION` env var, then the package default.
-assets_version_input <- function(version, is_missing) {
-  if (is_missing || is.null(version)) {
-    env <- Sys.getenv("SHINYLIVE_ASSETS_VERSION")
-    if (nzchar(env)) env else SHINYLIVE_ASSETS_VERSION_DEFAULT
-  } else {
-    version
+assets_version_input <- function(version = NULL) {
+  if (!is.null(version)) {
+    return(version)
   }
+  env <- Sys.getenv("SHINYLIVE_ASSETS_VERSION")
+  if (nzchar(env)) env else SHINYLIVE_ASSETS_VERSION_DEFAULT
 }
 
 # Versions of the downloaded assets in `dir`
@@ -260,30 +263,46 @@ max_version <- function(versions) {
 
 # Returns an exact assets version for an exact version, a series pattern, or
 # `"latest"`. When `download = TRUE`, the chosen version is downloaded if
-# needed; if that fails, the highest downloaded match is used instead.
+# needed; if that fails, the highest downloaded match is used instead. When
+# `check = FALSE`, only the saved `versions.json` is read (no network). When
+# `warn = FALSE`, an exact version outside the default series does not warn.
 resolve_assets_version <- function(
   version,
   dir = assets_cache_dir(),
   now = Sys.time(),
-  download = TRUE
+  download = TRUE,
+  check = TRUE,
+  warn = TRUE
 ) {
   spec <- parse_assets_version(version)
 
   if (spec$kind == "exact") {
-    warn_outside_default(spec$value)
+    if (warn) {
+      warn_outside_default(spec$value)
+    }
     return(spec$value)
   }
 
-  key <- paste(spec$value, dir, download)
+  key <- paste(spec$value, dir, download, check)
   if (!is.null(assets_version_memo[[key]])) {
     return(assets_version_memo[[key]])
   }
 
-  info <- update_versions_info(dir, force = spec$kind == "latest", now = now)
+  info <- if (check) {
+    update_versions_info(dir, force = spec$kind == "latest", now = now)
+  } else {
+    read_versions_json(dir)
+  }
   local <- local_assets_versions(dir)
   local_matches <- local[assets_version_matches(local, spec)]
   known <- unique(c(info$versions, local))
   matches <- known[assets_version_matches(known, spec)]
+  # The check failed and no known release matches, so the result may be old.
+  # Every known release matches `"latest"`, so any failed check makes it old.
+  stale <- check &&
+    !is.null(info$error) &&
+    (spec$kind == "latest" ||
+      !any(assets_version_matches(info$versions, spec)))
 
   if (length(matches) == 0) {
     fallback <- SHINYLIVE_ASSETS_VERSION_FALLBACK
@@ -297,6 +316,14 @@ resolve_assets_version <- function(
     matches <- fallback
   }
   chosen <- max_version(matches)
+
+  if (stale) {
+    cli::cli_warn(c(
+      "Can't check GitHub for new Shinylive assets releases. Using {.field v{chosen}}, which may not be the newest {.val {spec$value}} release.",
+      "x" = "{info$error}",
+      "i" = "Set {.envvar GITHUB_PAT} if GitHub is limiting requests, or pass an exact version."
+    ))
+  }
 
   if (download && !chosen %in% local) {
     chosen <- tryCatch(
@@ -335,7 +362,7 @@ resolve_assets_version <- function(
         fallback <- max_version(local_matches)
         cli::cli_warn(c(
           "Can't download Shinylive assets {.field v{chosen}}. Using downloaded {.field v{fallback}} instead.",
-          "x" = conditionMessage(e)
+          "x" = "{conditionMessage(e)}"
         ))
         fallback
       }

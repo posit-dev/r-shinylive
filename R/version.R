@@ -1,7 +1,5 @@
 # The Shinylive assets series used by default. Patch releases in this series
-# are picked up without a package release. Bump for a new minor series, along
-# with the `version` defaults of `export()`, `assets_download()`, and
-# `assets_ensure()` (a test checks they match).
+# are picked up without a package release. Bump for a new minor series.
 SHINYLIVE_ASSETS_VERSION_DEFAULT <- "0.10.*"
 # A known-good version in the default series, tested at package release. Used
 # when no matching version is known.

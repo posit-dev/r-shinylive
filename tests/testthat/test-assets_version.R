@@ -270,18 +270,6 @@ add_local_assets <- function(dir, versions) {
   fs::dir_create(fs::path(dir, paste0("shinylive-", versions)))
 }
 
-test_that("exported formals use SHINYLIVE_ASSETS_VERSION_DEFAULT", {
-  expect_equal(
-    formals(export)$assets_version,
-    SHINYLIVE_ASSETS_VERSION_DEFAULT
-  )
-  expect_equal(
-    formals(assets_download)$version,
-    SHINYLIVE_ASSETS_VERSION_DEFAULT
-  )
-  expect_equal(formals(assets_ensure)$version, SHINYLIVE_ASSETS_VERSION_DEFAULT)
-})
-
 test_that("the default and fallback versions agree", {
   expect_true(assets_version_matches(
     SHINYLIVE_ASSETS_VERSION_FALLBACK,
@@ -335,9 +323,12 @@ test_that("offline with nothing downloaded errors clearly", {
     stop("Could not resolve host")
   })
 
-  expect_error(
-    resolve_assets_version("0.10.*", dir = dir, now = now),
-    "online"
+  expect_warning(
+    expect_error(
+      resolve_assets_version("0.10.*", dir = dir, now = now),
+      "online"
+    ),
+    "may not be the newest"
   )
 })
 
@@ -345,10 +336,11 @@ test_that("no known match uses the fallback version", {
   dir <- withr::local_tempdir()
   downloaded <- local_resolve_env(dir)
 
-  expect_equal(
-    resolve_assets_version("0.10.*", dir = dir, now = now),
-    SHINYLIVE_ASSETS_VERSION_FALLBACK
+  expect_warning(
+    v <- resolve_assets_version("0.10.*", dir = dir, now = now),
+    "may not be the newest"
   )
+  expect_equal(v, SHINYLIVE_ASSETS_VERSION_FALLBACK)
   expect_equal(downloaded(), SHINYLIVE_ASSETS_VERSION_FALLBACK)
 })
 
@@ -418,20 +410,12 @@ test_that("exact versions are returned as is and warn outside the default", {
 
 test_that("assets_version_input() prefers explicit, then env var, then default", {
   withr::local_envvar(SHINYLIVE_ASSETS_VERSION = NA)
-  expect_equal(assets_version_input("0.10.1", FALSE), "0.10.1")
-  expect_equal(
-    assets_version_input(NULL, FALSE),
-    SHINYLIVE_ASSETS_VERSION_DEFAULT
-  )
-  expect_equal(
-    assets_version_input("0.10.*", TRUE),
-    SHINYLIVE_ASSETS_VERSION_DEFAULT
-  )
+  expect_equal(assets_version_input("0.10.1"), "0.10.1")
+  expect_equal(assets_version_input(NULL), SHINYLIVE_ASSETS_VERSION_DEFAULT)
 
   withr::local_envvar(SHINYLIVE_ASSETS_VERSION = "0.10.5")
-  expect_equal(assets_version_input("0.10.*", TRUE), "0.10.5")
-  expect_equal(assets_version_input(NULL, FALSE), "0.10.5")
-  expect_equal(assets_version_input("0.10.1", FALSE), "0.10.1")
+  expect_equal(assets_version_input(NULL), "0.10.5")
+  expect_equal(assets_version_input("0.10.1"), "0.10.1")
 })
 
 test_that("assets_version() resolves the default in the cache dir", {
@@ -458,7 +442,7 @@ test_that("assets_ensure() resolves a pattern before downloading", {
 test_that("an empty SHINYLIVE_ASSETS_VERSION is treated as unset", {
   withr::local_envvar(SHINYLIVE_ASSETS_VERSION = "")
   expect_equal(
-    assets_version_input("0.10.*", TRUE),
+    assets_version_input(NULL),
     SHINYLIVE_ASSETS_VERSION_DEFAULT
   )
 })
@@ -473,10 +457,11 @@ test_that("a read-only cache does not stop resolution", {
     write_versions_json = function(...) stop("cannot open the connection")
   )
 
-  expect_equal(
-    resolve_assets_version("0.10.*", dir = dir, now = now),
-    "0.10.16"
+  expect_warning(
+    v <- resolve_assets_version("0.10.*", dir = dir, now = now),
+    "may not be the newest"
   )
+  expect_equal(v, "0.10.16")
 })
 
 test_that("a newly seen latest tag is kept when the release list fails", {
@@ -511,4 +496,171 @@ test_that("a failed download with nothing downloaded tries the fallback", {
   )
   expect_equal(v, SHINYLIVE_ASSETS_VERSION_FALLBACK)
   expect_equal(downloaded(), c("0.10.17", SHINYLIVE_ASSETS_VERSION_FALLBACK))
+})
+
+test_that("a failed check with no listed match warns the pick may be old", {
+  dir <- withr::local_tempdir()
+  downloaded <- local_resolve_env(dir)
+  # The latest tag was seen, but the release list was rate limited
+  write_versions_json(
+    list(
+      checked_at = now - 2 * 3600,
+      latest = NULL,
+      versions = "0.11.0",
+      error = "HTTP 403 rate limit exceeded"
+    ),
+    dir
+  )
+
+  expect_warning(
+    v <- resolve_assets_version("0.10.*", dir = dir, now = now),
+    "may not be the newest"
+  )
+  expect_equal(v, SHINYLIVE_ASSETS_VERSION_FALLBACK)
+})
+
+test_that("a failed check with a listed match does not warn", {
+  dir <- withr::local_tempdir()
+  local_resolve_env(dir)
+  write_versions_json(
+    list(
+      checked_at = now - 2 * 3600,
+      latest = "0.10.17",
+      versions = c("0.10.17", "0.10.16"),
+      error = "Could not resolve host"
+    ),
+    dir
+  )
+  add_local_assets(dir, "0.10.17")
+
+  expect_no_warning(
+    expect_equal(
+      resolve_assets_version("0.10.*", dir = dir, now = now),
+      "0.10.17"
+    )
+  )
+})
+
+test_that("check = FALSE reads versions.json without the network", {
+  dir <- withr::local_tempdir()
+  local_resolve_env(dir, c("0.10.17", "0.10.16"), hours_ago = 48)
+  local_mocked_bindings(
+    fetch_latest_assets_version = function() stop("must not check")
+  )
+
+  expect_equal(
+    resolve_assets_version(
+      "0.10.*",
+      dir = dir,
+      now = now,
+      download = FALSE,
+      check = FALSE
+    ),
+    "0.10.17"
+  )
+})
+
+test_that("assets_bundle_url() resolves a series", {
+  dir <- withr::local_tempdir()
+  local_resolve_env(dir, c("0.10.17", "0.10.16"))
+
+  expect_equal(
+    assets_bundle_url("0.10.*", dir = dir),
+    assets_bundle_url("0.10.17")
+  )
+})
+
+test_that("'latest' warns when its check fails", {
+  dir <- withr::local_tempdir()
+  local_resolve_env(dir, c("0.10.17", "0.10.16"))
+  add_local_assets(dir, "0.10.17")
+
+  expect_warning(
+    v <- resolve_assets_version("latest", dir = dir, now = now),
+    "may not be the newest"
+  )
+  expect_equal(v, "0.10.17")
+})
+
+test_that("the check is skipped during CRAN checks", {
+  dir <- withr::local_tempdir()
+  withr::local_envvar(TESTTHAT = "true", NOT_CRAN = "false")
+  local_mocked_bindings(
+    fetch_latest_assets_version = function() stop("must not check")
+  )
+
+  expect_null(update_versions_info(dir, force = TRUE, now = now))
+  expect_false(fs::file_exists(versions_json_path(dir)))
+})
+
+test_that("warn = FALSE skips the outside-default warning", {
+  dir <- withr::local_tempdir()
+  local_resolve_env(dir)
+
+  expect_no_warning(resolve_assets_version("0.9.0", dir = dir, warn = FALSE))
+})
+
+test_that("assets_bundle_url() and check_assets_url() do not download", {
+  dir <- withr::local_tempdir()
+  downloaded <- local_resolve_env(dir, c("0.10.17", "0.10.16"))
+  local_mocked_bindings(assets_cache_dir = function() dir)
+  local_mocked_bindings(
+    req_perform = function(req, ...) {
+      structure(list(status_code = 200L), class = "httr2_response")
+    },
+    resp_status = function(resp) 200L,
+    .package = "httr2"
+  )
+
+  expect_equal(assets_bundle_url(), assets_bundle_url("0.10.17"))
+  expect_true(check_assets_url())
+  expect_equal(downloaded(), character(0))
+})
+
+test_that("quarto_ext info does not download the assets", {
+  dir <- withr::local_tempdir()
+  downloaded <- local_resolve_env(dir, c("0.10.17", "0.10.16"))
+  local_mocked_bindings(assets_cache_dir = function() dir)
+
+  txt <- paste(
+    utils::capture.output(quarto_ext(c("extension", "info"))),
+    collapse = ""
+  )
+  info <- jsonlite::parse_json(txt)
+  expect_equal(info$assets_version, "0.10.17")
+  expect_equal(
+    info$scripts$`codeblock-to-json`,
+    as.character(fs::path(
+      dir,
+      "shinylive-0.10.17",
+      "scripts",
+      "codeblock-to-json.js"
+    ))
+  )
+  expect_equal(downloaded(), character(0))
+})
+
+test_that("only quarto_ext info checks GitHub", {
+  dir <- withr::local_tempdir()
+  # Due for a check, and GitHub knows a newer release
+  local_resolve_env(dir, c("0.10.16"), hours_ago = 48)
+  add_local_assets(dir, c("0.10.16", "0.10.17"))
+  local_mocked_bindings(assets_cache_dir = function() dir)
+  calls <- 0
+  local_mocked_bindings(
+    fetch_latest_assets_version = function() {
+      calls <<- calls + 1
+      "0.10.17"
+    },
+    fetch_assets_versions = function() c("0.10.17", "0.10.16")
+  )
+
+  expect_equal(quarto_assets_version(), "0.10.17")
+  expect_equal(calls, 0)
+
+  # `info` checks and saves versions.json
+  assets_version_reset()
+  utils::capture.output(quarto_ext(c("extension", "info")))
+  expect_equal(calls, 1)
+  expect_equal(read_versions_json(dir)$versions, c("0.10.17", "0.10.16"))
 })

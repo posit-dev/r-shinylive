@@ -71,15 +71,14 @@ A version input is an exact version (`"0.10.16"`), a series (`"0.10.*"`,
 `"0.*"`: whole numbers and one trailing `.*`), or `"latest"`. Anything else
 errors in `parse_assets_version()`.
 
-The input comes from (first wins): the argument (`export(assets_version=)`,
-`assets_download(version=)`, `assets_ensure(version=)`), the
+The input comes from (first wins): a non-`NULL` argument
+(`export(assets_version=)`, `assets_download(version=)`,
+`assets_ensure(version=)`, all `NULL` by default), the
 `SHINYLIVE_ASSETS_VERSION` env var (empty counts as unset), then
-`SHINYLIVE_ASSETS_VERSION_DEFAULT`. See `assets_version_input()`. Those three
-exported functions show the default series literally in their formals; a test
-in `test-assets_version.R` checks they equal the constant.
+`SHINYLIVE_ASSETS_VERSION_DEFAULT`. See `assets_version_input()`.
 
-`resolve_assets_version(version, dir, download = TRUE)` turns an input into
-an exact version:
+`resolve_assets_version(version, dir, download = TRUE, check = TRUE)` turns
+an input into an exact version:
 
 - **Exact:** returned as is. Warns once per session if it is outside the
   default series.
@@ -90,9 +89,15 @@ an exact version:
   pick is not downloaded and `download = TRUE`, it downloads it; if that
   fails, it warns and uses the highest downloaded match. With none, it tries
   to download the fallback version, and errors only if that fails too.
+- If the check failed and no listed release matches (for example, GitHub
+  rate-limited the release list and only a newer series' latest tag is
+  known), it warns that the pick may be old.
+- `check = FALSE` reads `versions.json` only, with no network. `assets_info()`
+  uses it, and shows "unresolved (<reason>)" if resolution errors.
 - The result is remembered for the R session (`assets_version_memo`;
   `assets_version_reset()` clears it). So one `export()` or Quarto call does
-  at most one check.
+  at most one check. So `"latest"` is checked once per session, not on every
+  call.
 
 `assets_version()` is `resolve_assets_version()` of the env var or default,
 so it can use the network and download assets.
@@ -125,13 +130,13 @@ To start a new minor series, follow the `update-assets-version` skill.
 
 | Function | Exported | What it does |
 |---|---|---|
-| `assets_download(version, dir, url)` | yes | Resolves `version` (without downloading), then always downloads `url` with httr2 into a temp `.tar.gz`, extracts it into a temp folder inside `dir`, and moves `shinylive-<version>/` into place. A folder that existed before the call is replaced; one that appeared during the call (another R process) is kept and the new copy dropped. Returns `invisible(dir)`. |
-| `assets_bundle_url(version)` | no | `https://github.com/posit-dev/shinylive/releases/download/v<version>/shinylive-<version>.tar.gz` |
+| `assets_download(version, dir, url)` | yes | Resolves `version` (without downloading), then always downloads `url` with httr2 into a temp `.tar.gz`, extracts it into a temp folder inside `dir`, and moves `shinylive-<version>/` into place. A folder that existed before the call is replaced; one that appeared during the call (another R process), even between the check and the move, is kept and the new copy dropped. Returns `invisible(dir)`. |
+| `assets_bundle_url(version, dir)` | no | `https://github.com/posit-dev/shinylive/releases/download/v<version>/shinylive-<version>.tar.gz`. A series or `"latest"` is resolved first (no download), so the `url` defaults work before or after the caller resolves `version`. |
 | `assets_ensure(version, dir, url)` | yes | Creates `dir` if missing (and prints "Creating assets cache directory" with the path). Resolves `version`. If `<dir>/shinylive-<version>` is missing, calls `assets_download()` into `dir`. Returns that version folder invisibly. |
 | `assets_dir(version, dir)` | no | Path `<dir>/shinylive-<version>`. Does not check that it exists. |
-| `assets_cleanup(dir)` | yes | Keeps the newest version of each `major.minor` series in `dir`, plus an exact version pinned with `SHINYLIVE_ASSETS_VERSION`, and removes the rest. |
+| `assets_cleanup(keep, dir)` | yes | Keeps the versions in `dir` matched by `keep` (exact versions kept as is; for a series or `"latest"`, only the newest local match) and removes the rest. `keep = NULL` means `SHINYLIVE_ASSETS_VERSION_DEFAULT` plus `SHINYLIVE_ASSETS_VERSION` if set (`assets_cleanup_keep_default()`). |
 | `assets_remove(versions, dir)` | yes | Removes the given versions. Errors if `versions` is not a non-empty character vector. Warns (does not error) for a version that is not there. |
-| `assets_info(quiet)` | yes | Prints package version, resolved assets version (never downloads), default series, last check time and error, cache dir, and installed folders (or `(None)`). Returns a `tbl_df` with `version`, `path`, `is_assets_version`; zero rows when nothing is installed. |
+| `assets_info(quiet)` | yes | Prints package version, resolved assets version (reads `versions.json` only: no network, no download), default series, last check time and error, cache dir, and installed folders (or `(None)`). Returns a `tbl_df` with `version`, `path`, `is_assets_version`; zero rows when nothing is installed. |
 | `assets_version()` | yes | See above. |
 | `assets_install_copy(assets_repo_dir, dir, version)` | yes | Copies a local build into the cache. |
 | `assets_install_link(assets_repo_dir, dir, version)` | yes | Symlinks a local build into the cache. |
@@ -198,7 +203,9 @@ has no `dir` argument.
 - **Session memo hides changes.** After changing the env var or the cache in
   one R session, call `assets_version_reset()`.
 - **A backport release is missed** until the latest tag changes, because the
-  release list is only fetched when `latest` changes.
+  release list is only fetched when `latest` changes. This is on purpose:
+  releases only move forward, and an older series gets no new patch after a
+  newer series is out.
 - **Callers that do not pass `dir` still use the real cache.** For example
   `assets_webr_r_version()` calls `assets_ensure(version)` with the default
   `dir`, and `export()` calls `assets_dir(version = assets_version)`.

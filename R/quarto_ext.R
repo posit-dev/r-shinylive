@@ -131,7 +131,8 @@ quarto_ext <- function(
       "\t{.code quarto add quarto-ext/shinylive}",
       "",
       "R shinylive package version: {.field {SHINYLIVE_R_VERSION}}",
-      "Supported assets version: {.field {assets_version()}}"
+      # Not `assets_version()`: an error message must not use the network
+      "Supported assets series: {.field {SHINYLIVE_ASSETS_VERSION_DEFAULT}}"
     )
   }
 
@@ -189,11 +190,17 @@ quarto_ext <- function(
   ret <- switch(
     args[2],
     "info" = {
+      # Not `assets_version()`: `info` must not download the assets.
+      # `base-htmldeps` downloads them before the script is used.
+      version <- resolve_assets_version(
+        assets_version_input(NULL),
+        download = FALSE
+      )
       list(
         "version" = SHINYLIVE_R_VERSION,
-        "assets_version" = assets_version(),
+        "assets_version" = version,
         "scripts" = list(
-          "codeblock-to-json" = quarto_codeblock_to_json_path()
+          "codeblock-to-json" = quarto_codeblock_to_json_path(version)
         )
       )
     },
@@ -208,10 +215,10 @@ quarto_ext <- function(
         cli::cli_abort("Expected {.arg --sw-dir} argument.")
       }
       # Language agnostic files
-      shinylive_base_deps_htmldep(sw_dir)
+      shinylive_base_deps_htmldep(sw_dir, version = quarto_assets_version())
     },
     "language-resources" = {
-      shinylive_r_resources()
+      shinylive_r_resources(version = quarto_assets_version())
       # shinylive_python_resources()
     },
     "app-resources" = {
@@ -236,7 +243,10 @@ quarto_ext <- function(
   invisible()
 }
 
-build_app_resources <- function(app_json) {
+build_app_resources <- function(
+  app_json,
+  version = quarto_assets_version()
+) {
   projdir <- Sys.getenv("QUARTO_PROJECT_DIR", ".")
   appdir <- fs::path(projdir, ".quarto", "_webr", "appdir")
   destdir <- fs::path(projdir, ".quarto", "_webr", "destdir")
@@ -285,7 +295,7 @@ build_app_resources <- function(app_json) {
   })
 
   wasm_packages <- sys_env_wasm_packages()
-  if (wasm_packages && wasm_packages_able(assets_version())) {
+  if (wasm_packages && wasm_packages_able(version)) {
     # Download wasm binaries ready to embed into Quarto deps
     withr::with_options(
       list(shinylive.quiet = TRUE),
@@ -294,7 +304,7 @@ build_app_resources <- function(app_json) {
         destdir,
         package_cache = TRUE,
         max_filesize = NULL,
-        r_version = assets_webr_r_version()
+        r_version = assets_webr_r_version(version)
       )
     )
   }
@@ -318,8 +328,16 @@ build_app_resources <- function(app_json) {
   )
 }
 
-quarto_codeblock_to_json_path <- function() {
-  file.path(assets_dir(), "scripts", "codeblock-to-json.js")
+# The assets version for the commands after `info`. The extension runs `info`
+# first for each document, and only `info` checks GitHub (and saves
+# `versions.json`). The later commands, each in its own R process, only read
+# `versions.json`, so they all use the same version in one render.
+quarto_assets_version <- function() {
+  resolve_assets_version(assets_version_input(NULL), check = FALSE)
+}
+
+quarto_codeblock_to_json_path <- function(version = assets_version()) {
+  file.path(assets_dir(version), "scripts", "codeblock-to-json.js")
 }
 
 # def package_deps(json_file: Optional[str]) -> None:

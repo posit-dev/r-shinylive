@@ -10,20 +10,20 @@
 \title{Manage shinylive assets}
 \usage{
 assets_download(
-  version = "0.10.*",
+  version = NULL,
   ...,
   dir = assets_cache_dir(),
-  url = assets_bundle_url(version)
+  url = assets_bundle_url(version, dir = dir)
 )
 
 assets_ensure(
-  version = "0.10.*",
+  version = NULL,
   ...,
   dir = assets_cache_dir(),
-  url = assets_bundle_url(version)
+  url = assets_bundle_url(version, dir = dir)
 )
 
-assets_cleanup(..., dir = assets_cache_dir())
+assets_cleanup(..., keep = NULL, dir = assets_cache_dir())
 
 assets_remove(versions, ..., dir = assets_cache_dir())
 
@@ -33,9 +33,10 @@ assets_version()
 }
 \arguments{
 \item{version}{The version of the assets: an exact version (\code{"0.10.16"}), a
-series (\code{"0.10.*"}), or \code{"latest"}. See \code{\link[=export]{export()}} for details. When not
-provided, the \code{SHINYLIVE_ASSETS_VERSION} environment variable is used if
-set.}
+series (\code{"0.10.*"}), or \code{"latest"}. See \code{\link[=export]{export()}} for details. When
+\code{NULL} (the default), the \code{SHINYLIVE_ASSETS_VERSION} environment
+variable is used if set, and otherwise the default series of this version
+of \pkg{shinylive} (\code{"0.10.*"}).}
 
 \item{...}{Ignored.}
 
@@ -44,6 +45,12 @@ should be used.}
 
 \item{url}{The URL to download the assets from. Unless testing, the default
 behavior should be used.}
+
+\item{keep}{In \code{assets_cleanup()}, the versions to keep: exact versions
+(\code{"0.10.16"}) and series (\code{"0.10.*"}) or \code{"latest"}. For a series, only
+the newest downloaded match is kept. Defaults to the default series of
+this version of \pkg{shinylive} (\code{"0.10.*"}), plus the
+\code{SHINYLIVE_ASSETS_VERSION} environment variable if set.}
 
 \item{versions}{The assets versions to remove.}
 
@@ -73,7 +80,8 @@ copy of shinylive is not installed, it will be downloaded and installed.
 If a local copy of shinylive is installed, its path will be returned.
 
 \item \code{assets_cleanup()}: Removes local copies of shinylive web assets, except for
-the newest version of each series (such as \verb{0.10.*}).
+those matched by \code{keep}. Also removes temp files older than 10 minutes
+that an interrupted download left in \code{dir}.
 
 \item \code{assets_remove()}: Removes a local copies of shinylive web assets.
 

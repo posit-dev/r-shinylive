@@ -13,7 +13,7 @@ export(
   wasm_packages = NULL,
   package_cache = TRUE,
   max_filesize = NULL,
-  assets_version = "0.10.*",
+  assets_version = NULL,
   template_dir = NULL,
   template_params = list(),
   verbose = deprecated()
@@ -57,13 +57,14 @@ exported app. One of:
 \itemize{
 \item A series, such as \code{"0.10.*"}: the newest matching release. GitHub is
 checked for new releases at most once a day.
-\item \code{"latest"}: the newest release, always checked on GitHub.
+\item \code{"latest"}: the newest release, checked on GitHub once per R session.
 \item An exact version, such as \code{"0.10.16"}. Use this for builds that must
 repeat exactly.
 }
 
-When not provided, the \code{SHINYLIVE_ASSETS_VERSION} environment variable is
-used if set. Versions outside the default series may not work with this
+When \code{NULL} (the default), the \code{SHINYLIVE_ASSETS_VERSION} environment
+variable is used if set, and otherwise the default series of this version
+of \pkg{shinylive} (\code{"0.10.*"}). Versions outside the default series may not work with this
 release of \pkg{shinylive}. See the
 \href{https://github.com/posit-dev/shinylive/releases}{shinylive asset releases}
 for the available versions.}

@@ -37,11 +37,10 @@ Change the package only when:
      and `SHINYLIVE_ASSETS_VERSION_FALLBACK <- "<VERSION>"`.
    - Newer patch required: set only `SHINYLIVE_ASSETS_VERSION_FALLBACK`.
 
-4. **New series only: update the formals.** `export(assets_version=)`,
-   `assets_download(version=)`, and `assets_ensure(version=)` show the series
-   literally. The "exported formals use SHINYLIVE_ASSETS_VERSION_DEFAULT" test
-   fails until they match. Update the series in their roxygen docs too, then
-   run `devtools::document()`.
+4. **New series only: update the docs.** The roxygen docs of
+   `export(assets_version=)`, `assets_download(version=)`, `assets_cleanup()`,
+   and `assets_version()` name the series. Update them, then run
+   `devtools::document()`. Their defaults are `NULL`, so no formals change.
 
 5. **webR R version.** If webR's R version changed, update the expected R
    version in the "default assets use the expected webR R version" test in

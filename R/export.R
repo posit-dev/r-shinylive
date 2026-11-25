@@ -32,12 +32,13 @@
 #'
 #'   * A series, such as `"0.10.*"`: the newest matching release. GitHub is
 #'     checked for new releases at most once a day.
-#'   * `"latest"`: the newest release, always checked on GitHub.
+#'   * `"latest"`: the newest release, checked on GitHub once per R session.
 #'   * An exact version, such as `"0.10.16"`. Use this for builds that must
 #'     repeat exactly.
 #'
-#'   When not provided, the `SHINYLIVE_ASSETS_VERSION` environment variable is
-#'   used if set. Versions outside the default series may not work with this
+#'   When `NULL` (the default), the `SHINYLIVE_ASSETS_VERSION` environment
+#'   variable is used if set, and otherwise the default series of this version
+#'   of \pkg{shinylive} (`"0.10.*"`). Versions outside the default series may not work with this
 #'   release of \pkg{shinylive}. See the
 #'   [shinylive asset releases](https://github.com/posit-dev/shinylive/releases)
 #'   for the available versions.
@@ -81,7 +82,7 @@ export <- function(
   wasm_packages = NULL,
   package_cache = TRUE,
   max_filesize = NULL,
-  assets_version = "0.10.*",
+  assets_version = NULL,
   template_dir = NULL,
   template_params = list(),
   verbose = deprecated()
@@ -132,7 +133,7 @@ export <- function(
 
   # Resolve after the argument checks: it may use the network or download
   assets_version <- resolve_assets_version(
-    assets_version_input(assets_version, missing(assets_version))
+    assets_version_input(assets_version)
   )
 
   if (!fs::dir_exists(destdir)) {

@@ -155,7 +155,7 @@ shinylive::assets_download("0.1.5")
 #> ℹ Unzipping shinylive assets to /Users/username/Library/Caches/shinylive
 ```
 
-You can remove old versions with `shinylive::assets_cleanup()`. This will remove all versions except the one that this R package uses:
+You can remove old versions with `shinylive::assets_cleanup()`. This will remove all versions except the newest one in the series that this R package uses (and any set by `SHINYLIVE_ASSETS_VERSION`). Use `keep=` to choose other versions to keep:
 
 ``` r
 shinylive::assets_cleanup()
