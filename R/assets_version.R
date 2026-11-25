@@ -139,11 +139,12 @@ versions_check_due <- function(info, now = Sys.time()) {
   hours >= wait
 }
 
-# Runs the GitHub check when due (or when `force = TRUE`) and returns the
-# versions info. A failed check records `error` but keeps the old versions.
-update_versions_info <- function(dir, force = FALSE, now = Sys.time()) {
-  info <- read_versions_json(dir)
-  # No network or cache writes during CRAN checks
+# Runs the GitHub check when due (or when `force = TRUE`) and returns the new
+# versions info, or `info` itself when no check is due. A failed check records
+# `error` but keeps the old versions. Nothing is saved; see
+# `save_versions_json()`.
+check_versions_info <- function(info, force = FALSE, now = Sys.time()) {
+  # No network during CRAN checks
   if (cran_is_testing() || (!force && !versions_check_due(info, now))) {
     return(info)
   }
@@ -172,10 +173,32 @@ update_versions_info <- function(dir, force = FALSE, now = Sys.time()) {
       )
     }
   )
-
-  # A read-only cache (such as in a Docker image) must not stop the export
-  suppressWarnings(try(write_versions_json(new_info, dir), silent = TRUE))
   new_info
+}
+
+# Saves `versions.json`, ignoring a read-only cache (such as in a Docker
+# image), which must not stop the export. Later commands then read the old
+# file. Since it too only names downloaded versions, they still choose a
+# downloaded version.
+save_versions_json <- function(info, dir) {
+  suppressWarnings(try(write_versions_json(info, dir), silent = TRUE))
+  invisible()
+}
+
+# Returns `info` without the releases matching `spec` that are newer than
+# `chosen`, as after they failed to download. `latest` is cleared, so the next
+# check (in `VERSIONS_RETRY_HOURS`, since `error` is set) fetches the full
+# list again.
+drop_versions_newer_than <- function(info, spec, chosen, error, now) {
+  versions <- info$versions
+  newer <- assets_version_matches(versions, spec) &
+    safe_numeric_version(versions) > safe_numeric_version(chosen)
+  list(
+    checked_at = now,
+    latest = NULL,
+    versions = versions[!newer %in% TRUE],
+    error = error
+  )
 }
 
 assets_releases_url <- "https://github.com/posit-dev/shinylive/releases"
@@ -264,8 +287,11 @@ max_version <- function(versions) {
 # Returns an exact assets version for an exact version, a series pattern, or
 # `"latest"`. When `download = TRUE`, the chosen version is downloaded if
 # needed; if that fails, the highest downloaded match is used instead. When
-# `check = FALSE`, only the saved `versions.json` is read (no network). When
-# `warn = FALSE`, an exact version outside the default series does not warn.
+# `check = FALSE`, only the saved `versions.json` is read (no network), and it
+# is never written. Otherwise, a new check is saved only when the chosen
+# version is downloaded; if it fails to download, the newer matching releases
+# are left out of the saved list. When `warn = FALSE`, an exact version
+# outside the default series does not warn.
 resolve_assets_version <- function(
   version,
   dir = assets_cache_dir(),
@@ -288,17 +314,19 @@ resolve_assets_version <- function(
     return(assets_version_memo[[key]])
   }
 
+  saved_info <- read_versions_json(dir)
   info <- if (check) {
-    update_versions_info(dir, force = spec$kind == "latest", now = now)
+    check_versions_info(saved_info, force = spec$kind == "latest", now = now)
   } else {
-    read_versions_json(dir)
+    saved_info
   }
   local <- local_assets_versions(dir)
   local_matches <- local[assets_version_matches(local, spec)]
   known <- unique(c(info$versions, local))
   matches <- known[assets_version_matches(known, spec)]
-  # The check failed and no known release matches, so the result may be old.
-  # Every known release matches `"latest"`, so any failed check makes it old.
+  # The check (or the download after it) failed and no known release matches,
+  # so the result may be old. Every known release matches `"latest"`, so any
+  # failed check makes it old.
   stale <- check &&
     !is.null(info$error) &&
     (spec$kind == "latest" ||
@@ -319,7 +347,7 @@ resolve_assets_version <- function(
 
   if (stale) {
     cli::cli_warn(c(
-      "Can't check GitHub for new Shinylive assets releases. Using {.field v{chosen}}, which may not be the newest {.val {spec$value}} release.",
+      "The last check for new Shinylive assets releases failed. Using {.field v{chosen}}, which may not be the newest {.val {spec$value}} release.",
       "x" = "{info$error}",
       "i" = "Set {.envvar GITHUB_PAT} if GitHub is limiting requests, or pass an exact version."
     ))
@@ -332,6 +360,7 @@ resolve_assets_version <- function(
         chosen
       },
       error = function(e) {
+        failed <- chosen
         fallback <- SHINYLIVE_ASSETS_VERSION_FALLBACK
         if (
           length(local_matches) == 0 &&
@@ -361,12 +390,38 @@ resolve_assets_version <- function(
         }
         fallback <- max_version(local_matches)
         cli::cli_warn(c(
-          "Can't download Shinylive assets {.field v{chosen}}. Using downloaded {.field v{fallback}} instead.",
+          "Can't download Shinylive assets {.field v{failed}}. Using downloaded {.field v{fallback}} instead.",
           "x" = "{conditionMessage(e)}"
         ))
+        if (check && !is.null(info)) {
+          info <<- drop_versions_newer_than(
+            info,
+            spec,
+            fallback,
+            error = paste0(
+              "Can't download Shinylive assets v",
+              failed,
+              ": ",
+              conditionMessage(e)
+            ),
+            now = now
+          )
+        }
         fallback
       }
     )
+  }
+
+  # Save only once the chosen version is downloaded. Later commands that only
+  # read `versions.json` (like the Quarto ones, here or in py-shinylive) then
+  # choose this downloaded version, and never one they would have to download.
+  if (
+    check &&
+      !is.null(info) &&
+      !identical(info, saved_info) &&
+      chosen %in% local_assets_versions(dir)
+  ) {
+    save_versions_json(info, dir)
   }
 
   assets_version_memo[[key]] <- chosen

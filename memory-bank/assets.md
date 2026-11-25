@@ -105,10 +105,11 @@ so it can use the network and download assets.
 ### versions.json and the GitHub check
 
 `versions.json` holds `checked_at` (UTC), `latest`, `versions`, and `error`
-when the last check failed. `update_versions_info()` runs the check when:
-there is no (valid) file, the last good check is 24 or more hours old, the
-last failed check is 1 or more hours old, `checked_at` is in the future, or
-`force = TRUE`.
+when the last check (or the download after it) failed.
+`check_versions_info(info)` runs the check when: there is no (valid) file,
+the last good check is 24 or more hours old, the last failed check is 1 or
+more hours old, `checked_at` is in the future, or `force = TRUE`. It returns
+the new info and writes nothing.
 
 1. `fetch_latest_assets_version()`: HEAD request to
    `github.com/posit-dev/shinylive/releases/latest`, reading the tag from the
@@ -119,10 +120,29 @@ last failed check is 1 or more hours old, `checked_at` is in the future, or
 3. Any error writes `error` and a new `checked_at` but keeps the old `latest`
    and `versions`. A latest tag seen before the error is added to `versions`
    (not to `latest`, so the next check fetches the full list).
-4. A failed write (read-only cache) is ignored.
 
-Both fetchers stop under `cran_is_testing()`. The file is written to a temp
-file in the same folder, then renamed.
+**Rule: `versions.json` only names a version once it is downloaded.**
+Quarto's later commands (`check = FALSE`), in R and in py-shinylive (they
+share the file), only read it. If it named a release that is not
+downloaded, they would download it, and one render could mix two assets
+versions. So `resolve_assets_version()`:
+
+- saves the new info (`save_versions_json()`) only when `check = TRUE`, a
+  check ran, and the chosen version is in the local cache (already there or
+  just downloaded). A `download = FALSE` call with a new release not yet
+  downloaded saves nothing, so the next call checks again.
+- after a failed download with a local fallback, saves
+  `drop_versions_newer_than()`: the list without the releases matching the
+  spec that are newer than the version used (other series kept),
+  `latest = NULL` (so the next check fetches the full list), and `error` (so
+  the next check runs within the hour).
+- never writes with `check = FALSE`.
+- ignores a failed write (read-only cache). The old file follows the same
+  rule, so later commands still pick a downloaded version.
+
+Both fetchers stop under `cran_is_testing()`, and `check_versions_info()`
+returns the old info then, so nothing is saved. The file is written to a
+temp file in the same folder, then renamed.
 
 To start a new minor series, follow the `update-assets-version` skill.
 

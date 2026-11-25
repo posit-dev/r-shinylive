@@ -113,11 +113,18 @@ test_that("a fresh check skips the network unless forced", {
     fetch_latest_assets_version = function() stop("network used"),
     fetch_assets_versions = function() stop("network used")
   )
-  expect_equal(update_versions_info(dir, now = now)$checked_at, now - 3600)
+  expect_equal(
+    check_versions_info(read_versions_json(dir), now = now)$checked_at,
+    now - 3600
+  )
 
   local_mocked_bindings(fetch_latest_assets_version = function() "0.10.16")
   expect_equal(
-    update_versions_info(dir, force = TRUE, now = now)$checked_at,
+    check_versions_info(
+      read_versions_json(dir),
+      force = TRUE,
+      now = now
+    )$checked_at,
     now
   )
 })
@@ -129,10 +136,11 @@ test_that("an unchanged latest tag skips the release list", {
     fetch_latest_assets_version = function() "0.10.16",
     fetch_assets_versions = function() stop("should not be called")
   )
-  info <- update_versions_info(dir, now = now)
+  info <- check_versions_info(read_versions_json(dir), now = now)
   expect_equal(info$checked_at, now)
   expect_equal(info$versions, c("0.10.16", "0.10.15"))
-  expect_equal(read_versions_json(dir)$checked_at, now)
+  # The check alone saves nothing
+  expect_equal(read_versions_json(dir)$checked_at, now - 25 * 3600)
 })
 
 test_that("a changed latest tag refreshes the release list", {
@@ -142,11 +150,11 @@ test_that("a changed latest tag refreshes the release list", {
     fetch_latest_assets_version = function() "0.11.0",
     fetch_assets_versions = function() c("0.11.0", "0.10.17", "0.10.16")
   )
-  info <- update_versions_info(dir, now = now)
+  info <- check_versions_info(read_versions_json(dir), now = now)
   expect_equal(info$latest, "0.11.0")
   expect_equal(info$versions, c("0.11.0", "0.10.17", "0.10.16"))
   expect_null(info$error)
-  expect_equal(read_versions_json(dir), info)
+  expect_equal(read_versions_json(dir)$latest, "0.10.16")
 })
 
 test_that("a missing file fetches the release list", {
@@ -155,7 +163,7 @@ test_that("a missing file fetches the release list", {
     fetch_latest_assets_version = function() "0.10.16",
     fetch_assets_versions = function() c("0.10.16", "0.10.15")
   )
-  info <- update_versions_info(dir, now = now)
+  info <- check_versions_info(read_versions_json(dir), now = now)
   expect_equal(info$versions, c("0.10.16", "0.10.15"))
   expect_equal(info$latest, "0.10.16")
 })
@@ -166,11 +174,12 @@ test_that("a failed latest check records the error and keeps old data", {
   local_mocked_bindings(
     fetch_latest_assets_version = function() stop("Could not resolve host")
   )
-  info <- update_versions_info(dir, now = now)
+  info <- check_versions_info(read_versions_json(dir), now = now)
   expect_match(info$error, "Could not resolve host")
   expect_equal(info$versions, c("0.10.16", "0.10.15"))
   expect_equal(info$latest, "0.10.16")
-  expect_equal(read_versions_json(dir)$checked_at, now)
+  # The check alone saves nothing
+  expect_equal(read_versions_json(dir)$checked_at, now - 25 * 3600)
 })
 
 test_that("a failed release list keeps the old latest and versions", {
@@ -180,7 +189,7 @@ test_that("a failed release list keeps the old latest and versions", {
     fetch_latest_assets_version = function() "0.11.0",
     fetch_assets_versions = function() stop("HTTP 403 rate limit exceeded")
   )
-  info <- update_versions_info(dir, now = now)
+  info <- check_versions_info(read_versions_json(dir), now = now)
   expect_match(info$error, "403")
   expect_equal(info$latest, "0.10.16")
   # The newly seen latest tag is added to the known versions
@@ -192,21 +201,22 @@ test_that("a failed check with no file still records the error", {
   local_mocked_bindings(fetch_latest_assets_version = function() {
     stop("offline")
   })
-  info <- update_versions_info(dir, now = now)
+  info <- check_versions_info(read_versions_json(dir), now = now)
   expect_equal(info$versions, character(0))
   expect_null(info$latest)
-  expect_match(read_versions_json(dir)$error, "offline")
+  expect_match(info$error, "offline")
+  expect_null(read_versions_json(dir))
 })
 
-test_that("an invalid versions.json is rewritten", {
+test_that("an invalid versions.json runs a new check", {
   dir <- withr::local_tempdir()
   writeLines("{not json", versions_json_path(dir))
   local_mocked_bindings(
     fetch_latest_assets_version = function() "0.10.16",
     fetch_assets_versions = function() "0.10.16"
   )
-  update_versions_info(dir, now = now)
-  expect_equal(read_versions_json(dir)$versions, "0.10.16")
+  info <- check_versions_info(read_versions_json(dir), now = now)
+  expect_equal(info$versions, "0.10.16")
 })
 
 test_that("the fetchers refuse to use the network during CRAN checks", {
@@ -470,7 +480,7 @@ test_that("a newly seen latest tag is kept when the release list fails", {
     fetch_latest_assets_version = function() "0.10.17",
     fetch_assets_versions = function() stop("HTTP 403 rate limit exceeded")
   )
-  info <- update_versions_info(dir, now = now)
+  info <- check_versions_info(read_versions_json(dir), now = now)
   expect_match(info$error, "403")
   expect_true("0.10.17" %in% info$versions)
   # Not stored as `latest`, so the next check fetches the full list
@@ -589,7 +599,11 @@ test_that("the check is skipped during CRAN checks", {
     fetch_latest_assets_version = function() stop("must not check")
   )
 
-  expect_null(update_versions_info(dir, force = TRUE, now = now))
+  expect_null(check_versions_info(
+    read_versions_json(dir),
+    force = TRUE,
+    now = now
+  ))
   expect_false(fs::file_exists(versions_json_path(dir)))
 })
 
@@ -617,7 +631,7 @@ test_that("assets_bundle_url() and check_assets_url() do not download", {
   expect_equal(downloaded(), character(0))
 })
 
-test_that("quarto_ext info does not download the assets", {
+test_that("quarto_ext info downloads the assets it reports", {
   dir <- withr::local_tempdir()
   downloaded <- local_resolve_env(dir, c("0.10.17", "0.10.16"))
   local_mocked_bindings(assets_cache_dir = function() dir)
@@ -637,7 +651,7 @@ test_that("quarto_ext info does not download the assets", {
       "codeblock-to-json.js"
     ))
   )
-  expect_equal(downloaded(), character(0))
+  expect_equal(downloaded(), "0.10.17")
 })
 
 test_that("only quarto_ext info checks GitHub", {
@@ -663,4 +677,152 @@ test_that("only quarto_ext info checks GitHub", {
   utils::capture.output(quarto_ext(c("extension", "info")))
   expect_equal(calls, 1)
   expect_equal(read_versions_json(dir)$versions, c("0.10.17", "0.10.16"))
+})
+
+# Saving versions.json only once the chosen version is downloaded ---------
+
+test_that("the check is not saved until the chosen version is downloaded", {
+  dir <- withr::local_tempdir()
+  downloaded <- local_resolve_env(dir, c("0.10.16"), hours_ago = 48)
+  add_local_assets(dir, "0.10.16")
+  local_mocked_bindings(
+    fetch_latest_assets_version = function() "0.10.17",
+    fetch_assets_versions = function() c("0.10.17", "0.10.16")
+  )
+
+  # Not downloaded, so not saved
+  expect_equal(
+    resolve_assets_version("0.10.*", dir = dir, now = now, download = FALSE),
+    "0.10.17"
+  )
+  expect_equal(read_versions_json(dir)$versions, "0.10.16")
+
+  # Downloaded, so saved
+  assets_version_reset()
+  expect_equal(
+    resolve_assets_version("0.10.*", dir = dir, now = now),
+    "0.10.17"
+  )
+  expect_equal(downloaded(), "0.10.17")
+  expect_equal(read_versions_json(dir)$versions, c("0.10.17", "0.10.16"))
+  expect_equal(read_versions_json(dir)$checked_at, now)
+})
+
+test_that("a new check is saved when the chosen version is already local", {
+  dir <- withr::local_tempdir()
+  local_resolve_env(dir, c("0.10.16"), hours_ago = 48)
+  add_local_assets(dir, c("0.10.16", "0.10.17"))
+  local_mocked_bindings(
+    fetch_latest_assets_version = function() "0.10.17",
+    fetch_assets_versions = function() c("0.10.17", "0.10.16")
+  )
+
+  resolve_assets_version("0.10.*", dir = dir, now = now, download = FALSE)
+  expect_equal(read_versions_json(dir)$latest, "0.10.17")
+})
+
+test_that("a failed download saves the list without the newer matches", {
+  dir <- withr::local_tempdir()
+  local_resolve_env(
+    dir,
+    c("0.10.16"),
+    hours_ago = 48,
+    download = function(...) stop("HTTP 404 Not Found")
+  )
+  add_local_assets(dir, "0.10.16")
+  local_mocked_bindings(
+    fetch_latest_assets_version = function() "0.11.1",
+    fetch_assets_versions = function() {
+      c("0.11.1", "0.11.0", "0.10.18", "0.10.17", "0.10.16", "0.9.0")
+    }
+  )
+
+  expect_warning(
+    v <- resolve_assets_version("0.10.*", dir = dir, now = now),
+    "0.10.18"
+  )
+  expect_equal(v, "0.10.16")
+
+  info <- read_versions_json(dir)
+  # Other series are kept
+  expect_equal(info$versions, c("0.11.1", "0.11.0", "0.10.16", "0.9.0"))
+  expect_null(info$latest)
+  expect_match(info$error, "v0.10.18.*404")
+  expect_equal(info$checked_at, now)
+  # A failed download is retried within the hour, not the day
+  expect_false(versions_check_due(info, now + 0.5 * 3600))
+  expect_true(versions_check_due(info, now + 1 * 3600))
+})
+
+test_that("after a failed download, later Quarto commands keep the downloaded version", {
+  dir <- withr::local_tempdir()
+  online <- FALSE
+  downloaded <- local_resolve_env(
+    dir,
+    c("0.10.16"),
+    hours_ago = 48,
+    download = function(version, dir) {
+      if (!online) {
+        stop("HTTP 503")
+      }
+      fs::dir_create(fs::path(dir, paste0("shinylive-", version)))
+    }
+  )
+  add_local_assets(dir, "0.10.16")
+  local_mocked_bindings(assets_cache_dir = function() dir)
+  local_mocked_bindings(
+    fetch_latest_assets_version = function() "0.10.17",
+    fetch_assets_versions = function() c("0.10.17", "0.10.16")
+  )
+
+  # `info` checks GitHub, but can't download v0.10.17
+  expect_warning(
+    txt <- utils::capture.output(quarto_ext(c("extension", "info"))),
+    "0.10.17"
+  )
+  expect_equal(
+    jsonlite::parse_json(paste(txt, collapse = ""))$assets_version,
+    "0.10.16"
+  )
+
+  # The download works now, but the later commands (`check = FALSE`) still
+  # choose the downloaded version, so the render uses one version
+  online <- TRUE
+  assets_version_reset()
+  expect_equal(quarto_assets_version(), "0.10.16")
+  expect_equal(downloaded(), "0.10.17")
+})
+
+test_that("check = FALSE never writes versions.json", {
+  dir <- withr::local_tempdir()
+  local_resolve_env(dir)
+  add_local_assets(dir, "0.10.16")
+
+  resolve_assets_version(
+    "0.10.*",
+    dir = dir,
+    now = now,
+    download = FALSE,
+    check = FALSE
+  )
+  expect_false(fs::file_exists(versions_json_path(dir)))
+})
+
+test_that("drop_versions_newer_than() keeps other series and older matches", {
+  info <- list(
+    checked_at = now - 3600,
+    latest = "0.11.0",
+    versions = c("0.11.0", "0.10.18", "0.10.17", "0.10.16")
+  )
+  out <- drop_versions_newer_than(
+    info,
+    parse_assets_version("0.10.*"),
+    "0.10.17",
+    error = "boom",
+    now = now
+  )
+  expect_equal(out$versions, c("0.11.0", "0.10.17", "0.10.16"))
+  expect_null(out$latest)
+  expect_equal(out$error, "boom")
+  expect_equal(out$checked_at, now)
 })

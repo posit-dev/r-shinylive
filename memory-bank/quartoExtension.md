@@ -61,16 +61,18 @@ Rules:
 - `--sw-dir` is required for `base-htmldeps` and must have a value. It may
   appear anywhere after the subcommand. Its value is the page offset from
   Quarto and is stored in the service worker dependency `meta`.
-- Only `info` checks GitHub for new assets releases (and saves
-  `versions.json`). It resolves with `download = FALSE`, so with an assets
-  version that is not installed it prints a path to a file that does not
-  exist yet; `base-htmldeps` downloads it before the extension runs the
-  script.
+- Only `info` checks GitHub for new assets releases. It also downloads the
+  chosen assets, because `versions.json` is only saved once the chosen
+  version is downloaded (see `assets.md`). If `info` did not download, it
+  would report a version that the later commands do not use.
 - The later commands run in separate R processes and resolve through
   `quarto_assets_version()` (`check = FALSE`): they only read the
   `versions.json` that `info` just wrote, so one render uses one version.
-  They can still differ if another R process rewrites `versions.json` during
-  the render, or if the cache is read-only and `info` could not save it.
+  If `info` failed to download the newest release and used an older
+  downloaded one, the saved list leaves out the newer releases, so the later
+  commands pick the same older version even if the download would now work.
+  They can still differ if another process (R or Python) rewrites
+  `versions.json` during the render.
 
 ### Only JSON on stdout
 

@@ -190,12 +190,10 @@ quarto_ext <- function(
   ret <- switch(
     args[2],
     "info" = {
-      # Not `assets_version()`: `info` must not download the assets.
-      # `base-htmldeps` downloads them before the script is used.
-      version <- resolve_assets_version(
-        assets_version_input(NULL),
-        download = FALSE
-      )
+      # Only `info` checks GitHub (and saves `versions.json`). It also
+      # downloads the assets: `versions.json` is only saved once the chosen
+      # version is downloaded, so the later commands choose the same version.
+      version <- resolve_assets_version(assets_version_input(NULL))
       list(
         "version" = SHINYLIVE_R_VERSION,
         "assets_version" = version,
@@ -330,8 +328,9 @@ build_app_resources <- function(
 
 # The assets version for the commands after `info`. The extension runs `info`
 # first for each document, and only `info` checks GitHub (and saves
-# `versions.json`). The later commands, each in its own R process, only read
-# `versions.json`, so they all use the same version in one render.
+# `versions.json` once the chosen version is downloaded). The later commands,
+# each in its own R process, only read `versions.json`, so they all use the
+# same downloaded version in one render.
 quarto_assets_version <- function() {
   resolve_assets_version(assets_version_input(NULL), check = FALSE)
 }
