@@ -44,7 +44,16 @@
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
-<ul><li><p><code><a href="../reference/export.html">export()</a></code> and the Quarto extension now pick WebAssembly package binaries for the R version of the webR in the Shinylive assets being used. Before, they always used the R version of the package’s default assets, so a different <code>assets_version</code> could bundle binaries that webR can’t load. Cached binaries from another R version are now deleted and downloaded again (<a href="https://github.com/posit-dev/r-shinylive/issues/209" class="external-link">#209</a>).</p></li>
+<ul><li>
+<p>Shinylive assets fixes, to match py-shinylive (<a href="https://github.com/posit-dev/r-shinylive/issues/225" class="external-link">#225</a>):</p>
+<ul><li>
+<code>assets_ensure(url=)</code> and <code>assets_download(url=)</code>, such as for a mirror, no longer contact GitHub. The version comes from <code>versions.json</code> and the downloaded assets, and the tarball is downloaded from <code>url</code>. For a series or <code>"latest"</code>, the tarball may hold any matching version.</li>
+<li>A download that gets no data for 60 seconds now fails instead of hanging.</li>
+<li>A bad <code>SHINYLIVE_ASSETS_VERSION</code> gives an error that names the environment variable, also in <code><a href="../reference/assets.html">assets_cleanup()</a></code>.</li>
+<li>When the fallback download also fails, the error says why.</li>
+<li>The warning after a failed GitHub check says when the check failed and when GitHub is checked again.</li>
+</ul></li>
+<li><p><code><a href="../reference/export.html">export()</a></code> and the Quarto extension now pick WebAssembly package binaries for the R version of the webR in the Shinylive assets being used. Before, they always used the R version of the package’s default assets, so a different <code>assets_version</code> could bundle binaries that webR can’t load. Cached binaries from another R version are now deleted and downloaded again (<a href="https://github.com/posit-dev/r-shinylive/issues/209" class="external-link">#209</a>).</p></li>
 <li>
 <p><code><a href="../reference/export.html">export()</a></code> fixes (<a href="https://github.com/posit-dev/r-shinylive/issues/216" class="external-link">#216</a>):</p>
 <ul><li>Exporting into the app folder (<code>export(".", ".")</code>) or into a folder that holds the app (<code>export("myapp", ".")</code>) is now an error instead of giving an empty <code>app.json</code>. Keep the app and the export in separate folders, like <code>export("myapp", "site")</code>.</li>

@@ -40,6 +40,23 @@
 
 ### Bug fixes and minor improvements
 
+- Shinylive assets fixes, to match py-shinylive
+  ([\#225](https://github.com/posit-dev/r-shinylive/issues/225)):
+
+  - `assets_ensure(url=)` and `assets_download(url=)`, such as for a
+    mirror, no longer contact GitHub. The version comes from
+    `versions.json` and the downloaded assets, and the tarball is
+    downloaded from `url`. For a series or `"latest"`, the tarball may
+    hold any matching version.
+  - A download that gets no data for 60 seconds now fails instead of
+    hanging.
+  - A bad `SHINYLIVE_ASSETS_VERSION` gives an error that names the
+    environment variable, also in
+    [`assets_cleanup()`](https://posit-dev.github.io/r-shinylive/dev/reference/assets.md).
+  - When the fallback download also fails, the error says why.
+  - The warning after a failed GitHub check says when the check failed
+    and when GitHub is checked again.
+
 - [`export()`](https://posit-dev.github.io/r-shinylive/dev/reference/export.md)
   and the Quarto extension now pick WebAssembly package binaries for the
   R version of the webR in the Shinylive assets being used. Before, they

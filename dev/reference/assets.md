@@ -50,8 +50,11 @@ assets_version()
 
 - url:
 
-  The URL to download the assets from. Unless testing, the default
-  behavior should be used.
+  The URL of an assets tarball to download, such as a mirror. When set,
+  GitHub is never used: the version is chosen from the saved release
+  list and the downloaded assets. For a series or `"latest"`, the
+  tarball may hold any matching version. For an exact version, the
+  tarball must hold a `shinylive-<version>` folder.
 
 - keep:
 
@@ -84,9 +87,9 @@ Shinylive.
 ## Functions
 
 - `assets_download()`: Downloads the shinylive assets bundle from GitHub
-  and extracts it to the specified directory. The bundle will always be
-  downloaded from GitHub, even if it already exists in the cache
-  directory (`dir=`).
+  (or `url`) and extracts it to the specified directory. The bundle will
+  always be downloaded from GitHub, even if it already exists in the
+  cache directory (`dir=`).
 
 - `assets_ensure()`: Ensures a local copy of shinylive is installed. If
   a local copy of shinylive is not installed, it will be downloaded and

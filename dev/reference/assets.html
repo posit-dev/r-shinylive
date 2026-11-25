@@ -84,8 +84,11 @@ should be used.</p></dd>
 
 
 <dt id="arg-url">url<a class="anchor" aria-label="anchor" href="#arg-url"></a></dt>
-<dd><p>The URL to download the assets from. Unless testing, the default
-behavior should be used.</p></dd>
+<dd><p>The URL of an assets tarball to download, such as a mirror.
+When set, GitHub is never used: the version is chosen from the saved
+release list and the downloaded assets. For a series or <code>"latest"</code>, the
+tarball may hold any matching version. For an exact version, the tarball
+must hold a <code>shinylive-&lt;version&gt;</code> folder.</p></dd>
 
 
 <dt id="arg-keep">keep<a class="anchor" aria-label="anchor" href="#arg-keep"></a></dt>
@@ -115,8 +118,8 @@ print the assets information to the console.</p></dd>
     <div class="section level2">
     <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
 
-<ul><li><p><code>assets_download()</code>: Downloads the shinylive assets bundle from GitHub and
-extracts it to the specified directory. The bundle will always be
+<ul><li><p><code>assets_download()</code>: Downloads the shinylive assets bundle from GitHub (or
+<code>url</code>) and extracts it to the specified directory. The bundle will always be
 downloaded from GitHub, even if it already exists in the cache directory
 (<code>dir=</code>).</p></li>
 <li><p><code>assets_ensure()</code>: Ensures a local copy of shinylive is installed. If a local
