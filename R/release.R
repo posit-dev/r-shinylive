@@ -8,6 +8,16 @@ release_bullets <- function() {
       "CRAN release. Then move the `actions-v1` tag to that commit ",
       "(see `.agents/skills/update-actions-tag/SKILL.md`). Remove this bullet ",
       "afterwards."
+    ),
+    paste0(
+      "After CRAN accepts the release with floating assets versions ",
+      "(posit-dev/r-shinylive#218), update the `assets-version` input ",
+      "description in `.github/workflows/deploy-app.yaml` and the comment in ",
+      "`examples/deploy-app.yaml`: an empty value now uses the newest release ",
+      "in the package's series, and a series such as `0.11.*` is accepted. ",
+      "Then move the `actions-v1` tag to that commit (see ",
+      "`.agents/skills/update-actions-tag/SKILL.md`). Do not move it before ",
+      "the release. Remove this bullet afterwards."
     )
   )
 }
