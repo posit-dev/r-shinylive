@@ -42,8 +42,13 @@ jobs:
         id: assets-version
         shell: Rscript {0}
         run: |
+          # Do not download here: the assets cache is restored after this step
+          version <- shinylive:::resolve_assets_version(
+            shinylive:::assets_version_input(NULL),
+            download = FALSE
+          )
           cat(
-            "version=", shinylive::assets_version(),
+            "version=", version,
             file = Sys.getenv("GITHUB_OUTPUT"),
             append = TRUE,
             sep = ""
