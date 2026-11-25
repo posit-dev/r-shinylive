@@ -92,7 +92,7 @@ built assets is commented out because py-shinylive does not follow
 | `cache-version` | `"1"` | Passed to `setup-r-package`; change it to bust the R package cache. No description. |
 | `app-dir` | `"."` | Folder with the app, relative to the repo root. |
 | `shinylive-version` | `"posit-dev/r-shinylive"` | pak reference for the shinylive R package. A TODO says to switch to `shinylive` (CRAN) after the next CRAN release. |
-| `assets-version` | `""` | Empty uses the installed package's default; a version pins it; `latest` asks `gh api` for the newest posit-dev/shinylive release. A leading `v` is removed. |
+| `assets-version` | `""` | Empty passes `NULL` to `export()`, so the installed package picks the version (with the dev package, the newest release in its series; the input description still says "default version" until the release bullet is done); a version or series such as `0.10.*` is passed through; `latest` asks `gh api` for the newest posit-dev/shinylive release. A leading `v` is removed. |
 
 `build` job: checkout, `setup-r-package` with `renv`, the shinylive
 reference, and `sessioninfo`; installs the app's packages with
@@ -129,9 +129,16 @@ for assets bumps or R-only changes.
 
 ## Release helpers
 
-- `release_bullets()` in `R/release.R` (internal) adds one checklist item to
-  `usethis::use_release_issue()`: after CRAN accepts the release, change the
-  `shinylive-version` default to `shinylive` and move `actions-v1`.
+- `release_bullets()` in `R/release.R` (internal) adds two checklist items to
+  `usethis::use_release_issue()`. Both wait until CRAN accepts the release,
+  then end with moving `actions-v1`:
+  - Change the `shinylive-version` default in `deploy-app.yaml` to
+    `shinylive`.
+  - Update the `assets-version` input description in `deploy-app.yaml` and
+    the comment in `examples/deploy-app.yaml` for floating assets versions
+    ([posit-dev/r-shinylive#218](https://github.com/posit-dev/r-shinylive/issues/218)):
+    an empty value uses the newest release in the package's series, and a
+    series such as `0.11.*` is accepted.
 - `NEWS.md`: `# shinylive (development version)` at the top, then
   `## Bug fixes and minor improvements` (also `## New features`,
   `## Lifecycle changes`, `## Bug fixes` in older releases). Bullets start
@@ -191,6 +198,13 @@ and more. A test `R CMD build` confirmed the tarball holds only
   pushed PR head.
 - **Escape dots in `.Rbuildignore`.** Patterns are regular expressions, so
   write `^\.venv$`, not `^.venv$` (where `.` means "any character").
+- **The test-assets cache key step downloads the assets.** Since
+  [posit-dev/r-shinylive#218](https://github.com/posit-dev/r-shinylive/issues/218),
+  `shinylive::assets_version()` resolves the series and downloads the chosen
+  version if it is missing, and this step runs before `actions/cache`
+  restores. So the cache saves no download time. The key also changes when a
+  new patch release comes out. To fix it, read the version without
+  downloading (for example `resolve_assets_version(..., download = FALSE)`).
 - **`R_USER_CACHE_DIR` in the test-assets job sets the assets cache path.**
   rappdirs reads it before anything else. If you change it, change the
   `actions/cache` `path` to match, or the cache will miss.
