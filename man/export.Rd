@@ -41,7 +41,15 @@ not set.}
 of the output app's static assets. Logical, defaults to \code{TRUE}. The default
 value can be changed by setting the environment variable
 \code{SHINYLIVE_WASM_PACKAGES} to \code{TRUE} or \code{1} to enable, \code{FALSE} or \code{0} to
-disable.}
+disable.
+
+The CRAN package \code{webr} is never included. webR has its own built-in
+package named \code{webr} (with functions like \code{webr::install()}), and it is
+loaded before the app starts, so the CRAN package can't be loaded in
+Shinylive. If your app needs functions from the CRAN \code{webr} package, copy
+them into your app's code instead. Packages that the CRAN \code{webr} package
+uses, like \code{moonBook} or \code{rrtable}, are still included when your app uses
+them directly.}
 
 \item{package_cache}{Cache downloaded binary WebAssembly packages. Defaults
 to \code{TRUE}.}

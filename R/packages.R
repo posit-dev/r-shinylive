@@ -1,5 +1,10 @@
 SHINYLIVE_DEFAULT_MAX_FILESIZE <- "100MB"
 SHINYLIVE_WASM_PACKAGES <- TRUE
+# Packages built into webR that are never downloaded, even when the app calls
+# them or `SHINYLIVE_DOWNLOAD_WASM_CORE_PACKAGES` lists them. webR's own `webr`
+# package (`webr::install()`, `webr::mount()`) is loaded before the app runs,
+# so the unrelated CRAN package of the same name could never be loaded.
+WEBR_BUILTIN_PKGS <- c("webr")
 
 # Sys env maximum filesize for asset bundling
 sys_env_max_filesize <- function() {
@@ -383,6 +388,8 @@ download_wasm_packages <- function(
   if (length(pkgs_download_core) > 0) {
     shiny_pkgs <- setdiff(shiny_pkgs, pkgs_download_core)
   }
+  # Added after the allow list above, so it can't opt these back in
+  shiny_pkgs <- union(shiny_pkgs, WEBR_BUILTIN_PKGS)
 
   # App dependencies, ignoring base webR + shiny packages
   pkgs_app <- unique(renv::dependencies(appdir, quiet = is_quiet())$Package)
