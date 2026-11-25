@@ -48,8 +48,8 @@ Runs on push to `main` and `rc-**`, on PRs to `main`, and every Monday at
 
 ### R-CMD-check-test-assets
 
-Ubuntu only. Sets up R with `needs: check`, reads
-`shinylive::assets_version()` into a step output, and caches
+Ubuntu only. Sets up R with `needs: check`, reads the assets version
+(resolved without downloading) into a step output, and caches
 `~/.cache/shinylive` with `actions/cache@v4` under the key
 `shinylive-assets-<version>`. Then runs `r-lib/actions/check-r-package@v2`
 with `TEST_ASSETS: "TRUE"` and `--as-cran`, and prints `testthat.Rout*` and
@@ -198,13 +198,12 @@ and more. A test `R CMD build` confirmed the tarball holds only
   pushed PR head.
 - **Escape dots in `.Rbuildignore`.** Patterns are regular expressions, so
   write `^\.venv$`, not `^.venv$` (where `.` means "any character").
-- **The test-assets cache key step downloads the assets.** Since
-  [posit-dev/r-shinylive#218](https://github.com/posit-dev/r-shinylive/issues/218),
-  `shinylive::assets_version()` resolves the series and downloads the chosen
-  version if it is missing, and this step runs before `actions/cache`
-  restores. So the cache saves no download time. The key also changes when a
-  new patch release comes out. To fix it, read the version without
-  downloading (for example `resolve_assets_version(..., download = FALSE)`).
+- **The test-assets cache key step must not download the assets.** It runs
+  before `actions/cache` restores, so it calls
+  `shinylive:::resolve_assets_version(..., download = FALSE)` instead of
+  `shinylive::assets_version()`, which downloads the version it picks. The key
+  still changes when a new patch release in the series comes out, which is
+  what we want: the tests then run against the new assets.
 - **`R_USER_CACHE_DIR` in the test-assets job sets the assets cache path.**
   rappdirs reads it before anything else. If you change it, change the
   `actions/cache` `path` to match, or the cache will miss.
