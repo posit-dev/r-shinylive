@@ -381,3 +381,65 @@ test_that("assets_cleanup() removes old temp files only", {
     c("extract-new", "versions.json")
   )
 })
+
+test_that("assets_ensure(url=) and assets_download(url=) never use GitHub", {
+  dir <- withr::local_tempdir()
+  withr::local_options(shinylive.quiet = TRUE)
+  withr::local_envvar(SHINYLIVE_ASSETS_VERSION = NA)
+  assets_version_reset()
+  withr::defer(assets_version_reset())
+  local_mocked_bindings(
+    fetch_latest_assets_version = function() stop("must not check"),
+    fetch_assets_versions = function() stop("must not check")
+  )
+  # The mirror holds a newer 0.10.x than the fallback that is chosen
+  url <- paste0("file://", local_assets_tarball("0.10.99"))
+
+  path <- assets_ensure("0.10.*", dir = dir, url = url)
+  expect_equal(path, fs::path(dir, "shinylive-0.10.99"))
+  expect_false(fs::file_exists(versions_json_path(dir)))
+
+  dir2 <- withr::local_tempdir()
+  assets_download("0.10.*", dir = dir2, url = url)
+  expect_equal(basename(fs::dir_ls(dir2)), "shinylive-0.10.99")
+})
+
+test_that("assets_ensure(url=) errors when an exact version is not in the tarball", {
+  dir <- withr::local_tempdir()
+  withr::local_options(shinylive.quiet = TRUE)
+  url <- paste0("file://", local_assets_tarball("0.10.99"))
+
+  expect_error(
+    assets_ensure("0.10.98", dir = dir, url = url),
+    "shinylive-0.10.98"
+  )
+  expect_equal(fs::dir_ls(dir), character(0), ignore_attr = TRUE)
+})
+
+test_that("assets_download() fails a stalled download", {
+  dir <- withr::local_tempdir()
+  withr::local_options(shinylive.quiet = TRUE)
+  local_mocked_bindings(
+    req_perform = function(req, ...) {
+      expect_equal(req$options$low_speed_limit, 1)
+      expect_equal(req$options$low_speed_time, 60)
+      stop("Operation too slow")
+    },
+    .package = "httr2"
+  )
+
+  expect_error(
+    assets_download("0.10.99", dir = dir, url = "https://mirror/x.tar.gz"),
+    "too slow"
+  )
+})
+
+test_that("a bad SHINYLIVE_ASSETS_VERSION names the env var", {
+  dir <- withr::local_tempdir()
+  withr::local_envvar(SHINYLIVE_ASSETS_VERSION = "0.10.x")
+
+  expect_error(assets_version_input(NULL), "SHINYLIVE_ASSETS_VERSION")
+  expect_error(assets_cleanup(dir = dir), "SHINYLIVE_ASSETS_VERSION")
+  # An explicit version still wins
+  expect_equal(assets_version_input("0.10.16"), "0.10.16")
+})

@@ -19,10 +19,12 @@ parse_assets_version <- function(x, arg = rlang::caller_arg(x)) {
   }
   cli::cli_abort(c(
     "{.arg {arg}} must be a valid Shinylive assets version.",
-    "i" = "Use an exact version ({.val 0.10.16}), a series ({.val 0.10.*}), or {.val latest}.",
+    "i" = assets_version_hint,
     "x" = "Received: {.val {x}}"
   ))
 }
+
+assets_version_hint <- "Use an exact version ({.val 0.10.16}), a series ({.val 0.10.*}), or {.val latest}."
 
 version_parts <- function(x) {
   as.integer(strsplit(x, ".", fixed = TRUE)[[1]])
@@ -226,7 +228,7 @@ fetch_latest_assets_version <- function() {
 }
 
 latest_tag_version <- function(url) {
-  if (!grepl("/releases/tag/v[0-9.]+$", url)) {
+  if (!grepl("/releases/tag/v[0-9]+(\\.[0-9]+)*$", url)) {
     cli::cli_abort(
       "Can't find the latest Shinylive assets version in {.url {url}}."
     )
@@ -272,7 +274,24 @@ assets_version_input <- function(version = NULL) {
     return(version)
   }
   env <- Sys.getenv("SHINYLIVE_ASSETS_VERSION")
-  if (nzchar(env)) env else SHINYLIVE_ASSETS_VERSION_DEFAULT
+  if (!nzchar(env)) {
+    return(SHINYLIVE_ASSETS_VERSION_DEFAULT)
+  }
+  # Check it here, so the error says where the bad value came from
+  tryCatch(
+    parse_assets_version(env),
+    error = function(e) {
+      cli::cli_abort(
+        c(
+          "Bad {.envvar SHINYLIVE_ASSETS_VERSION} environment variable.",
+          "i" = assets_version_hint,
+          "x" = "Received: {.val {env}}"
+        ),
+        call = NULL
+      )
+    }
+  )
+  env
 }
 
 # Versions of the downloaded assets in `dir`
@@ -345,10 +364,18 @@ resolve_assets_version <- function(
   }
   chosen <- max_version(matches)
 
+  # This warns in every R process until the next check, on purpose: each
+  # process may use an old version.
   if (stale) {
+    checked_at <- format(info$checked_at, VERSIONS_TIME_FORMAT, tz = "UTC")
+    retry_at <- format(
+      info$checked_at + VERSIONS_RETRY_HOURS * 3600,
+      VERSIONS_TIME_FORMAT,
+      tz = "UTC"
+    )
     cli::cli_warn(c(
-      "The last check for new Shinylive assets releases failed. Using {.field v{chosen}}, which may not be the newest {.val {spec$value}} release.",
-      "x" = "{info$error}",
+      "The check for new Shinylive assets releases at {checked_at} failed: {info$error}",
+      "i" = "Using {.field v{chosen}}, which may not be the newest {.val {spec$value}} release. GitHub is checked again after {retry_at}.",
       "i" = "Set {.envvar GITHUB_PAT} if GitHub is limiting requests, or pass an exact version."
     ))
   }
@@ -362,26 +389,28 @@ resolve_assets_version <- function(
       error = function(e) {
         failed <- chosen
         fallback <- SHINYLIVE_ASSETS_VERSION_FALLBACK
+        fallback_error <- NULL
         if (
           length(local_matches) == 0 &&
             chosen != fallback &&
             assets_version_matches(fallback, spec)
         ) {
-          ok <- tryCatch(
+          fallback_error <- tryCatch(
             {
               assets_download(fallback, dir = dir)
-              TRUE
+              local_matches <- fallback
+              NULL
             },
-            error = function(e2) FALSE
+            error = function(e2) conditionMessage(e2)
           )
-          if (ok) {
-            local_matches <- fallback
-          }
         }
         if (length(local_matches) == 0) {
           cli::cli_abort(
             c(
               "Can't download Shinylive assets {.field v{chosen}}.",
+              "x" = if (!is.null(fallback_error)) {
+                "The fallback {.field v{fallback}} also failed: {fallback_error}"
+              },
               "i" = "Shinylive assets must be downloaded once while online.",
               "i" = "Or pass the exact version of downloaded assets."
             ),

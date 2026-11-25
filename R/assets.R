@@ -2,8 +2,8 @@
 #'
 #' Helper methods for managing shinylive assets.
 #'
-#' @describeIn assets Downloads the shinylive assets bundle from GitHub and
-#'    extracts it to the specified directory. The bundle will always be
+#' @describeIn assets Downloads the shinylive assets bundle from GitHub (or
+#'    `url`) and extracts it to the specified directory. The bundle will always be
 #'    downloaded from GitHub, even if it already exists in the cache directory
 #'    (`dir=`).
 #' @param version The version of the assets: an exact version (`"0.10.16"`), a
@@ -14,8 +14,11 @@
 #' @param ... Ignored.
 #' @param dir The asset cache directory. Unless testing, the default behavior
 #'    should be used.
-#' @param url The URL to download the assets from. Unless testing, the default
-#'    behavior should be used.
+#' @param url The URL of an assets tarball to download, such as a mirror.
+#'    When set, GitHub is never used: the version is chosen from the saved
+#'    release list and the downloaded assets. For a series or `"latest"`, the
+#'    tarball may hold any matching version. For an exact version, the tarball
+#'    must hold a `shinylive-<version>` folder.
 #' @export
 #' @return
 #' `assets_version()` returns the version of the currently supported Shinylive.
@@ -33,11 +36,24 @@ assets_download <- function(
   dir = assets_cache_dir(),
   url = assets_bundle_url(version, dir = dir)
 ) {
+  # With a custom `url` (such as a mirror), GitHub is never used
+  custom_url <- !missing(url)
+  spec <- parse_assets_version(assets_version_input(version))
   version <- resolve_assets_version(
-    assets_version_input(version),
+    spec$value,
     dir = dir,
-    download = FALSE
+    download = FALSE,
+    check = !custom_url
   )
+  download_assets_tarball(url, version = version, spec = spec, dir = dir)
+  invisible(dir)
+}
+
+# Downloads the tarball at `url` and moves its `shinylive-<version>` folder into
+# `dir`. For a series or `"latest"` (`spec`), the tarball may hold a different
+# matching version, such as a newer one from a mirror; that folder is used
+# instead. Returns the version that was moved into place.
+download_assets_tarball <- function(url, version, spec, dir) {
   tmp_targz <- tempfile(
     paste0("shinylive-", gsub(".", "_", version, fixed = TRUE), "-"),
     fileext = ".tar.gz"
@@ -52,14 +68,14 @@ assets_download <- function(
     add = TRUE
   )
 
-  existed_before <- fs::dir_exists(assets_dir_impl(
-    dir = dir,
-    version = version
-  ))
+  local_before <- local_assets_versions(dir)
 
   cli_progress_step("Downloading shinylive assets {.field v{version}}")
   req <- httr2::request(url)
   req <- httr2::req_progress(req)
+  # Fail a stalled download (no data for 60 seconds), but let a slow download
+  # that keeps receiving data finish
+  req <- httr2::req_options(req, low_speed_limit = 1, low_speed_time = 60)
   httr2::req_perform(req, path = tmp_targz)
 
   cli_progress_step("Unzipping shinylive assets to {.path {dir}}")
@@ -69,9 +85,10 @@ assets_download <- function(
   tmp_dir <- tempfile("extract-", tmpdir = dir)
   on.exit(unlink(tmp_dir, recursive = TRUE), add = TRUE)
   archive::archive_extract(tmp_targz, tmp_dir)
+  version <- tarball_assets_version(tmp_dir, version, spec, url)
   target_dir <- assets_dir_impl(dir = dir, version = version)
   if (fs::dir_exists(target_dir)) {
-    if (existed_before) {
+    if (version %in% local_before) {
       # A re-download replaces the old folder. Move it aside first, so the
       # folder is missing only between two renames, not during a delete.
       old_dir <- tempfile("old-", tmpdir = dir)
@@ -91,7 +108,7 @@ assets_download <- function(
       # Another R process just finished the same download. Keep its folder,
       # which it may be reading from.
       cli_progress_done()
-      return(invisible(dir))
+      return(version)
     }
   }
   tryCatch(
@@ -105,7 +122,27 @@ assets_download <- function(
   )
 
   cli_progress_done()
-  invisible(dir)
+  version
+}
+
+# Returns the version of the assets folder extracted into `tmp_dir`: `version`
+# if its folder is there, or else (for a series or `"latest"`) the highest
+# matching version in the tarball.
+tarball_assets_version <- function(tmp_dir, version, spec, url) {
+  if (fs::dir_exists(assets_dir_impl(dir = tmp_dir, version = version))) {
+    return(version)
+  }
+  if (spec$kind != "exact") {
+    found <- local_assets_versions(tmp_dir)
+    found <- found[assets_version_matches(found, spec)]
+    if (length(found) > 0) {
+      return(max_version(found))
+    }
+  }
+  cli::cli_abort(
+    "The tarball at {.url {url}} has no {.file {shinylive_prefix}{version}} folder.",
+    call = NULL
+  )
 }
 
 
@@ -283,15 +320,31 @@ assets_ensure <- function(
     cli_alert_info("Creating assets cache directory {.path {dir}}")
     fs::dir_create(dir)
   }
+  # With a custom `url` (such as a mirror), GitHub is never used: the version
+  # comes from `versions.json` and the downloaded folders.
+  custom_url <- !missing(url)
+  spec <- parse_assets_version(assets_version_input(version))
   version <- resolve_assets_version(
-    assets_version_input(version),
-    dir = dir
+    spec$value,
+    dir = dir,
+    download = !custom_url,
+    check = !custom_url
   )
 
   assets_path <- assets_dir(version, dir = dir)
   if (!fs::dir_exists(assets_path)) {
     cli_alert_warning("{.path {assets_path}} assets directory does not exist.")
-    assets_download(url = url, version = version, dir = dir)
+    if (custom_url) {
+      version <- download_assets_tarball(
+        url,
+        version = version,
+        spec = spec,
+        dir = dir
+      )
+      assets_path <- assets_dir(version, dir = dir)
+    } else {
+      assets_download(version, dir = dir)
+    }
   }
 
   invisible(assets_path)
@@ -403,8 +456,8 @@ remove_stale_temp_files <- function(dir, minutes = 10, now = Sys.time()) {
 }
 
 assets_cleanup_keep_default <- function() {
-  env <- Sys.getenv("SHINYLIVE_ASSETS_VERSION")
-  unique(c(SHINYLIVE_ASSETS_VERSION_DEFAULT, if (nzchar(env)) env))
+  # `assets_version_input()` also rejects a bad SHINYLIVE_ASSETS_VERSION
+  unique(c(SHINYLIVE_ASSETS_VERSION_DEFAULT, assets_version_input(NULL)))
 }
 
 
