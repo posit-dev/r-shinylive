@@ -215,6 +215,8 @@ and `index.html` are not written. Details are in `wasmPackages.md`.
   one with only `server.R` passes.
 - **Stale comment in `inspect_dir()`** mentions `fs::dir_walk(all = FALSE)`;
   the code uses base `dir()`.
-- **`export()` calls `assets_version()` and prints its first messages before
-  checking `appdir`.** A bad `appdir` still prints "Exporting Shiny app
-  from" first when not quiet.
+- **`export()` prints its first messages before checking `appdir`.** A bad
+  `appdir` still prints "Exporting Shiny app from" first when not quiet. The
+  assets version is resolved later, after all argument checks, because
+  `resolve_assets_version()` may use the network or download assets. Keep new
+  argument checks above that call.

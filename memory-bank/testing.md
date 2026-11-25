@@ -32,7 +32,8 @@ Results on this machine (assets 0.10.16 already cached):
 | `tests/testthat/setup-skip.R` | `can_test_assets()`, `is_interactive_or_test_assets()`, `skip_if_assets_unavailable()`. |
 | `tests/testthat/test-setup-skip.R` | Checks that `can_test_assets()` accepts `1`, `true`, `TRUE` and rejects `0`, `false`, `""`. |
 | `tests/testthat/test-assertions.R` | Argument checks in `R/utils.R`, `R/app_json.R`, `R/deps.R`, `R/assets.R`, `R/quarto_ext.R`; `cran_is_testing()` and the `assets_cache_dir()` CRAN guard. |
-| `tests/testthat/test-assets.R` | `assets_dirs()`, `assets_path_webr_r_version()`, the webR R version of the default assets; offline tests for `assets_dir(dir=)`, `assets_ensure(dir=)`, stray cache entries, `assets_info()` with nothing installed, and `check_assets_url()` on a 404. |
+| `tests/testthat/test-assets.R` | `assets_dirs()`, `assets_path_webr_r_version()`, the webR R version of the default assets; offline tests for `assets_dir(dir=)`, `assets_ensure(dir=)`, stray cache entries, `assets_info()` (nothing installed, the default series, the last check, unresolved), `check_assets_url()` on a 404, `assets_path_version()`, `assets_cleanup()` (`keep=` series and exact versions, `SHINYLIVE_ASSETS_VERSION`, old temp files), `assets_install_copy()` outside the default series, and `assets_download()` moving the extracted folder into place (partial folders, races with another process, failed moves). |
+| `tests/testthat/test-assets_version.R` | Offline tests for `R/assets_version.R`: `parse_assets_version()`, series matching, reading and writing `versions.json`, when the daily GitHub check runs or is skipped (including during CRAN checks), failed checks keeping old data, `resolve_assets_version()` (highest match, offline use of downloaded versions, the fallback version, session memory, `"latest"`, exact versions and the outside-default warning), `assets_version_input()` order, and that `assets_bundle_url()`, `check_assets_url()`, and `quarto_ext info` do not download. GitHub and downloads are mocked. |
 | `tests/testthat/test-app_json.R` | Offline `read_app_files()` tests (non-UTF-8 text, app inside `destdir`, app folder with an excluded name, relative `destdir`), `export()` into its own `appdir`, and `write_app_json()` over a custom template's other files. |
 | `tests/testthat/test-deps.R` | `shinylive_common_dep_htmldep()` uses `version` and defaults `dep_type` to `"base"`. Uses a fake assets folder. |
 | `tests/testthat/test-export.R` | `export()` end to end: `app.R`, `ui.R`/`server.R`, `subdir`, custom template, Wasm packages, `max_filesize`, non-UTF-8 paths, deprecated `verbose`. Also offline `check_subdir()` tests. |
@@ -65,8 +66,9 @@ Tests that call `skip_if_assets_unavailable()` (the 20 skips):
 | `test-export.R` | The six `export()` tests (not the two `check_subdir()`/`subdir` tests). |
 | `test-quarto_ext.R` | The first eight tests, including the three argument-error tests (not the two `build_app_resources()` tests). |
 
-The new offline tests in `test-app_json.R`, `test-assets.R`, `test-deps.R`,
-`test-quarto_ext.R`, and `test-utils.R` use temp folders (often a fake assets
+The offline tests in `test-app_json.R`, `test-assets.R`,
+`test-assets_version.R`, `test-deps.R`, `test-quarto_ext.R`, and
+`test-utils.R` use temp folders (often a fake assets
 folder or `SHINYLIVE_WASM_PACKAGES = "FALSE"`), so they run without assets.
 
 Asset tests call `assets_ensure()`, which downloads the default assets into
